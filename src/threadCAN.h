@@ -1,0 +1,50 @@
+#ifndef __THREADCAN_H
+#define __THREADCAN_H
+
+#include <vector>
+#include "mbed.h"
+#include "privateCAN.h"
+
+#define CAN_MAIL_BUFFER_SIZE    100
+
+class ThreadCAN {
+protected:
+    class Registered {
+        public:
+            int idMin, idMax;
+            void *object;
+            void *method;
+            Registered(int min, int max, void *f, void *o = nullptr) :
+                idMin(min), idMax(max), method(f), object(o) {}
+    };
+    vector<Registered *> m_ids; 
+    Mail<CANMessage, CAN_MAIL_BUFFER_SIZE> *m_mailReadMsg;
+    Mail<CANMessage, CAN_MAIL_BUFFER_SIZE> *m_mailWriteMsg;
+    BufferedSerial *m_pc;
+    PrivateCAN *m_can;
+    enum CAN_FLAGS {
+        CAN_MSG_RD_LOST = 1,
+        CAN_MSG_WR_LOST = 2
+    };
+    EventFlags m_canFlags;
+    void serialToCanBusMachine();
+    void attach();
+    static void attachThread(ThreadCAN *p) { p->attach(); }
+    static void serialThread(ThreadCAN *p) { p->serialToCanBusMachine(); }
+    void sendCanBusToSerial(const CANMessage &msg);
+    void dispatch();
+    static void dispatchThread(ThreadCAN *p) { p->dispatch(); }
+    void write();
+    static void writeThread(ThreadCAN *p) { p->write(); }
+    Thread m_readThread, m_dispatchThread, m_writeThread;
+public:
+    ThreadCAN(bool serialEmul = false, PinName rd = PB_5, PinName td = PB_13);
+    ~ThreadCAN();
+    void registerIds(int idMin, int idMax, void (*func)(CANMessage *));
+    void registerIds(int idMin, int idMax, void *obj, void(*func)(void *, CANMessage *));
+    void send(const CANMessage &msg);
+    void send(uint32_t id, const char *data, int len = 8);
+    void sendRemote(uint32_t id, int len = 0);
+};
+
+#endif
