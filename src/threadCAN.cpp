@@ -268,6 +268,45 @@ void ThreadCAN::send(uint32_t id, const char *data, int len)
     send(CANMessage(id, data, len));
 }
 
+void ThreadCAN::send(uint32_t id)
+{
+    CANMessage msg;
+    msg.id = id;
+    msg.len = 0;
+    send(msg);
+}
+
+void ThreadCAN::send(uint32_t id, unsigned short d1, unsigned short d2)
+{
+    CANMessage msg;
+    msg.id=id;
+    msg.len=4;
+    msg.data[0]=(unsigned char)d1;
+    msg.data[1]=(unsigned char)(d1>>8);
+    msg.data[2]=(unsigned char)d2;
+    msg.data[3]=(unsigned char)(d2>>8);
+    send(msg);
+}
+
+void ThreadCAN::send(uint32_t id, unsigned char data)
+{
+    CANMessage msg;
+    msg.id=id;
+    msg.len=1;
+    msg.data[0]=data;
+    send(msg);    
+}
+
+void ThreadCAN::sendAck(uint32_t id, unsigned short from)
+{
+    CANMessage msg;
+    msg.id = id;
+    msg.len = 2;
+    msg.data[0]=(unsigned char)from;
+    msg.data[1]=(unsigned char)(from>>8);
+    send(msg);
+}
+
 void ThreadCAN::sendRemote(uint32_t id, int len)
 {
     CANMessage msg;

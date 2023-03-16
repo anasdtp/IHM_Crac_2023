@@ -49,9 +49,9 @@ void ThreadSD::runSDCard()
                     m_fs.unmount();
                     delete bd;
                     bd = nullptr;
-                    ThisThread::sleep_for(1000);
+                    ThisThread::sleep_for(1s);
                 } else {
-                    ThisThread::sleep_for(500);
+                    ThisThread::sleep_for(500ms);
                     etat = 1;
                 }
             }

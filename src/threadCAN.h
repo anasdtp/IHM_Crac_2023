@@ -44,6 +44,10 @@ public:
     void registerIds(int idMin, int idMax, void *obj, void(*func)(void *, CANMessage *));
     void send(const CANMessage &msg);
     void send(uint32_t id, const char *data, int len = 8);
+    void send(uint32_t id);
+    void send(uint32_t id, unsigned short d1, unsigned short d2);
+    void send(uint32_t id, unsigned char data);
+    void sendAck(uint32_t id, unsigned short from);
     void sendRemote(uint32_t id, int len = 0);
 };
 
