@@ -35,7 +35,7 @@ ThreadCAN::~ThreadCAN()
         delete m_can;
         m_can = nullptr;
     }
-    for (int i=0; i<m_ids.size(); i++) delete m_ids[i];
+    for (unsigned int i=0; i<m_ids.size(); i++) delete m_ids[i];
     m_ids.clear();
     delete m_mailReadMsg;
     m_mailReadMsg = nullptr;
@@ -202,7 +202,7 @@ void ThreadCAN::dispatch()
     while (1) {
             CANMessage *canMsg = m_mailReadMsg->try_get_for(Kernel::wait_for_u32_forever);
             int id = canMsg->id;
-            for (int i=0; i<m_ids.size(); i++) {
+            for (unsigned int i=0; i<m_ids.size(); i++) {
                 if ((id>=m_ids[i]->idMin)&&(id<=m_ids[i]->idMax)) {
                     if (m_ids[i]->object != nullptr) {
                         reinterpret_cast<void (*)(void *, CANMessage *)>(m_ids[i]->method)(m_ids[i]->object, canMsg);

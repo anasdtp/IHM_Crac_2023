@@ -60,10 +60,10 @@ protected:
         p->runSDCard();
     }
     Thread m_mainThread;
-    int16_t m_error;
     Dossier *m_root, *m_current;
     char *m_reply;
     bool m_superUser;
+    int16_t m_error;
     CANMessage m_canMsg;
     ThreadCAN *m_tcan;
     File m_currentFile;

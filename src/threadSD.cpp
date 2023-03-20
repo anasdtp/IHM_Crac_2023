@@ -704,13 +704,12 @@ void ThreadSD::canFileSystem()
     static char *reply;
     static int replySize;
     static int memoCmd;
-    static int sizeSrc, sizeDest, recuSrc, recuDest;
+    static int sizeSrc, recuSrc;
     static char *dataSrc = nullptr;
-    static char *dataDest = nullptr;
     static char memo[50];
     static int totalSize = 0;
 
-    if (m_canMsg.id == ID_FS_0) {
+    if (m_canMsg.id == (unsigned int)ID_FS_0) {
         if (m_canMsg.type == CANData) {
             if (m_canMsg.len == 8) {
                 int n = (recuSrc+8 <= sizeSrc) ? 8 : sizeSrc-recuSrc;
@@ -766,7 +765,7 @@ void ThreadSD::canFileSystem()
                 m_tcan->sendRemote(ID_FS_0);
             }
         }
-    } else if (m_canMsg.id == ID_FS_1) {
+    } else if (m_canMsg.id == (unsigned int)ID_FS_1) {
         if (m_canMsg.type == CANRemote) {
             if (replySize > 0) {
                 m_tcan->send(ID_FS_1, reply);
@@ -774,7 +773,7 @@ void ThreadSD::canFileSystem()
                 replySize -= 8;
             }
         }
-    } else if (m_canMsg.id == ID_FS_2) {
+    } else if (m_canMsg.id == (unsigned int)ID_FS_2) {
         if (m_canMsg.type == CANData) {
             if (m_canMsg.len == 8) {
                 int n = (recuSrc+8 <= sizeSrc) ? 8 : sizeSrc-recuSrc;

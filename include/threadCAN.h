@@ -15,7 +15,7 @@ protected:
             void *object;
             void *method;
             Registered(int min, int max, void *f, void *o = nullptr) :
-                idMin(min), idMax(max), method(f), object(o) {}
+                idMin(min), idMax(max), object(o), method(f) {}
     };
     vector<Registered *> m_ids; 
     Mail<CANMessage, CAN_MAIL_BUFFER_SIZE> *m_mailReadMsg;
