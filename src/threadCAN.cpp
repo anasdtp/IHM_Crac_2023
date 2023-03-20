@@ -47,12 +47,11 @@ void ThreadCAN::attach()
 {
     CANMessage *canMsg;
     if (m_mailReadMsg->full()) { // si boite pleine, on vire le plus ancien message
-        osEvent evt = m_mailReadMsg->get();
-        canMsg = (CANMessage *)evt.value.p;
+        canMsg = m_mailReadMsg->try_get();
         m_mailReadMsg->free(canMsg);
         m_canFlags.set(CAN_MSG_RD_LOST);
     }
-    canMsg = m_mailReadMsg->alloc();
+    canMsg = m_mailReadMsg->try_alloc();
     m_can->read(*canMsg);
     m_mailReadMsg->put(canMsg);
 }
@@ -132,12 +131,11 @@ void ThreadCAN::serialToCanBusMachine()
                 if (c == checksum) {
                     CANMessage *canMsg;
                     if (m_mailReadMsg->full()) { // si boite pleine, on vire le plus ancien message
-                        osEvent evt = m_mailReadMsg->get();
-                        canMsg = (CANMessage *)evt.value.p;
+                        canMsg = m_mailReadMsg->try_get();
                         m_mailReadMsg->free(canMsg);
                         m_canFlags.set(CAN_MSG_RD_LOST);
                     }
-                    canMsg = m_mailReadMsg->alloc();
+                    canMsg = m_mailReadMsg->try_alloc();
                     *canMsg = msg;
                     m_mailReadMsg->put(canMsg);
                 }
@@ -202,9 +200,7 @@ void ThreadCAN::registerIds(int idMin, int idMax, void *obj, void (*func)(void *
 void ThreadCAN::dispatch()
 {
     while (1) {
-        osEvent evt = m_mailReadMsg->get();
-        if (evt.status == osEventMail) {
-            CANMessage *canMsg = (CANMessage *)evt.value.p;
+            CANMessage *canMsg = m_mailReadMsg->try_get_for(Kernel::wait_for_u32_forever);
             int id = canMsg->id;
             for (int i=0; i<m_ids.size(); i++) {
                 if ((id>=m_ids[i]->idMin)&&(id<=m_ids[i]->idMax)) {
@@ -217,16 +213,13 @@ void ThreadCAN::dispatch()
                 }
             }
             m_mailReadMsg->free(canMsg);
-        }
     }
 }
 
 void ThreadCAN::write()
 {
     while (1) {
-        osEvent evt = m_mailWriteMsg->get();
-        if (evt.status == osEventMail) {
-            CANMessage *canMsg = (CANMessage *)evt.value.p;
+            CANMessage *canMsg = m_mailWriteMsg->try_get_for(Kernel::wait_for_u32_forever);
             if (m_can) {
                 if (!m_can->write(*canMsg)) {
                     bool ok;
@@ -237,7 +230,7 @@ void ThreadCAN::write()
                     }
                     if (!ok) {
                         while (!m_can->write(*canMsg)) {
-                            ThisThread::sleep_for(10);
+                            ThisThread::sleep_for(10ms);
                         }
                     }
                 }
@@ -246,19 +239,17 @@ void ThreadCAN::write()
             }
             m_mailWriteMsg->free(canMsg);
         }
-    }
 }
 
 void ThreadCAN::send(const CANMessage &msg)
 {
     CANMessage *canMsg;
     if (m_mailWriteMsg->full()) { // si boite pleine, on vire le plus ancien message
-        osEvent evt = m_mailWriteMsg->get();
-        canMsg = (CANMessage *)evt.value.p;
+        canMsg = m_mailWriteMsg->try_get();
         m_mailWriteMsg->free(canMsg);
         m_canFlags.set(CAN_MSG_WR_LOST);
     }
-    canMsg = m_mailWriteMsg->alloc();
+    canMsg = m_mailWriteMsg->try_alloc();
     *canMsg = msg;
     m_mailWriteMsg->put(canMsg);
 }

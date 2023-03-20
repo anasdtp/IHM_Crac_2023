@@ -9,37 +9,35 @@ static bool compInf(Fichier *f1, Fichier *f2)
 
 bool Fichier::isValidChar(char c)
 {
-    if ((c>='A')&&(c<='Z')) return true;
-    if ((c>='a')&&(c<='z')) return true;
-    if ((c>='0')&&(c<='9')) return true;
-    if (c=='_')  return true;
-    return false;
+    if ((unsigned char)(c)<32) return false;
+    if (c=='/') return false;
+    if (c=='\\') return false;
+    if (c==':') return false;
+    if (c=='*') return false;
+    if (c=='?') return false;
+    if (c=='"') return false;
+    if (c=='<') return false;
+    if (c=='>') return false;
+    if (c=='{') return false;
+    if (c=='}') return false;
+    if (c=='!') return false;
+    return true;
 }
 
 bool Fichier::isValidName(const string &str, bool isDir)
 {
     const char *n = str.c_str();
     if (n == nullptr) return false;
-    if (!isValidChar(n[0])) return false;
+    if (str.size() == 0) return false;
+    if (n[0] == ' ') return false;
     int i;
     char c;
-    for (i=1; i<9; i++) {
+    for (i=0; i<str.size(); i++) {
         c = n[i];
         if (isValidChar(c)) continue;
-        if (c=='\0') return true;
-        if (c=='.') break;
         return false;
     }
-    if (isDir) return false;
-    if (c!='.') return false;
-    int j = i+1;
-    for (i=j; i<j+4; i++) {
-        c = n[i];
-        if (isValidChar(c)) continue;
-        if (c=='\0') return true;
-        return false;
-    }
-    return false;
+    return true;
 }
 
 void Fichier::actualiseFullName()
@@ -194,7 +192,7 @@ string Dossier::serialize()
 {
     string s = getFullName();
     for (unsigned int i=0; i<m_dossiers.size(); i++) {
-        s += "|" + m_dossiers[i]->getName();
+        s += "*" + m_dossiers[i]->getName();
     }
     for (unsigned int i=0; i<m_fichiers.size(); i++) {
         s += ":" + m_fichiers[i]->getName();
@@ -458,7 +456,7 @@ void Dossier::fill(char *message)
     char *p = message;
     int debut = 0;
     while (*p != '\0') {
-        if (*p == '|') {
+        if (*p == '*') {
             *p = '\0';
             if (debut == 1) addDir(message);
             else if (debut == 2) addFile(message);
