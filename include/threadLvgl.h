@@ -12,7 +12,6 @@ protected:
         p->runLvgl();
     }
     Thread m_mainThread;
-    void displayInit();
     void touchpadInit();  
 public:
     ThreadLvgl();
