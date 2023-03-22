@@ -21,7 +21,7 @@
 
 /* Maximal horizontal and vertical resolution to support by the library.*/
 #define LV_HOR_RES_MAX          (800)
-#define LV_VER_RES_MAX          (600)
+#define LV_VER_RES_MAX          (480)
 
 /* Color depth:
  * - 1:  1 byte per pixel
@@ -192,10 +192,10 @@ typedef void * lv_group_user_data_t;
 
 /* 1: Enable GPU interface*/
 #define LV_USE_GPU              1   /*Only enables `gpu_fill_cb` and `gpu_blend_cb` in the disp. drv- */
-#define LV_USE_GPU_STM32_DMA2D  0
+#define LV_USE_GPU_STM32_DMA2D  1
 /*If enabling LV_USE_GPU_STM32_DMA2D, LV_GPU_DMA2D_CMSIS_INCLUDE must be defined to include path of CMSIS header of target processor
 e.g. "stm32f769xx.h" or "stm32f429xx.h" */
-#define LV_GPU_DMA2D_CMSIS_INCLUDE
+#define LV_GPU_DMA2D_CMSIS_INCLUDE  "stm32f469xx.h"
 
 /*1: Use PXP for CPU off-load on NXP RTxxx platforms */
 #define LV_USE_GPU_NXP_PXP      0

@@ -8,7 +8,8 @@ TS_StateTypeDef TS_State;
 ThreadLvgl::ThreadLvgl()
 {
     displayInit();
-    touchpadInit();    
+    touchpadInit();
+    lv_task_handler();
     m_mainThread.start(callback(ThreadLvgl::run, this));
 }
 
@@ -20,13 +21,15 @@ ThreadLvgl::~ThreadLvgl()
 void ThreadLvgl::runLvgl()
 {
     while (1) {
-        lv_tick_inc(5); 
+        lv_tick_inc(10); 
         //Call lv_tick_inc(x) every x milliseconds in a Timer or Task (x should be between 1 and 10). 
         //It is required for the internal timing of LittlevGL.
-        lv_task_handler(); 
+        mutex.lock();
+        lv_task_handler();
+        mutex.unlock(); 
         //Call lv_task_handler() periodically every few milliseconds. 
         //It will redraw the screen if required, handle input devices etc.
-        ThisThread::sleep_for(5ms);
+        ThisThread::sleep_for(10ms);
     }
 }
 

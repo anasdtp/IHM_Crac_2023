@@ -6,6 +6,7 @@
 class ThreadLvgl
 {
 protected:
+    Mutex mutex;
     void runLvgl();
     static void run(ThreadLvgl *p)
     {
@@ -17,6 +18,8 @@ protected:
 public:
     ThreadLvgl();
     ~ThreadLvgl();
+    void lock() { mutex.lock(); }
+    void unlock() { mutex.unlock(); }
 };
 
 #endif
