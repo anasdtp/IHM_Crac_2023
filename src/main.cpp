@@ -8,9 +8,6 @@
 
 #include "SDIOBlockDevice.h"
 
-#include "TS_DISCO_F469NI.h"
-#include "LCD_DISCO_F469NI.h"
-
 #include "threadCAN.h"
 #include "threadSD.h"
 #include "threadLvgl.h"
@@ -19,11 +16,9 @@
 #include <fstream>
 
 #include "lvgl.h"
+#include "lv_demo_widgets.h"
 
-LCD_DISCO_F469NI lcd(LCD_ORIENTATION_LANDSCAPE);
-TS_DISCO_F469NI ts;
-
-ThreadCAN threadCAN(true);
+ThreadCAN threadCAN(false);
 ThreadSD threadSD;
 
 static void event_handler(lv_event_t * e)
@@ -67,94 +62,97 @@ int main ()
 
     ThreadLvgl threadLvgl;
 
-    lv_example_btn_1();
+    threadLvgl.mutex.lock();
+//    lv_example_btn_1();
+    lv_demo_widgets();
+    threadLvgl.mutex.unlock();
 
     while (1) {
       ThisThread::sleep_for(1s);
     }
 
-    char buf[100];
+//     char buf[100];
 
-    lcd.DisplayStringAt(0, LINE(0), (uint8_t *)"DETECTION CARTE SD", CENTER_MODE);
-    lcd.DisplayStringAt(0, LINE(2), (uint8_t *)"SD INIT", CENTER_MODE);
+//     lcd.DisplayStringAt(0, LINE(0), (uint8_t *)"DETECTION CARTE SD", CENTER_MODE);
+//     lcd.DisplayStringAt(0, LINE(2), (uint8_t *)"SD INIT", CENTER_MODE);
 
-    int secReboot = 60;
-    while (1) {
-        int flag;
-        flag = threadSD.status();
-        sprintf(buf, "flag = %04X", flag);
-        lcd.DisplayStringAt(0, LINE(4), (uint8_t *)buf, CENTER_MODE);
-        if (flag & ThreadSD::FLAG_NO_CARD) sprintf(buf, "Carte SD absente"); else sprintf(buf, "Carte SD presente");
-        lcd.DisplayStringAt(0, LINE(6), (uint8_t *)buf, CENTER_MODE);
-        sprintf(buf, "Reboot dans %2ds", secReboot);
-        lcd.DisplayStringAt(0, LINE(8), (uint8_t *)buf, CENTER_MODE);
-        if (flag & ThreadSD::FLAG_READY) break;
-        ThisThread::sleep_for(1s);
-        if (secReboot-- <= 0) NVIC_SystemReset();
-    }
+//     int secReboot = 60;
+//     while (1) {
+//         int flag;
+//         flag = threadSD.status();
+//         sprintf(buf, "flag = %04X", flag);
+//         lcd.DisplayStringAt(0, LINE(4), (uint8_t *)buf, CENTER_MODE);
+//         if (flag & ThreadSD::FLAG_NO_CARD) sprintf(buf, "Carte SD absente"); else sprintf(buf, "Carte SD presente");
+//         lcd.DisplayStringAt(0, LINE(6), (uint8_t *)buf, CENTER_MODE);
+//         sprintf(buf, "Reboot dans %2ds", secReboot);
+//         lcd.DisplayStringAt(0, LINE(8), (uint8_t *)buf, CENTER_MODE);
+//         if (flag & ThreadSD::FLAG_READY) break;
+//         ThisThread::sleep_for(1s);
+//         if (secReboot-- <= 0) NVIC_SystemReset();
+//     }
 
-    sprintf(buf, "Liste des fichiers");
-    lcd.DisplayStringAt(0, LINE(8), (uint8_t *)buf, CENTER_MODE);
-    // Attend que la carte SD soit prête
-    threadSD.waitReady();
-    // Liste les dossiers et fichiers présents sur la carte
-    threadSD.ls();
-    // Récupère le résultat sous la forme *dossier1*dossier2*dossier3:fichier1:fichier2:fichier3?   * pour dossier  : pour fichier  ? pour fin
-    string txt(threadSD.getReply());
-    lcd.DisplayStringAt(0, LINE(9), (uint8_t *)txt.c_str(), CENTER_MODE);
-    // Enlève le ? à la fin
-    if (!txt.empty()) txt.pop_back();
-    vector <string> fichiers;
-    stringstream txtStream(txt);
-    string item;
-    // Ignore tous les dossiers
-    if (getline (txtStream, item, ':')) {
-        while (getline (txtStream, item, ':')) {
-            // Range chaque nom de fichier dans un tableau de string
-            fichiers.push_back (item);
-        }
-    }
+//     sprintf(buf, "Liste des fichiers");
+//     lcd.DisplayStringAt(0, LINE(8), (uint8_t *)buf, CENTER_MODE);
+//     // Attend que la carte SD soit prête
+//     threadSD.waitReady();
+//     // Liste les dossiers et fichiers présents sur la carte
+//     threadSD.ls();
+//     // Récupère le résultat sous la forme *dossier1*dossier2*dossier3:fichier1:fichier2:fichier3?   * pour dossier  : pour fichier  ? pour fin
+//     string txt(threadSD.getReply());
+//     lcd.DisplayStringAt(0, LINE(9), (uint8_t *)txt.c_str(), CENTER_MODE);
+//     // Enlève le ? à la fin
+//     if (!txt.empty()) txt.pop_back();
+//     vector <string> fichiers;
+//     stringstream txtStream(txt);
+//     string item;
+//     // Ignore tous les dossiers
+//     if (getline (txtStream, item, ':')) {
+//         while (getline (txtStream, item, ':')) {
+//             // Range chaque nom de fichier dans un tableau de string
+//             fichiers.push_back (item);
+//         }
+//     }
 
-    int line = 10;
-    for (string fic : fichiers) {
-        lcd.DisplayStringAt(0, LINE(line++), (uint8_t *)fic.c_str(), CENTER_MODE);
-    }
+//     int line = 10;
+//     for (string fic : fichiers) {
+//         lcd.DisplayStringAt(0, LINE(line++), (uint8_t *)fic.c_str(), CENTER_MODE);
+//     }
 
-    if (fichiers.empty()) {
-        sprintf(buf, "Aucun fichier sur la carte");
-        lcd.DisplayStringAt(0, LINE(line++), (uint8_t *)buf, CENTER_MODE);
-        while (1) {
-            sprintf(buf, "Reboot dans %2ds", secReboot);
-            lcd.DisplayStringAt(0, LINE(8), (uint8_t *)buf, CENTER_MODE);
-            ThisThread::sleep_for(1s);
-            if (secReboot-- <= 0) NVIC_SystemReset();
-        }
-    }
-/*
-ifstream monFlux("/sd/main.cpp");  //Ouverture d'un fichier en lecture
+//     if (fichiers.empty()) {
+//         sprintf(buf, "Aucun fichier sur la carte");
+//         lcd.DisplayStringAt(0, LINE(line++), (uint8_t *)buf, CENTER_MODE);
+//         while (1) {
+//             sprintf(buf, "Reboot dans %2ds", secReboot);
+//             lcd.DisplayStringAt(0, LINE(8), (uint8_t *)buf, CENTER_MODE);
+//             ThisThread::sleep_for(1s);
+//             if (secReboot-- <= 0) NVIC_SystemReset();
+//         }
+//     }
+// /*
+// ifstream monFlux("/sd/main.cpp");  //Ouverture d'un fichier en lecture
 
-if(monFlux)
-{
-    //Tout est prêt pour la lecture.
-    string ligne;
-    while (getline(monFlux, ligne)) {//On lit une ligne complète
-        printf("%s\n", ligne.c_str());
-    }
-    monFlux.close();
-}
-else
-{
-    printf("ERREUR: Impossible d'ouvrir le fichier en lecture.\n");
-}
-*/
+// if(monFlux)
+// {
+//     //Tout est prêt pour la lecture.
+//     string ligne;
+//     while (getline(monFlux, ligne)) {//On lit une ligne complète
+//         printf("%s\n", ligne.c_str());
+//     }
+//     monFlux.close();
+// }
+// else
+// {
+//     printf("ERREUR: Impossible d'ouvrir le fichier en lecture.\n");
+// }
+// */
 
-    while (1) {
-        ThisThread::sleep_for(1s);
-//        automate_etat_ihm();
-//         Strategie();//Boucle dans l'automate principal
-//         //gestion_Message_CAN();   
-//         canProcessRx();  
-    }
+//     while (1) {
+//         ThisThread::sleep_for(1s);
+// //        automate_etat_ihm();
+// //         Strategie();//Boucle dans l'automate principal
+// //         //gestion_Message_CAN();   
+// //         canProcessRx();  
+//     }
 }
 
 /*

@@ -14,6 +14,7 @@ protected:
     Thread m_mainThread;
     void touchpadInit();  
 public:
+    Mutex mutex;
     ThreadLvgl();
     ~ThreadLvgl();
 };

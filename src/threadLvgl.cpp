@@ -4,10 +4,11 @@
 #include "lvgl.h"
 #include "lv_port_disp.h"
 
-TS_StateTypeDef TS_State; 
-    
+lv_indev_t * indev_touchpad;
+
 ThreadLvgl::ThreadLvgl()
 {
+    lv_init();
     lv_port_disp_init();
     touchpadInit();    
     m_mainThread.start(callback(ThreadLvgl::run, this));
@@ -24,7 +25,9 @@ void ThreadLvgl::runLvgl()
         lv_tick_inc(5); 
         //Call lv_tick_inc(x) every x milliseconds in a Timer or Task (x should be between 1 and 10). 
         //It is required for the internal timing of LittlevGL.
-        lv_timer_handler(); 
+        mutex.lock();
+        lv_task_handler();
+        mutex.unlock(); 
         //Call lv_task_handler() periodically every few milliseconds. 
         //It will redraw the screen if required, handle input devices etc.
         ThisThread::sleep_for(5ms);
@@ -69,25 +72,47 @@ void ThreadLvgl::runLvgl()
 //     lv_disp_flush_ready(disp_drv);
 // }
 
-static void touchpad_read(lv_indev_drv_t *indev, lv_indev_data_t *data){
-    // Read your touchpad
+/*------------------
+ * Touchpad
+ * -----------------*/
+
+/*Will be called by the library to read the touchpad*/
+static void touchpad_read(lv_indev_drv_t * indev_drv, lv_indev_data_t * data)
+{
+    static lv_coord_t last_x = 0;
+    static lv_coord_t last_y = 0;
+
+    /*Save the pressed coordinates and the state*/
+    TS_StateTypeDef TS_State; 
+    
     BSP_TS_GetState(&TS_State);
     if(TS_State.touchDetected) {
-        data->point.x = TS_State.touchX[0];
-        data->point.y = TS_State.touchY[0];
+        last_x = TS_State.touchX[0];
+        last_y = TS_State.touchY[0];
         data->state = LV_INDEV_STATE_PR;
-    } else {
-        data->point.x = 0;
-        data->point.y = 0;
+    }
+    else {
         data->state = LV_INDEV_STATE_REL;
     }
+
+    /*Set the last pressed coordinates*/
+    data->point.x = last_x;
+    data->point.y = last_y;
 }
 
 void ThreadLvgl::touchpadInit(void){
+    static lv_indev_drv_t indev_drv;
+
+    /*------------------
+     * Touchpad
+     * -----------------*/
+
+    /*Initialize your touchpad if you have*/
     BSP_TS_Init(420, 272);
-    lv_indev_drv_t indev_drv;                       //Descriptor of an input device driver
-    lv_indev_drv_init(&indev_drv);                  //Basic initialization
-    indev_drv.type = LV_INDEV_TYPE_POINTER;         //The touchpad is pointer type device
-    indev_drv.read_cb = touchpad_read;              //Set the touchpad_read function
-    lv_indev_drv_register(&indev_drv);              //Register touch driver in LvGL
+
+    /*Register a touchpad input device*/
+    lv_indev_drv_init(&indev_drv);
+    indev_drv.type = LV_INDEV_TYPE_POINTER;
+    indev_drv.read_cb = touchpad_read;
+    indev_touchpad = lv_indev_drv_register(&indev_drv);
 }
