@@ -181,7 +181,7 @@
 #if LV_USE_GPU_STM32_DMA2D
     /*Must be defined to include path of CMSIS header of target processor
     e.g. "stm32f769xx.h" or "stm32f429xx.h"*/
-    #define LV_GPU_DMA2D_CMSIS_INCLUDE  "stm32f4xx.h"
+    #define LV_GPU_DMA2D_CMSIS_INCLUDE  "stm32f469xx.h"
 #endif
 
 /*Use SWM341's DMA2D GPU*/

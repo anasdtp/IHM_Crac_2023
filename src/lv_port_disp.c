@@ -12,6 +12,9 @@
 #include "lv_port_disp.h"
 #include <stdbool.h>
 #include "../BSP_DISCO_F469NI/Drivers/STM32469I-Discovery/stm32469i_discovery_lcd.h"
+#include "../lvgl/src/draw/stm32_dma2d/lv_gpu_stm32_dma2d.h"
+
+extern LTDC_HandleTypeDef  hltdc_eval;
 
 /*********************
  *      DEFINES
@@ -48,7 +51,6 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
-static lv_color_t buf_1[MY_DISP_HOR_RES * 10];                          /*A buffer for 10 rows*/
 
 void lv_port_disp_init(void)
 {
@@ -83,14 +85,15 @@ void lv_port_disp_init(void)
      */
 
     /* Example for 1) */
+    static lv_color_t buf_1[MY_DISP_HOR_RES * 48];                          /*A buffer for 10 rows*/
     static lv_disp_draw_buf_t draw_buf_dsc_1;
-    lv_disp_draw_buf_init(&draw_buf_dsc_1, buf_1, NULL, MY_DISP_HOR_RES * 10);   /*Initialize the display buffer*/
+    lv_disp_draw_buf_init(&draw_buf_dsc_1, buf_1, NULL, MY_DISP_HOR_RES * 48);   /*Initialize the display buffer*/
 
     // /* Example for 2) */
-    // static lv_disp_draw_buf_t draw_buf_dsc_2;
-    // static lv_color_t buf_2_1[MY_DISP_HOR_RES * 10];                        /*A buffer for 10 rows*/
-    // static lv_color_t buf_2_2[MY_DISP_HOR_RES * 10];                        /*An other buffer for 10 rows*/
-    // lv_disp_draw_buf_init(&draw_buf_dsc_2, buf_2_1, buf_2_2, MY_DISP_HOR_RES * 10);   /*Initialize the display buffer*/
+    // static lv_disp_draw_buf_t draw_buf_dsc_1;
+    // static lv_color_t buf_2_1[MY_DISP_HOR_RES * 24];                        /*A buffer for 10 rows*/
+    // static lv_color_t buf_2_2[MY_DISP_HOR_RES * 24];                        /*An other buffer for 10 rows*/
+    // lv_disp_draw_buf_init(&draw_buf_dsc_1, buf_2_1, buf_2_2, MY_DISP_HOR_RES * 24);   /*Initialize the display buffer*/
 
     // /* Example for 3) also set disp_drv.full_refresh = 1 below*/
     // static lv_disp_draw_buf_t draw_buf_dsc_3;
@@ -173,18 +176,33 @@ static void disp_flush(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_colo
     if(disp_flush_enabled) {
         /*The most simple case (but also the slowest) to put all pixels to the screen one-by-one*/
 
-        int32_t x;
-        int32_t y;
-        for(y = area->y1; y <= area->y2; y++) {
-            for(x = area->x1; x <= area->x2; x++) {
-                /*Put a pixel to the display. For example:*/
-                /*put_px(x, y, *color_p)*/
-                BSP_LCD_DrawPixel( x, y, color_p->full);
-                color_p++;
-            }
-        }
-    }
+        // int32_t x;
+        // int32_t y;
+        // for(y = area->y1; y <= area->y2; y++) {
+        //     for(x = area->x1; x <= area->x2; x++) {
+        //         /*Put a pixel to the display. For example:*/
+        //         /*put_px(x, y, *color_p)*/
+        //         BSP_LCD_DrawPixel( x, y, color_p->full);
+        //         color_p++;
+        //     }
+        // }
 
+        // int32_t y;
+        // uint8_t *c = (uint8_t *)(color_p);
+        // int d = (area->x2 - area->x1 + 1)*4;
+        // uint32_t *p = (uint32_t *)(hltdc_eval.LayerCfg[LTDC_ACTIVE_LAYER_BACKGROUND].FBStartAdress + (4*(area->y1*BSP_LCD_GetXSize() + area->x1)));
+        // for(y = area->y1; y <= area->y2; y++) {
+        //     memcpy(p, c, d);
+        //     p+=800;
+        //     c+=d;
+        // }
+
+        lv_color_t *fbp32 = (lv_color_t *)hltdc_eval.LayerCfg[LTDC_ACTIVE_LAYER_BACKGROUND].FBStartAdress;
+
+        lv_draw_stm32_dma2d_buffer_copy(NULL, fbp32 + area->y1 * LV_HOR_RES + area->x1,
+			(lv_coord_t) LV_HOR_RES, area, color_p, area->x2 - area->x1 + 1, area);
+    }
+    
     /*IMPORTANT!!!
      *Inform the graphics library that you are ready with the flushing*/
     lv_disp_flush_ready(disp_drv);
