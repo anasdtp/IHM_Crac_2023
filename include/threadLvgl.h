@@ -25,7 +25,6 @@ protected:
     static void lvTimeCounter();
     void setRefreshEnable(bool enabled = true) { refreshEnabled = enabled; }
 public:
-    Mutex mutex;
     ThreadLvgl(int refreshTimeInit = 5);
     ~ThreadLvgl();
     void lock() { mutex.lock(); }

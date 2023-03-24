@@ -62,10 +62,10 @@ int main ()
 
     ThreadLvgl threadLvgl;
 
-    threadLvgl.mutex.lock();
+    threadLvgl.lock();
 //    lv_example_btn_1();
     lv_demo_widgets();
-    threadLvgl.mutex.unlock();
+    threadLvgl.unlock();
 
     while (1) {
       ThisThread::sleep_for(1s);
