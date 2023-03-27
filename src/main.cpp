@@ -17,7 +17,7 @@
 
 #include <lvgl.h>
 
-ThreadCAN threadCAN(true);
+ThreadCAN threadCAN(false);
 ThreadSD threadSD;
 ThreadLvgl threadLvgl;
 Ihm ihm(&threadLvgl);
@@ -62,7 +62,20 @@ int main ()
     ihm.matchInit(fichiers);
 
     while (1) {
-      ThisThread::sleep_for(1s);
+      if (ihm.departClicked()) {
+        if (ihm.choixCouleur() == Ihm::VERT) {
+          printf("Départ vert ");
+        } else {
+          printf("Départ bleu ");
+        }
+        int choix = ihm.choixStrategie();
+        if (choix == -1) {
+          printf("par défaut\n");
+        } else {
+          printf("%s\n", fichiers[choix].c_str());
+        }
+      }
+      ThisThread::sleep_for(10ms);
     }
 
 // ifstream monFlux("/sd/main.cpp");  //Ouverture d'un fichier en lecture

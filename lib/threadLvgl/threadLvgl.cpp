@@ -204,8 +204,6 @@ Ihm::Ihm(ThreadLvgl *t)
     // lv_obj_t * t2 = lv_tabview_add_tab(tabView, "Match");
     // lv_obj_t * t3 = lv_tabview_add_tab(tabView, "Config");
     sdInit(tabSdInit);
-    // initMatch(t2);
-    // initConfig(t3);
 
     t->unlock();    
 }
@@ -231,35 +229,96 @@ void Ihm::sdMsg(const char *msg1, const char *msg2)
     m_threadLvgl->unlock();
 }
 
-void Ihm::matchInit(vector <string> fichiers)
+void Ihm::matchInit(const vector <string> fichiers)
 {
     m_threadLvgl->lock();
+    // Création de l'onglet tabMatch
     tabMatch = lv_tabview_add_tab(tabView, "Match");
-    lv_obj_t * titre = lv_label_create(tabMatch);
+
+    /*Column 1: 3 unit from the remaining free space
+     *Column 2: 1 unit from the remaining free space*/
+    static lv_coord_t col_dsc[] = {LV_GRID_FR(5), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
+
+    /*Row 1: 30 pixels
+     *Row 2: 1 unit from the remaining free space
+     *Row 3: 1 unit from the remaining free space*/
+    static lv_coord_t row_dsc[] = {30, LV_GRID_FR(2), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
+
+    /*Create a container with grid*/
+    lv_obj_t * cont = lv_obj_create(tabMatch);
+    lv_obj_center(cont);
+    lv_obj_update_layout(tabMatch);
+    lv_obj_set_size(cont, lv_obj_get_content_width(tabMatch), lv_obj_get_content_height(tabMatch));
+    lv_obj_set_grid_dsc_array(cont, col_dsc, row_dsc);
+
+    lv_obj_t * titre = lv_label_create(cont);
     lv_obj_set_style_text_font(titre, &liberation_24, 0);
     lv_label_set_text(titre, LV_SYMBOL_SD_CARD " Stratégie");
-    lv_obj_align(titre, LV_ALIGN_TOP_LEFT, 0, 0);
-    lv_obj_t *roller = lv_roller_create(tabMatch);
-    string choix;
-    for (auto f : fichiers) choix += "\n" + f;
-    lv_roller_set_options(roller, choix.c_str(), LV_ROLLER_MODE_NORMAL);
-    lv_obj_set_width(roller, 500);
-    lv_obj_align(roller, LV_ALIGN_TOP_LEFT, 0, 30);
+    lv_obj_set_grid_cell(titre, LV_GRID_ALIGN_STRETCH, 0, 1,
+                         LV_GRID_ALIGN_STRETCH, 0, 1);
+
+    roller = lv_roller_create(cont);
+    matchRollerSetOptions(fichiers, false);
     lv_obj_set_style_text_font(roller, &liberation_24, 0);
     lv_roller_set_selected(roller, 1, LV_ANIM_OFF);
-    lv_roller_set_visible_row_count(roller, 8);
+    lv_obj_set_grid_cell(roller, LV_GRID_ALIGN_STRETCH, 0, 1,
+                         LV_GRID_ALIGN_STRETCH, 1, 2);
 
-    lv_obj_t *couleur = lv_btn_create(tabMatch);
-    lv_obj_align(couleur, LV_ALIGN_RIGHT_MID, 0, 0);
+    couleur = lv_btn_create(cont);
     lv_obj_t * label = lv_label_create(couleur);
-    lv_obj_set_height(couleur, 240);
     lv_label_set_text(label, "Couleur");
     lv_obj_add_flag(couleur, LV_OBJ_FLAG_CHECKABLE);
-    lv_obj_set_style_bg_color(couleur, lv_palette_main(LV_PALETTE_GREEN), LV_STATE_DEFAULT);
-    lv_obj_set_style_bg_color(couleur, lv_palette_main(LV_PALETTE_BLUE), LV_STATE_CHECKED);
+    lv_obj_set_style_bg_color(couleur, lv_color_make(0,170,18), LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(couleur, lv_color_make(0,92,230), LV_STATE_CHECKED);
     lv_obj_center(label);
+    lv_obj_set_grid_cell(couleur, LV_GRID_ALIGN_STRETCH, 1, 1,
+                         LV_GRID_ALIGN_STRETCH, 0, 2);
+
+    depart = lv_btn_create(cont);
+    label = lv_label_create(depart);
+    lv_label_set_text(label, "Départ");
+    lv_obj_set_style_bg_color(depart, lv_palette_main(LV_PALETTE_RED), LV_STATE_DEFAULT);
+    lv_obj_center(label);
+    lv_obj_set_grid_cell(depart, LV_GRID_ALIGN_STRETCH, 1, 1,
+                         LV_GRID_ALIGN_STRETCH, 2, 1);
+    lv_obj_add_event_cb(depart, Ihm::eventHandler, LV_EVENT_CLICKED, this);
 
     lv_tabview_set_act(tabView, 1, LV_ANIM_ON);
-    
+
     m_threadLvgl->unlock();
 }
+
+void Ihm::matchRollerSetOptions(const vector <string> fichiers, bool lock)
+{
+    string choix;
+    for (auto f : fichiers) choix += "\n" + f;
+    if (lock) m_threadLvgl->lock();
+    lv_roller_set_options(roller, choix.c_str(), LV_ROLLER_MODE_NORMAL);
+    if (lock) m_threadLvgl->unlock();
+}
+
+void Ihm::eventHandler(lv_event_t *e)
+{
+    Ihm *ihm = static_cast<Ihm *>(lv_event_get_user_data(e));
+    lv_obj_t *emetteur = lv_event_get_target(e);
+
+    if (emetteur == ihm->depart) {
+        ihm->departCouleur = lv_obj_get_state(ihm->couleur);
+        ihm->departStrategie = int(lv_roller_get_selected(ihm->roller)) - 1;
+        ihm->flags.set(IHM_FLAG_DEPART);
+        //printf("Départ %hu %d\n", state, selection);
+        ihm->m_threadLvgl->lock();
+        lv_tabview_set_act(ihm->tabView, 0, LV_ANIM_ON);
+        ihm->m_threadLvgl->unlock();
+    }
+}
+
+bool Ihm::departClicked(bool clearIfSet)
+{
+    if (flags.get() & IHM_FLAG_DEPART) {
+        if (clearIfSet) flags.clear(IHM_FLAG_DEPART);
+        return true;
+    }
+    return false;
+}
+

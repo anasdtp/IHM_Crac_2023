@@ -38,17 +38,32 @@ public:
 class Ihm
 {
 protected:
+    enum {IHM_FLAG_DEPART = 1};
+    EventFlags flags;
     ThreadLvgl *m_threadLvgl;
     lv_style_t styleTitre;
+    // Initialisation de la carte SD
     lv_obj_t *tabView;
-    lv_obj_t *tabMatch;
     lv_obj_t *msgSdInit1, *msgSdInit2;
     lv_obj_t *tabSdInit;
+    // Onglet "match"
+    lv_obj_t *tabMatch;
+    lv_obj_t *roller;
+    lv_obj_t *couleur;
+    lv_obj_t *depart;
+    int departCouleur;
+    int departStrategie;
     void sdInit(lv_obj_t *parent);
+    static void eventHandler(lv_event_t *e);
 public:
+    enum {VERT = 0, BLEU = 1};
     Ihm(ThreadLvgl *t);
     void sdMsg(const char *msg1, const char *msg2 = "");
-    void matchInit(vector <string> fichiers);
+    void matchInit(const vector <string> fichiers);
+    void matchRollerSetOptions(const vector <string> fichiers, bool lock = true);
+    bool departClicked(bool clearIfSet = true);
+    int choixStrategie() { return departStrategie; }
+    int choixCouleur() { return departCouleur; }
 };
 
 #endif
