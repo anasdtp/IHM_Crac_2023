@@ -11,6 +11,7 @@
 #include <threadCAN.h>
 #include <threadSD.h>
 #include <threadLvgl.h>
+#include <deplacement.h>
 
 #include <sstream>
 #include <fstream>
@@ -21,6 +22,7 @@ ThreadCAN threadCAN(true);
 ThreadSD threadSD;
 ThreadLvgl threadLvgl;
 Ihm ihm(&threadLvgl);
+Deplacement deplacement(threadCAN);
 
 int main ()
 {

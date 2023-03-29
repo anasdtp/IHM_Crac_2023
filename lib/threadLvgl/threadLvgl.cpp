@@ -5,9 +5,9 @@
 #include "lvgl_fs_driver.h"
 
 bool ThreadLvgl::refreshEnabled = true;
-int ThreadLvgl::refreshTime = 5;
+int ThreadLvgl::refreshTime = 30;
 
-ThreadLvgl::ThreadLvgl(int refreshTimeInit)
+ThreadLvgl::ThreadLvgl(int refreshTimeInit) : m_mainThread(osPriorityBelowNormal)
 {
     displayInit();
     touchpadInit();
@@ -30,9 +30,6 @@ void ThreadLvgl::lvTimeCounter()
 void ThreadLvgl::runLvgl()
 {
     while (1) {
-        //lv_tick_inc(5); 
-        //Call lv_tick_inc(x) every x milliseconds in a Timer or Task (x should be between 1 and 10). 
-        //It is required for the internal timing of LittlevGL.
         mutex.lock();
         lv_task_handler();
         mutex.unlock(); 

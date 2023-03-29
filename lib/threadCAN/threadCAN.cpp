@@ -1,6 +1,6 @@
 #include "threadCAN.h"
 
-ThreadCAN::ThreadCAN(bool serialEmul, PinName rd, PinName td)
+ThreadCAN::ThreadCAN(bool serialEmul, PinName rd, PinName td) : m_readThread(osPriorityHigh), m_dispatchThread(osPriorityHigh), m_writeThread(osPriorityAboveNormal)
 {
     m_mailReadMsg = new Mail<CANMessage, CAN_MAIL_BUFFER_SIZE>;
     m_mailWriteMsg = new Mail<CANMessage, CAN_MAIL_BUFFER_SIZE>;
@@ -299,34 +299,111 @@ void ThreadCAN::send(uint32_t id)
     send(msg);
 }
 
-void ThreadCAN::send(uint32_t id, unsigned short d1, unsigned short d2)
+void ThreadCAN::send(uint32_t id, uint16_t d1)
+{
+    CANMessage msg;
+    msg.id=id;
+    msg.len=2;
+    msg.data[0]=(uint8_t)d1;
+    msg.data[1]=(uint8_t)(d1>>8);
+    send(msg);
+}
+
+void ThreadCAN::send(uint32_t id, uint16_t d1, uint16_t d2)
 {
     CANMessage msg;
     msg.id=id;
     msg.len=4;
-    msg.data[0]=(unsigned char)d1;
-    msg.data[1]=(unsigned char)(d1>>8);
-    msg.data[2]=(unsigned char)d2;
-    msg.data[3]=(unsigned char)(d2>>8);
+    msg.data[0]=(uint8_t)d1;
+    msg.data[1]=(uint8_t)(d1>>8);
+    msg.data[2]=(uint8_t)d2;
+    msg.data[3]=(uint8_t)(d2>>8);
     send(msg);
 }
 
-void ThreadCAN::send(uint32_t id, unsigned char data)
+void ThreadCAN::send(uint32_t id, uint16_t d1, uint16_t d2, uint16_t d3)
+{
+    CANMessage msg;
+    msg.id=id;
+    msg.len=6;
+    msg.data[0]=(uint8_t)d1;
+    msg.data[1]=(uint8_t)(d1>>8);
+    msg.data[2]=(uint8_t)d2;
+    msg.data[3]=(uint8_t)(d2>>8);
+    msg.data[4]=(uint8_t)d3;
+    msg.data[5]=(uint8_t)(d3>>8);
+    send(msg);
+}
+
+void ThreadCAN::send(uint32_t id, uint16_t d1, uint16_t d2, uint16_t d3, uint8_t d4)
+{
+    CANMessage msg;
+    msg.id=id;
+    msg.len=7;
+    msg.data[0]=(uint8_t)d1;
+    msg.data[1]=(uint8_t)(d1>>8);
+    msg.data[2]=(uint8_t)d2;
+    msg.data[3]=(uint8_t)(d2>>8);
+    msg.data[4]=(uint8_t)d3;
+    msg.data[5]=(uint8_t)(d3>>8);
+    msg.data[6]=d4;
+    send(msg);
+}
+
+void ThreadCAN::send(uint32_t id, uint16_t d1, uint8_t d2, uint16_t d3, uint8_t d4)
+{
+    CANMessage msg;
+    msg.id=id;
+    msg.len=6;
+    msg.data[0]=(uint8_t)d1;
+    msg.data[1]=(uint8_t)(d1>>8);
+    msg.data[2]=(uint8_t)d2;
+    msg.data[3]=(uint8_t)d3;
+    msg.data[4]=(uint8_t)(d3>>8);
+    msg.data[5]=d4;
+    send(msg);
+}
+
+void ThreadCAN::send(uint32_t id, uint16_t d1, uint16_t d2, uint8_t d3, uint8_t d4)
+{
+    CANMessage msg;
+    msg.id=id;
+    msg.len=6;
+    msg.data[0]=(uint8_t)d1;
+    msg.data[1]=(uint8_t)(d1>>8);
+    msg.data[2]=(uint8_t)d2;
+    msg.data[3]=(uint8_t)(d2>>8);
+    msg.data[4]=d3;
+    msg.data[5]=d4;
+    send(msg);
+}
+
+void ThreadCAN::send(uint32_t id, uint8_t d1)
 {
     CANMessage msg;
     msg.id=id;
     msg.len=1;
-    msg.data[0]=data;
+    msg.data[0]=d1;
     send(msg);    
 }
 
-void ThreadCAN::sendAck(uint32_t id, unsigned short from)
+void ThreadCAN::send(uint32_t id, uint8_t d1, uint8_t d2)
+{
+    CANMessage msg;
+    msg.id=id;
+    msg.len=2;
+    msg.data[0]=d1;
+    msg.data[1]=d2;
+    send(msg);    
+}
+
+void ThreadCAN::sendAck(uint32_t id, uint16_t from)
 {
     CANMessage msg;
     msg.id = id;
     msg.len = 2;
-    msg.data[0]=(unsigned char)from;
-    msg.data[1]=(unsigned char)(from>>8);
+    msg.data[0]=(uint8_t)from;
+    msg.data[1]=(uint8_t)(from>>8);
     send(msg);
 }
 

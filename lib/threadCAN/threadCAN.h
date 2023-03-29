@@ -48,9 +48,15 @@ public:
     void send(const CANMessage &msg);
     void send(uint32_t id, const char *data, int len = 8);
     void send(uint32_t id);
-    void send(uint32_t id, unsigned short d1, unsigned short d2);
-    void send(uint32_t id, unsigned char data);
-    void sendAck(uint32_t id, unsigned short from);
+    void send(uint32_t id, uint16_t d1);
+    void send(uint32_t id, uint16_t d1, uint16_t d2);
+    void send(uint32_t id, uint16_t d1, uint16_t d2, uint16_t d3);
+    void send(uint32_t id, uint16_t d1, uint16_t d2, uint16_t d3, uint8_t d4);
+    void send(uint32_t id, uint16_t d1, uint8_t d2, uint16_t d3, uint8_t d4);
+    void send(uint32_t id, uint16_t d1, uint16_t d2, uint8_t d3, uint8_t d4);
+    void send(uint32_t id, uint8_t d1);
+    void send(uint32_t id, uint8_t d1, uint8_t d2);
+    void sendAck(uint32_t id, uint16_t from);
     void sendRemote(uint32_t id, int len = 0);
 };
 
