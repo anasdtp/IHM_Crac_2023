@@ -2,15 +2,16 @@
 #include "../BSP_DISCO_F469NI/Drivers/STM32469I-Discovery/stm32469i_discovery_lcd.h"
 #include "../BSP_DISCO_F469NI/Drivers/STM32469I-Discovery/stm32469i_discovery_ts.h"
 #include "../lvgl/src/draw/stm32_dma2d/lv_gpu_stm32_dma2d.h"
+#include "lvgl_fs_driver.h"
 
 bool ThreadLvgl::refreshEnabled = true;
 int ThreadLvgl::refreshTime = 5;
 
 ThreadLvgl::ThreadLvgl(int refreshTimeInit)
 {
-    lv_init();
     displayInit();
     touchpadInit();
+    lv_fs_stdio_init();
     refreshTime = refreshTimeInit;
     lvTicker.attach(lvTimeCounter, chrono::milliseconds(refreshTime));
     m_mainThread.start(callback(ThreadLvgl::run, this));
@@ -56,7 +57,7 @@ void ThreadLvgl::displayInit(void)
     /*-----------------------------
      * Create a buffer for drawing
      *----------------------------*/
-
+    lv_init();
     /**
      * LVGL requires a buffer where it internally draws the widgets.
      * Later this buffer will passed to your display driver's `flush_cb` to copy its content to your display.
@@ -218,7 +219,15 @@ void Ihm::sdInit(lv_obj_t *parent)
     lv_obj_align(msgSdInit1, LV_ALIGN_CENTER, 0, -10);
     msgSdInit2 = lv_label_create(parent);
     lv_label_set_text(msgSdInit2, "");
-    lv_obj_align(msgSdInit2, LV_ALIGN_CENTER, 0, 40);    
+    lv_obj_align(msgSdInit2, LV_ALIGN_CENTER, 0, 40); 
+
+// exemple image
+    
+    lv_obj_t * img1 = lv_img_create(parent);
+    lv_img_set_src(img1, "A:/images/minion.bin");
+    lv_obj_align(img1, LV_ALIGN_TOP_LEFT, 0, 0);
+    lv_obj_set_size(img1, 255, 255);
+           
 }
 
 void Ihm::sdMsg(const char *msg1, const char *msg2)
@@ -321,4 +330,3 @@ bool Ihm::departClicked(bool clearIfSet)
     }
     return false;
 }
-
