@@ -18,7 +18,7 @@
 
 #include <lvgl.h>
 
-ThreadCAN threadCAN(true);
+ThreadCAN threadCAN(false, PB_8, PB_9);
 ThreadSD threadSD;
 ThreadLvgl threadLvgl;
 Ihm ihm(&threadLvgl);
