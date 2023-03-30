@@ -38,7 +38,12 @@ public:
 class Ihm
 {
 protected:
-    enum {IHM_FLAG_DEPART = 1, IHM_FLAG_REFRESH_SD = 2};
+    typedef enum {
+          IHM_FLAG_DEPART           = 0x00000001,
+          IHM_FLAG_REFRESH_SD       = 0x00000002,
+          IHM_FLAG_RECALAGE         = 0x00000004,
+          IHM_FLAG_START            = 0x00000008,
+          IHM_FLAG_START_CANCEL     = 0x00000010 } IhmFlag;
     EventFlags flags;
     ThreadLvgl *m_threadLvgl;
     lv_style_t styleTitre;
@@ -54,19 +59,30 @@ protected:
     lv_obj_t *depart;
     int departCouleur;
     int departStrategie;
+    // Message Box recalage
+    lv_obj_t *msgBoxRecalage;
+    // Message Box jack
+    lv_obj_t *msgBoxJack;
+
     void sdInit(lv_obj_t *parent);
     static void eventHandler(lv_event_t *e);
+    bool getFlag(IhmFlag f, bool clearIfSet = true);
 public:
     enum {VERT = 0, BLEU = 1};
     Ihm(ThreadLvgl *t);
     void sdMsg(const char *msg1, const char *msg2 = "");
     void matchInit(const vector <string> fichiers);
     void matchRollerSetOptions(const vector <string> fichiers, bool lock = true);
-    bool departClicked(bool clearIfSet = true);
-    bool refreshSDClicked(bool clearIfSet = true);
+    bool departClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_DEPART, clearIfSet); }
+    bool refreshSDClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_REFRESH_SD, clearIfSet); }
+    bool recalageClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_RECALAGE, clearIfSet); }
+    bool jackSimuleClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_START, clearIfSet); }
+    bool jackAnnuleClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_START_CANCEL, clearIfSet); }
     int choixStrategie() { return departStrategie; }
     int choixCouleur() { return departCouleur; }
-    void msgBoxRecalage(const string &strategie);
+    void msgBoxRecalageInit(const string &strategie);
+    void msgBoxJackInit();
+    void msgBoxJackClose();
 };
 
 #endif

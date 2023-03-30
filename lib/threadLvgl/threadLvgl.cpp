@@ -307,17 +307,20 @@ void Ihm::matchInit(const vector<string> fichiers)
 void Ihm::matchRollerSetOptions(const vector<string> fichiers, bool lock)
 {
     string choix;
-    for (auto f : fichiers) choix += "\n" + f;
-    if (lock) m_threadLvgl->lock();
+    for (auto f : fichiers)
+        choix += "\n" + f;
+    if (lock)
+        m_threadLvgl->lock();
     lv_roller_set_options(roller, choix.c_str(), LV_ROLLER_MODE_NORMAL);
     lv_tabview_set_act(tabView, 1, LV_ANIM_ON);
-    if (lock) m_threadLvgl->unlock();
+    if (lock)
+        m_threadLvgl->unlock();
 }
 
 void Ihm::eventHandler(lv_event_t *e)
 {
     Ihm *ihm = static_cast<Ihm *>(lv_event_get_user_data(e));
-    lv_obj_t *emetteur = lv_event_get_target(e);
+    lv_obj_t *emetteur = lv_event_get_current_target(e);
 
     if (emetteur == ihm->depart)
     {
@@ -329,43 +332,79 @@ void Ihm::eventHandler(lv_event_t *e)
     {
         ihm->flags.set(IHM_FLAG_REFRESH_SD);
     }
+    else if (emetteur == ihm->msgBoxRecalage)
+    {
+        ihm->flags.set(IHM_FLAG_RECALAGE);
+    }
+    else if (emetteur == ihm->msgBoxJack)
+    {
+        if (lv_event_get_code(e) == LV_EVENT_DELETE)
+        {
+            ihm->flags.set(IHM_FLAG_START_CANCEL);
+        }
+        else
+        {
+            ihm->flags.set(IHM_FLAG_START);
+        }
+    }
 }
 
-bool Ihm::departClicked(bool clearIfSet)
+bool Ihm::getFlag(IhmFlag f, bool clearIfSet)
 {
-    if (flags.get() & IHM_FLAG_DEPART)
+    if (flags.get() & f)
     {
-        if (clearIfSet) flags.clear(IHM_FLAG_DEPART);
+        if (clearIfSet)
+            flags.clear(f);
         return true;
     }
     return false;
 }
 
-bool Ihm::refreshSDClicked(bool clearIfSet)
-{
-    if (flags.get() & IHM_FLAG_REFRESH_SD)
-    {
-        if (clearIfSet) flags.clear(IHM_FLAG_REFRESH_SD);
-        return true;
-    }
-    return false;
-}
-
-void Ihm::msgBoxRecalage(const string &strategie)
+void Ihm::msgBoxRecalageInit(const string &strategie)
 {
     m_threadLvgl->lock();
     static const char *btns[] = {"Ok", ""};
     string str = "Stratégie : " + strategie;
     str += string("\nCouleur : ") + ((departCouleur == 0) ? string("VERT\n") : string("BLEU\n"));
-    lv_obj_t *mbox1 = lv_msgbox_create(NULL, "Recalage\n", str.c_str(), btns, true);
-    lv_obj_set_size(mbox1, 700, 400);
-    lv_obj_center(mbox1);
-    lv_obj_set_style_bg_color(mbox1, (departCouleur == 0) ? lv_color_make(0, 170, 18) : lv_color_make(0, 92, 230), 0);
-    lv_obj_set_style_text_color(mbox1, lv_color_white(), 0);
-    lv_obj_t *boxbtns = lv_msgbox_get_btns(mbox1);
-    lv_obj_update_layout(mbox1);
-    lv_obj_set_width(boxbtns, lv_obj_get_content_width(mbox1));
-    lv_obj_set_height(boxbtns, lv_obj_get_content_height(mbox1) - lv_obj_get_y(boxbtns));
+    msgBoxRecalage = lv_msgbox_create(NULL, "Recalage\n", str.c_str(), btns, true);
+    lv_obj_set_size(msgBoxRecalage, 740, 420);
+    lv_obj_center(msgBoxRecalage);
+    lv_obj_set_style_bg_color(msgBoxRecalage, (departCouleur == 0) ? lv_color_make(0, 170, 18) : lv_color_make(0, 92, 230), 0);
+    lv_obj_set_style_text_color(msgBoxRecalage, lv_color_white(), 0);
+    lv_obj_t *boxbtns = lv_msgbox_get_btns(msgBoxRecalage);
+    lv_obj_update_layout(msgBoxRecalage);
+    lv_obj_set_width(boxbtns, lv_obj_get_content_width(msgBoxRecalage));
+    lv_obj_set_height(boxbtns, lv_obj_get_content_height(msgBoxRecalage) - lv_obj_get_y(boxbtns));
     lv_obj_align(boxbtns, LV_ALIGN_BOTTOM_MID, 0, 0);
+    lv_obj_add_event_cb(msgBoxRecalage, eventHandler, LV_EVENT_VALUE_CHANGED, this);
+    m_threadLvgl->unlock();
+}
+
+void Ihm::msgBoxJackInit()
+{
+    m_threadLvgl->lock();
+    lv_msgbox_close(msgBoxRecalage);
+    static const char *btns[] = {"Jack simulé", ""};
+    msgBoxJack = lv_msgbox_create(NULL, "\n" LV_SYMBOL_WARNING " Attention au départ " LV_SYMBOL_WARNING "\n", "Tirer le jack pour démarrer !\n", btns, true);
+    lv_obj_set_size(msgBoxJack, 740, 420);
+    lv_obj_center(msgBoxJack);
+    lv_obj_t *titre = lv_msgbox_get_title(msgBoxJack);
+    lv_obj_set_style_text_color(titre, lv_color_make(255, 0, 0), 0);
+    lv_obj_t *boxbtns = lv_msgbox_get_btns(msgBoxJack);
+    lv_obj_update_layout(msgBoxJack);
+    lv_obj_set_width(boxbtns, lv_obj_get_content_width(msgBoxJack));
+    lv_obj_set_height(boxbtns, lv_obj_get_content_height(msgBoxJack) - lv_obj_get_y(boxbtns));
+    lv_obj_align(boxbtns, LV_ALIGN_BOTTOM_MID, 0, 0);
+    lv_obj_add_event_cb(msgBoxJack, eventHandler, LV_EVENT_VALUE_CHANGED, this);
+    lv_obj_add_event_cb(msgBoxJack, eventHandler, LV_EVENT_DELETE, this);
+    m_threadLvgl->unlock();
+}
+
+void Ihm::msgBoxJackClose()
+{
+    m_threadLvgl->lock();
+    lv_msgbox_close(msgBoxJack);
+    // Efface le flag de fermeture de la message box
+    jackAnnuleClicked();
     m_threadLvgl->unlock();
 }
