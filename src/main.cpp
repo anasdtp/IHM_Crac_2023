@@ -18,11 +18,15 @@
 
 #include <lvgl.h>
 
-ThreadCAN threadCAN(false, PB_8, PB_9);
+ThreadCAN threadCAN;
 ThreadSD threadSD;
 ThreadLvgl threadLvgl;
 Ihm ihm(&threadLvgl);
 Deplacement deplacement(threadCAN);
+
+vector <string> fichiers;
+
+void listeFichiers();
 
 int main ()
 {
@@ -43,39 +47,21 @@ int main ()
         ThisThread::sleep_for(1s);
         if (secReboot-- <= 0) NVIC_SystemReset();
     }
-    // Attend que la carte SD soit prête
-    threadSD.waitReady();
-    // Liste les dossiers et fichiers présents sur la carte
-    threadSD.ls();
-    // Récupère le résultat sous la forme *dossier1*dossier2*dossier3:fichier1:fichier2:fichier3?   * pour dossier  : pour fichier  ? pour fin
-    string txt(threadSD.getReply());
-    // Enlève le ? à la fin
-    if (!txt.empty()) txt.pop_back();
-    vector <string> fichiers;
-    stringstream txtStream(txt);
-    string item;
-    // Ignore tous les dossiers
-    if (getline (txtStream, item, ':')) {
-        while (getline (txtStream, item, ':')) {
-            // Range chaque nom de fichier dans un tableau de string
-            fichiers.push_back(item);
-        }
-    }
+
+    listeFichiers();
     ihm.matchInit(fichiers);
 
     while (1) {
       if (ihm.departClicked()) {
-        if (ihm.choixCouleur() == Ihm::VERT) {
-          printf("Départ vert ");
-        } else {
-          printf("Départ bleu ");
-        }
         int choix = ihm.choixStrategie();
         if (choix == -1) {
-          printf("par défaut\n");
+          ihm.msgBoxRecalage("[Stratégie par défaut]");
         } else {
-          printf("%s\n", fichiers[choix].c_str());
+          ihm.msgBoxRecalage(fichiers[choix].c_str());
         }
+      } else if (ihm.refreshSDClicked()) {
+        listeFichiers();
+        ihm.matchRollerSetOptions(fichiers);
       }
       ThisThread::sleep_for(10ms);
     }
@@ -172,3 +158,29 @@ int main() {
   }
 }
 */
+
+void listeFichiers()
+{
+    // Attend que la carte SD soit prête
+    threadSD.waitReady();
+    // Se déplace dans le dossier "/strategie"
+    threadSD.cdName("/strategie");
+    // Liste les dossiers et fichiers présents sur la carte
+    threadSD.ls();
+    // Récupère le résultat sous la forme *dossier1*dossier2*dossier3:fichier1:fichier2:fichier3?   * pour dossier  : pour fichier  ? pour fin
+    string txt(threadSD.getReply());
+    // Enlève le ? à la fin
+    if (!txt.empty()) txt.pop_back();
+    fichiers.clear();
+    stringstream txtStream(txt);
+    string item;
+    // Ignore tous les dossiers
+    if (getline (txtStream, item, ':')) {
+        while (getline (txtStream, item, ':')) {
+            // Range chaque nom de fichier dans un tableau de string
+            fichiers.push_back(item);
+        }
+    }
+}
+
+

@@ -38,7 +38,7 @@ public:
 class Ihm
 {
 protected:
-    enum {IHM_FLAG_DEPART = 1};
+    enum {IHM_FLAG_DEPART = 1, IHM_FLAG_REFRESH_SD = 2};
     EventFlags flags;
     ThreadLvgl *m_threadLvgl;
     lv_style_t styleTitre;
@@ -46,6 +46,7 @@ protected:
     lv_obj_t *tabView;
     lv_obj_t *msgSdInit1, *msgSdInit2;
     lv_obj_t *tabSdInit;
+    lv_obj_t *refreshSD;
     // Onglet "match"
     lv_obj_t *tabMatch;
     lv_obj_t *roller;
@@ -62,8 +63,10 @@ public:
     void matchInit(const vector <string> fichiers);
     void matchRollerSetOptions(const vector <string> fichiers, bool lock = true);
     bool departClicked(bool clearIfSet = true);
+    bool refreshSDClicked(bool clearIfSet = true);
     int choixStrategie() { return departStrategie; }
     int choixCouleur() { return departCouleur; }
+    void msgBoxRecalage(const string &strategie);
 };
 
 #endif

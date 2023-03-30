@@ -39,6 +39,7 @@ protected:
     static void writeThread(ThreadCAN *p) { p->write(); }
     Thread m_readThread, m_dispatchThread, m_writeThread;
 public:
+// Configuration du CAN sur CAN2 car CAN1 incompatible avec le TouchScreen
     ThreadCAN(bool serialEmul = false, PinName rd = PB_5, PinName td = PB_13);
     ~ThreadCAN();
     void registerIds(int idMin, int idMax, void (*func)(CANMessage *));
