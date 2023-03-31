@@ -1,7 +1,7 @@
 #include "threadLvgl.h"
-#include "../BSP_DISCO_F469NI/Drivers/STM32469I-Discovery/stm32469i_discovery_lcd.h"
-#include "../BSP_DISCO_F469NI/Drivers/STM32469I-Discovery/stm32469i_discovery_ts.h"
-#include "../lvgl/src/draw/stm32_dma2d/lv_gpu_stm32_dma2d.h"
+#include "Drivers/STM32469I-Discovery/stm32469i_discovery_lcd.h"
+#include "Drivers/STM32469I-Discovery/stm32469i_discovery_ts.h"
+#include "src/draw/stm32_dma2d/lv_gpu_stm32_dma2d.h"
 #include "lvgl_fs_driver.h"
 
 bool ThreadLvgl::refreshEnabled = true;
@@ -164,47 +164,19 @@ void ThreadLvgl::touchpadInit(void)
 Ihm::Ihm(ThreadLvgl *t)
 {
     m_threadLvgl = t;
+
     t->lock();
-    // lv_style_init(&style_text_muted);
-    // lv_style_set_text_opa(&style_text_muted, LV_OPA_50);
 
     lv_style_init(&styleTitre);
     lv_style_set_text_font(&styleTitre, FONT_LARGE);
-
-    // lv_style_init(&style_icon);
-    // lv_style_set_text_color(&style_icon, lv_theme_get_color_primary(NULL));
-    // lv_style_set_text_font(&style_icon, font_large);
-
-    // lv_style_init(&style_bullet);
-    // lv_style_set_border_width(&style_bullet, 0);
-    // lv_style_set_radius(&style_bullet, LV_RADIUS_CIRCLE);
-
     tabView = lv_tabview_create(lv_scr_act(), LV_DIR_TOP, 70);
-
     lv_obj_set_style_text_font(lv_scr_act(), FONT_NORMAL, 0);
-
     lv_obj_t *tab_btns = lv_tabview_get_tab_btns(tabView);
-    // lv_obj_set_style_pad_left(tab_btns, LV_HOR_RES / 2, 0);
-
-    // lv_obj_t * logo = lv_img_create(tab_btns);
-    // LV_IMG_DECLARE(img_lvgl_logo);
-    // lv_img_set_src(logo, &img_lvgl_logo);
-    // lv_obj_align(logo, LV_ALIGN_LEFT_MID, -LV_HOR_RES / 2 + 25, 0);
-
     lv_obj_t *label = lv_label_create(tab_btns);
     lv_obj_add_style(label, &styleTitre, 0);
     lv_label_set_text(label, "CRAC");
     lv_obj_align(label, LV_ALIGN_TOP_LEFT, 10, 0);
-    // lv_obj_align_to(label, logo, LV_ALIGN_OUT_RIGHT_TOP, 10, 0);
-
-    // label = lv_label_create(tab_btns);
-    // lv_label_set_text(label, "Coupe de France");
-    // lv_obj_add_style(label, &style_text_muted, 0);
-    // lv_obj_align_to(label, logo, LV_ALIGN_OUT_RIGHT_BOTTOM, 10, 0);
-
     tabSdInit = lv_tabview_add_tab(tabView, "Carte SD");
-    // lv_obj_t * t2 = lv_tabview_add_tab(tabView, "Match");
-    // lv_obj_t * t3 = lv_tabview_add_tab(tabView, "Config");
     sdInit(tabSdInit);
 
     t->unlock();
@@ -347,6 +319,10 @@ void Ihm::eventHandler(lv_event_t *e)
             ihm->flags.set(IHM_FLAG_START);
         }
     }
+    else if (emetteur == ihm->msgBox)
+    {
+        ihm->flags.set(IHM_FLAG_MSGBOX_CANCEL);
+    }
 }
 
 bool Ihm::getFlag(IhmFlag f, bool clearIfSet)
@@ -380,10 +356,16 @@ void Ihm::msgBoxRecalageInit(const string &strategie)
     m_threadLvgl->unlock();
 }
 
-void Ihm::msgBoxJackInit()
+void Ihm::msgBoxRecalageClose()
 {
     m_threadLvgl->lock();
     lv_msgbox_close(msgBoxRecalage);
+    m_threadLvgl->unlock();
+}
+
+void Ihm::msgBoxJackInit()
+{
+    m_threadLvgl->lock();
     static const char *btns[] = {"Jack simulé", ""};
     msgBoxJack = lv_msgbox_create(NULL, "\n" LV_SYMBOL_WARNING " Attention au départ " LV_SYMBOL_WARNING "\n", "Tirer le jack pour démarrer !\n", btns, true);
     lv_obj_set_size(msgBoxJack, 740, 420);
@@ -406,5 +388,27 @@ void Ihm::msgBoxJackClose()
     lv_msgbox_close(msgBoxJack);
     // Efface le flag de fermeture de la message box
     jackAnnuleClicked();
+    m_threadLvgl->unlock();
+}
+
+void Ihm::msgBoxInit(const char *titre, const char *msg, bool boutonAnnuler)
+{
+    m_threadLvgl->lock();
+    static const char *btns[] = {""};
+    msgBox = lv_msgbox_create(NULL, titre, msg, btns, true);
+    lv_obj_set_size(msgBox, 740, 420);
+    lv_obj_center(msgBox);
+    lv_obj_t *titreObj = lv_msgbox_get_title(msgBox);
+    lv_obj_set_style_text_color(titreObj, lv_color_make(255, 0, 0), 0);
+    lv_obj_add_event_cb(msgBox, eventHandler, LV_EVENT_DELETE, this);
+    m_threadLvgl->unlock();
+}
+
+void Ihm::msgBoxClose()
+{
+    m_threadLvgl->lock();
+    lv_msgbox_close(msgBox);
+    // Efface le flag de fermeture de la message box
+    msgBoxCancelClicked();
     m_threadLvgl->unlock();
 }

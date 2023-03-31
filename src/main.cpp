@@ -27,11 +27,11 @@ Deplacement deplacement(threadCAN);
 vector<string> fichiers;
 
 Ticker timer;
-int tempsRestant;
+volatile int tempsRestant;
 void timerInterrupt();
 
 void listeFichiers();
-void lectureFichier(int choix);
+bool lectureFichier(int choix);
 
 int main()
 {
@@ -67,8 +67,9 @@ int main()
 
   while (1)
   {
-    if (etat == 0)
+    switch (etat)
     {
+    case 0:
       if (ihm.departClicked())
       {
         choix = ihm.choixStrategie();
@@ -88,37 +89,81 @@ int main()
       }
       else if (ihm.recalageClicked())
       {
-        ihm.msgBoxJackInit();
-        lectureFichier(choix);
-        etat = 1;
+        ihm.msgBoxRecalageClose();
+        if (lectureFichier(choix))
+        {
+          etat = 1;
+        // démarrer le recalage
+          ihm.msgBoxInit("Recalage en cours\n", "Attente\n", true);
+        }
+        else
+        {
+          etat = 5;
+          ihm.msgBoxInit("Erreur\n", "Problème fichier\n", true);
+        }
       }
-    }
-    else
-    {
+      break;
+
+    case 1:
+      if (ihm.msgBoxCancelClicked())
+      {
+        // annuler le recalage en cours
+        etat = 0;
+      }
+      else
+      {
+        // si fin recalage :
+        // ihm.msgBoxClose();
+        // ihm.msgBoxJackInit();
+        // etat = 2;
+      }
+      break;
+
+    case 2:
       if (ihm.jackAnnuleClicked())
       {
         etat = 0;
       }
       else if (ihm.jackSimuleClicked() /* || jack() */)
       {
+        tempsRestant = 1000; // temps en dixième de seconde
+        timer.attach(timerInterrupt, 100ms);
         ihm.msgBoxJackClose();
-        break;
+        ihm.msgBoxInit("Match\n", "En cours\n", true);
+        etat = 3;
       }
+      break;
+
+    case 3:
+      // Le match a démarré
+      if (ihm.msgBoxCancelClicked())
+      {
+        // Annuler le match en cours
+        etat = 0;
+      }
+      else 
+      {
+        // Si fin du match
+        // ihm.msgBoxClose();
+        // etat = 4;
+      }
+      break;
+
+      case 4:
+        // Affichage du score
+        // etat = 0;
+      break;
+
+    case 5:
+      if (ihm.msgBoxCancelClicked())
+      {
+        etat = 0;
+      }
+      break;
     }
     ThisThread::sleep_for(10ms);
   }
 
-  tempsRestant = 1000; // temps en dixième de seconde
-  timer.attach(timerInterrupt, 100ms);
-
-  while (1)
-  {
-    ThisThread::sleep_for(1s);
-    //        automate_etat_ihm();
-    //         Strategie();//Boucle dans l'automate principal
-    //         //gestion_Message_CAN();
-    //         canProcessRx();
-  }
 }
 
 void listeFichiers()
@@ -148,7 +193,7 @@ void listeFichiers()
   }
 }
 
-void lectureFichier(int choix)
+bool lectureFichier(int choix)
 {
   string ficStrat;
   if (choix >= 0)
@@ -164,12 +209,11 @@ void lectureFichier(int choix)
       printf("%s\n", ligne.c_str());
     }
     monFlux.close();
+    return true;
   }
-  else
-  {
-    // ERREUR: Impossible d'ouvrir le fichier en lecture
-    // On fait la même chose que pour choix == -1 ????
-  }
+  // ERREUR: Impossible d'ouvrir le fichier en lecture
+  // On fait la même chose que pour choix == -1 ????
+  return false;
 }
 
 void timerInterrupt()

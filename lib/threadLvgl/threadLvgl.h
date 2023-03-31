@@ -43,7 +43,8 @@ protected:
           IHM_FLAG_REFRESH_SD       = 0x00000002,
           IHM_FLAG_RECALAGE         = 0x00000004,
           IHM_FLAG_START            = 0x00000008,
-          IHM_FLAG_START_CANCEL     = 0x00000010 } IhmFlag;
+          IHM_FLAG_START_CANCEL     = 0x00000010,
+          IHM_FLAG_MSGBOX_CANCEL    = 0x00000020 } IhmFlag;
     EventFlags flags;
     ThreadLvgl *m_threadLvgl;
     lv_style_t styleTitre;
@@ -63,6 +64,8 @@ protected:
     lv_obj_t *msgBoxRecalage;
     // Message Box jack
     lv_obj_t *msgBoxJack;
+    // Message Box générique
+    lv_obj_t *msgBox;
 
     void sdInit(lv_obj_t *parent);
     static void eventHandler(lv_event_t *e);
@@ -78,11 +81,15 @@ public:
     bool recalageClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_RECALAGE, clearIfSet); }
     bool jackSimuleClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_START, clearIfSet); }
     bool jackAnnuleClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_START_CANCEL, clearIfSet); }
+    bool msgBoxCancelClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_MSGBOX_CANCEL, clearIfSet); }
     int choixStrategie() { return departStrategie; }
     int choixCouleur() { return departCouleur; }
     void msgBoxRecalageInit(const string &strategie);
+    void msgBoxRecalageClose();
     void msgBoxJackInit();
     void msgBoxJackClose();
+    void msgBoxInit(const char *titre, const char *msg, bool boutonAnnuler);
+    void msgBoxClose();
 };
 
 #endif
