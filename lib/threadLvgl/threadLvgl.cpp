@@ -205,8 +205,8 @@ void Ihm::sdInit(lv_obj_t *parent)
 void Ihm::sdMsg(const char *msg1, const char *msg2)
 {
     m_threadLvgl->lock();
-    lv_label_set_text(msgSdInit1, msg1);
-    lv_label_set_text(msgSdInit2, msg2);
+    if (msg1 != nullptr) lv_label_set_text(msgSdInit1, msg1);
+    if (msg2 != nullptr) lv_label_set_text(msgSdInit2, msg2);
     m_threadLvgl->unlock();
 }
 
@@ -313,6 +313,7 @@ void Ihm::eventHandler(lv_event_t *e)
         if (lv_event_get_code(e) == LV_EVENT_DELETE)
         {
             ihm->flags.set(IHM_FLAG_START_CANCEL);
+            ihm->msgBoxJack = nullptr;
         }
         else
         {
@@ -322,6 +323,7 @@ void Ihm::eventHandler(lv_event_t *e)
     else if (emetteur == ihm->msgBox)
     {
         ihm->flags.set(IHM_FLAG_MSGBOX_CANCEL);
+        ihm->msgBox = nullptr;
     }
 }
 
@@ -360,6 +362,7 @@ void Ihm::msgBoxRecalageClose()
 {
     m_threadLvgl->lock();
     lv_msgbox_close(msgBoxRecalage);
+    msgBoxRecalage = nullptr;
     m_threadLvgl->unlock();
 }
 
@@ -388,6 +391,7 @@ void Ihm::msgBoxJackClose()
     lv_msgbox_close(msgBoxJack);
     // Efface le flag de fermeture de la message box
     jackAnnuleClicked();
+    msgBoxJack = nullptr;
     m_threadLvgl->unlock();
 }
 
@@ -410,5 +414,6 @@ void Ihm::msgBoxClose()
     lv_msgbox_close(msgBox);
     // Efface le flag de fermeture de la message box
     msgBoxCancelClicked();
+    msgBox = nullptr;
     m_threadLvgl->unlock();
 }

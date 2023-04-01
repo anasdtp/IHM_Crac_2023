@@ -18,11 +18,17 @@
 
 #include <lvgl.h>
 
-ThreadCAN threadCAN(true);
+ThreadCAN threadCAN;
 ThreadSD threadSD;
 ThreadLvgl threadLvgl;
 Ihm ihm(&threadLvgl);
 Deplacement deplacement(threadCAN);
+
+Thread *recalage;
+void runRecalage();
+
+Thread *match;
+void runMatch();
 
 vector<string> fichiers;
 
@@ -30,18 +36,19 @@ Ticker timer;
 volatile int tempsRestant;
 void timerInterrupt();
 
-void listeFichiers();
+bool listeFichiers();
 bool lectureFichier(int choix);
 
 int main()
 {
+  char buf[100];
+
   threadSD.registerCANControl(threadCAN);
 
   int secReboot = 60;
   while (1)
   {
     int flag;
-    char buf[100];
     flag = threadSD.status();
     if (flag & ThreadSD::FLAG_NO_CARD)
     {
@@ -50,7 +57,7 @@ int main()
     }
     else
     {
-      ihm.sdMsg("Carte SD presente");
+      ihm.sdMsg("Carte SD présente");
     }
     if (flag & ThreadSD::FLAG_READY)
       break;
@@ -59,7 +66,27 @@ int main()
       NVIC_SystemReset();
   }
 
-  listeFichiers();
+  if (!listeFichiers())
+  {
+    ihm.sdMsg(nullptr, "Dossier /strategie non trouvé");
+  }
+  else if (fichiers.size() == 0)
+  {
+    ihm.sdMsg(nullptr, "Aucun fichier trouvé");
+  }
+  else
+  {
+    int nb = fichiers.size();
+    if (nb == 1)
+    {
+      sprintf(buf, "Un fichier trouvé");
+    }
+    else
+    {
+      sprintf(buf, "%d fichiers trouvés", nb);
+    }
+    ihm.sdMsg(nullptr, buf);
+  }
   ihm.matchInit(fichiers);
 
   int etat = 0;
@@ -93,7 +120,9 @@ int main()
         if (lectureFichier(choix))
         {
           etat = 1;
-        // démarrer le recalage
+          // démarrer le recalage
+          recalage = new Thread;
+          recalage->start(runRecalage);
           ihm.msgBoxInit("Recalage en cours\n", "Attente\n", true);
         }
         else
@@ -108,14 +137,21 @@ int main()
       if (ihm.msgBoxCancelClicked())
       {
         // annuler le recalage en cours
+        recalage->terminate();
+        delete recalage;
         etat = 0;
       }
       else
       {
         // si fin recalage :
-        // ihm.msgBoxClose();
-        // ihm.msgBoxJackInit();
-        // etat = 2;
+        if (recalage->get_state() == Thread::Deleted)
+        {
+          delete recalage;
+          recalage = nullptr;
+          ihm.msgBoxClose();
+          ihm.msgBoxJackInit();
+          etat = 2;
+        }
       }
       break;
 
@@ -141,7 +177,7 @@ int main()
         // Annuler le match en cours
         etat = 0;
       }
-      else 
+      else
       {
         // Si fin du match
         // ihm.msgBoxClose();
@@ -149,9 +185,9 @@ int main()
       }
       break;
 
-      case 4:
-        // Affichage du score
-        // etat = 0;
+    case 4:
+      // Affichage du score
+      // etat = 0;
       break;
 
     case 5:
@@ -163,24 +199,28 @@ int main()
     }
     ThisThread::sleep_for(10ms);
   }
-
 }
 
-void listeFichiers()
+bool listeFichiers()
 {
+  // Vide la liste de fichiers
+  fichiers.clear();
   // Attend que la carte SD soit prête
   threadSD.waitReady();
-  // Se déplace dans le dossier "/strategie"
-  threadSD.cdName("/strategie");
-  // Liste les dossiers et fichiers présents sur la carte
-  threadSD.ls();
-  // Récupère le résultat sous la forme *dossier1*dossier2*dossier3:fichier1:fichier2:fichier3?   * pour dossier  : pour fichier  ? pour fin
-  string txt(threadSD.getReply());
+  // Se déplace dans le dossier "/strategie" et liste les fichiers présents
+  string reply = threadSD.cdName("/strategie");
+  // Vérifie que le dossier "/strategie" existe
+  if (reply.find("/strategie") != 0)
+  {
+    return false;
+  }
+  // Récupère le résultat sous la forme /chemin*dossier1*dossier2*dossier3:fichier1:fichier2:fichier3?   * pour dossier  : pour fichier  ? pour fin
   // Enlève le ? à la fin
-  if (!txt.empty())
-    txt.pop_back();
-  fichiers.clear();
-  stringstream txtStream(txt);
+  if (!reply.empty())
+  {
+    reply.pop_back();
+  }
+  stringstream txtStream(reply);
   string item;
   // Ignore tous les dossiers
   if (getline(txtStream, item, ':'))
@@ -191,14 +231,18 @@ void listeFichiers()
       fichiers.push_back(item);
     }
   }
+  return true;
 }
 
 bool lectureFichier(int choix)
 {
   string ficStrat;
-  if (choix >= 0)
-    ficStrat = "/sd/strategie/" + fichiers[choix];
-  // Que faire si choix == -1 ????
+  if (choix < 0)
+  {
+    // Que faire si choix == -1 ????
+    return false;
+  }
+  ficStrat = "/sd/strategie/" + fichiers[choix];
   ifstream monFlux(ficStrat); // Ouverture d'un fichier en lecture
   if (monFlux)
   {
@@ -219,4 +263,20 @@ bool lectureFichier(int choix)
 void timerInterrupt()
 {
   tempsRestant--;
+}
+
+void runRecalage()
+{
+  for (int i=0; i<10; i++) {
+    printf("R%d\n", i);
+    ThisThread::sleep_for(1s);
+  }
+}
+
+void runMatch()
+{
+  for (int i=0; i<10; i++) {
+    printf("M%d\n", i);
+    ThisThread::sleep_for(1s);
+  }
 }
