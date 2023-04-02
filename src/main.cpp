@@ -24,17 +24,18 @@ ThreadLvgl threadLvgl;
 Ihm ihm(&threadLvgl);
 Deplacement deplacement(threadCAN);
 
+vector<string> fichiers;
+
 Thread *recalage;
 void runRecalage();
 
 Thread *match;
 void runMatch();
-
-vector<string> fichiers;
-
-Ticker timer;
-volatile int tempsRestant;
-void timerInterrupt();
+int score = 100;
+bool jack();
+Timeout timer;
+void forceFinMatch();
+volatile bool flagForceFinMatch = false;
 
 bool listeFichiers();
 bool lectureFichier(int choix);
@@ -91,6 +92,7 @@ int main()
 
   int etat = 0;
   int choix = -1;
+  int tempsAffiche;
 
   while (1)
   {
@@ -139,6 +141,7 @@ int main()
         // annuler le recalage en cours
         recalage->terminate();
         delete recalage;
+        recalage = nullptr;
         etat = 0;
       }
       else
@@ -160,10 +163,14 @@ int main()
       {
         etat = 0;
       }
-      else if (ihm.jackSimuleClicked() /* || jack() */)
+      else if (ihm.jackSimuleClicked() || jack())
       {
-        tempsRestant = 1000; // temps en dixième de seconde
-        timer.attach(timerInterrupt, 100ms);
+        flagForceFinMatch = false;
+        tempsAffiche = 100;
+        timer.attach(forceFinMatch, std::chrono::seconds(tempsAffiche));
+        // démarrer le match
+        match = new Thread;
+        match->start(runMatch);
         ihm.msgBoxJackClose();
         ihm.msgBoxInit("Match\n", "En cours\n", true);
         etat = 3;
@@ -175,19 +182,52 @@ int main()
       if (ihm.msgBoxCancelClicked())
       {
         // Annuler le match en cours
+        match->terminate();
+        delete match;
+        match = nullptr;
         etat = 0;
       }
       else
       {
         // Si fin du match
-        // ihm.msgBoxClose();
-        // etat = 4;
+        if (flagForceFinMatch)
+        {
+          match->terminate();
+          delete match;
+          match = nullptr;
+          etat = 4;
+        }
+        else if (match->get_state() == Thread::Deleted)
+        {
+          delete match;
+          match = nullptr;
+          etat = 4;
+        }
+        else
+        {
+          int tempsRestant = std::chrono::duration_cast<std::chrono::seconds>(timer.remaining_time()-1us).count()+1;
+          if (tempsAffiche != tempsRestant)
+          {
+            tempsAffiche = tempsRestant;
+            if (tempsAffiche > 0)
+            {
+              sprintf(buf, "Reste %d s", tempsAffiche);
+              ihm.msgBoxMessage(buf);
+            }
+            else
+            {
+              ihm.msgBoxMessage("Terminé");
+            }
+          }
+        }
       }
       break;
 
     case 4:
       // Affichage du score
-      // etat = 0;
+      sprintf(buf, "Terminé\n\nScore = %d", score);
+      ihm.msgBoxMessage(buf);
+      etat = 5;
       break;
 
     case 5:
@@ -260,23 +300,31 @@ bool lectureFichier(int choix)
   return false;
 }
 
-void timerInterrupt()
-{
-  tempsRestant--;
-}
-
 void runRecalage()
 {
-  for (int i=0; i<10; i++) {
-    printf("R%d\n", i);
+  for (int i = 1; i <= 5; i++)
+  {
     ThisThread::sleep_for(1s);
+    printf("R%d\n", i);
   }
 }
 
 void runMatch()
 {
-  for (int i=0; i<10; i++) {
-    printf("M%d\n", i);
+  for (int i = 1; i <= 20; i++)
+  {
     ThisThread::sleep_for(1s);
+    printf("M%d\n", i);
   }
+}
+
+// Retourne true si le jack est retiré
+bool jack()
+{
+  return false;
+}
+
+void forceFinMatch()
+{
+  flagForceFinMatch = true;
 }

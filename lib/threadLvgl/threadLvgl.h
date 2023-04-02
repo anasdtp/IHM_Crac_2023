@@ -89,6 +89,7 @@ public:
     void msgBoxJackInit();
     void msgBoxJackClose();
     void msgBoxInit(const char *titre, const char *msg, bool boutonAnnuler);
+    void msgBoxMessage(const char *msg);
     void msgBoxClose();
 };
 

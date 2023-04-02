@@ -205,8 +205,10 @@ void Ihm::sdInit(lv_obj_t *parent)
 void Ihm::sdMsg(const char *msg1, const char *msg2)
 {
     m_threadLvgl->lock();
-    if (msg1 != nullptr) lv_label_set_text(msgSdInit1, msg1);
-    if (msg2 != nullptr) lv_label_set_text(msgSdInit2, msg2);
+    if (msg1 != nullptr)
+        lv_label_set_text(msgSdInit1, msg1);
+    if (msg2 != nullptr)
+        lv_label_set_text(msgSdInit2, msg2);
     m_threadLvgl->unlock();
 }
 
@@ -416,4 +418,15 @@ void Ihm::msgBoxClose()
     msgBoxCancelClicked();
     msgBox = nullptr;
     m_threadLvgl->unlock();
+}
+
+void Ihm::msgBoxMessage(const char *msg)
+{
+    if (msgBox)
+    {
+        m_threadLvgl->lock();
+        lv_obj_t *txt = lv_msgbox_get_text(msgBox);
+        lv_label_set_text(txt, msg);
+        m_threadLvgl->unlock();
+    }
 }
