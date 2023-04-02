@@ -401,7 +401,7 @@ void Ihm::msgBoxInit(const char *titre, const char *msg, bool boutonAnnuler)
 {
     m_threadLvgl->lock();
     static const char *btns[] = {""};
-    msgBox = lv_msgbox_create(NULL, titre, msg, btns, true);
+    msgBox = lv_msgbox_create(NULL, titre, msg, btns, boutonAnnuler);
     lv_obj_set_size(msgBox, 740, 420);
     lv_obj_center(msgBox);
     lv_obj_t *titreObj = lv_msgbox_get_title(msgBox);

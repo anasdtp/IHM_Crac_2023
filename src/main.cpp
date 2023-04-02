@@ -119,19 +119,9 @@ int main()
       else if (ihm.recalageClicked())
       {
         ihm.msgBoxRecalageClose();
-        if (lectureFichier(choix))
-        {
-          etat = 1;
-          // démarrer le recalage
-          recalage = new Thread;
-          recalage->start(runRecalage);
-          ihm.msgBoxInit("Recalage en cours\n", "Attente\n", true);
-        }
-        else
-        {
-          etat = 5;
-          ihm.msgBoxInit("Erreur\n", "Problème fichier\n", true);
-        }
+        ihm.msgBoxInit("Lecture de la stratégie\n", "En cours", false);
+        ThisThread::sleep_for(1s);
+        etat = 10;
       }
       break;
 
@@ -205,7 +195,7 @@ int main()
         }
         else
         {
-          int tempsRestant = std::chrono::duration_cast<std::chrono::seconds>(timer.remaining_time()-1us).count()+1;
+          int tempsRestant = std::chrono::duration_cast<std::chrono::seconds>(timer.remaining_time() - 1us).count() + 1;
           if (tempsAffiche != tempsRestant)
           {
             tempsAffiche = tempsRestant;
@@ -234,6 +224,24 @@ int main()
       if (ihm.msgBoxCancelClicked())
       {
         etat = 0;
+      }
+      break;
+
+    case 10:
+      if (lectureFichier(choix))
+      {
+        etat = 1;
+        // démarrer le recalage
+        recalage = new Thread;
+        recalage->start(runRecalage);
+        ihm.msgBoxClose();
+        ihm.msgBoxInit("Recalage en cours\n", "Attente\n", true);
+      }
+      else
+      {
+        etat = 5;
+        ihm.msgBoxClose();
+        ihm.msgBoxInit("Erreur\n", "Problème fichier\n", true);
       }
       break;
     }
