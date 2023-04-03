@@ -76,12 +76,6 @@ extern T_etat strat_etat_s;
 #define ROBOT_EN_HAUT 0
 #define ROBOT_EN_BAS 1
 
-extern Ticker timer;
-extern volatile int tempsRestant;
-void timerInterrupt();
-
-void listeFichiers();
-bool lectureFichier(int choix);
 void canProcessRx(CANMessage *rxMsg);
 void Strategie(void);
 

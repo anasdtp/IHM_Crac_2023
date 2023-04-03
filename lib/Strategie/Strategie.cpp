@@ -218,6 +218,7 @@ void canProcessRx(CANMessage *rxMsg)
                     waitingAckID_FIN = 0;
                     flag.set(AckFrom_FIN_FLAG);
                 }
+                break;
             }
             case INSTRUCTION_END_BALISE:{
 
