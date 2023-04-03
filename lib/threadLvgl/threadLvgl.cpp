@@ -173,7 +173,7 @@ Ihm::Ihm(ThreadLvgl *t)
     lv_obj_set_style_text_font(lv_scr_act(), FONT_NORMAL, 0);
     lv_obj_t *tab_btns = lv_tabview_get_tab_btns(tabView);
     lv_obj_t *label = lv_label_create(tab_btns);
-    lv_obj_add_style(label, &styleTitre, 0);
+    //    lv_obj_add_style(label, &styleTitre, 0);
     lv_label_set_text(label, "CRAC");
     lv_obj_align(label, LV_ALIGN_TOP_LEFT, 10, 0);
     tabSdInit = lv_tabview_add_tab(tabView, "Carte SD");
@@ -291,6 +291,72 @@ void Ihm::matchRollerSetOptions(const vector<string> fichiers, bool lock)
         m_threadLvgl->unlock();
 }
 
+void Ihm::recalagePositionInit()
+{
+    m_threadLvgl->lock();
+
+    /*Column 1: 1 unit from the remaining free space
+     *Column 2: 1 unit from the remaining free space*/
+    static lv_coord_t col[] = {LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
+
+    /*Row 1: 30 pixels
+     *Row 2: 1 unit from the remaining free space
+     *Row 3: 1 unit from the remaining free space*/
+    static lv_coord_t row[] = {30, LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
+    
+    recalageView = lv_tabview_add_tab(tabView, "Recalage");
+    /*Create a container with grid*/
+    lv_obj_t *container = lv_obj_create(recalageView);
+    lv_obj_center(container);
+    lv_obj_update_layout(recalageView);
+    lv_obj_set_size(container, lv_obj_get_content_width(recalageView), lv_obj_get_content_height(recalageView));
+    lv_obj_set_grid_dsc_array(container, col, row);
+
+    lv_obj_t *titreRecalage = lv_label_create(container);
+    lv_obj_set_style_text_font(titreRecalage, &liberation_24, 0);
+    lv_label_set_text(titreRecalage, LV_SYMBOL_EDIT " Choisir position robot"); // LV_SYMBOL_ENVELOPE LV_SYMBOL_DRIVE LV_SYMBOL_EDIT
+    lv_obj_set_grid_cell(titreRecalage, LV_GRID_ALIGN_STRETCH, 0, 1,
+                         LV_GRID_ALIGN_STRETCH, 0, 1);
+
+    HautGauche = lv_btn_create(container);
+    lv_obj_t *label = lv_label_create(HautGauche);
+    lv_label_set_text(label, "En Haut à gauche");
+    lv_obj_set_style_bg_color(HautGauche, lv_palette_main(LV_PALETTE_LIGHT_BLUE), LV_STATE_DEFAULT);
+    lv_obj_center(label);
+    lv_obj_set_grid_cell(HautGauche, LV_GRID_ALIGN_STRETCH, 0, 1,
+                         LV_GRID_ALIGN_STRETCH, 1, 1);
+    lv_obj_add_event_cb(HautGauche, Ihm::eventHandler, LV_EVENT_CLICKED, this);
+
+    BasGauche = lv_btn_create(container);
+    label = lv_label_create(BasGauche);
+    lv_label_set_text(label, "En Bas à gauche");
+    lv_obj_set_style_bg_color(BasGauche, lv_palette_main(LV_PALETTE_LIGHT_BLUE), LV_STATE_DEFAULT);
+    lv_obj_center(label);
+    lv_obj_set_grid_cell(BasGauche, LV_GRID_ALIGN_STRETCH, 0, 1,
+                         LV_GRID_ALIGN_STRETCH, 2, 1);
+    lv_obj_add_event_cb(BasGauche, Ihm::eventHandler, LV_EVENT_CLICKED, this);
+
+    HautDroit = lv_btn_create(container);
+    label = lv_label_create(HautDroit);
+    lv_label_set_text(label, "En Haut à droite");
+    lv_obj_set_style_bg_color(HautDroit, lv_palette_main(LV_PALETTE_LIGHT_BLUE), LV_STATE_DEFAULT);
+    lv_obj_center(label);
+    lv_obj_set_grid_cell(HautDroit, LV_GRID_ALIGN_STRETCH, 1, 1,
+                         LV_GRID_ALIGN_STRETCH, 1, 1);
+    lv_obj_add_event_cb(HautDroit, Ihm::eventHandler, LV_EVENT_CLICKED, this);
+
+    BasDroit = lv_btn_create(container);
+    label = lv_label_create(BasDroit);
+    lv_label_set_text(label, "En Bas à droite");
+    lv_obj_set_style_bg_color(BasDroit, lv_palette_main(LV_PALETTE_LIGHT_BLUE), LV_STATE_DEFAULT);
+    lv_obj_center(label);
+    lv_obj_set_grid_cell(BasDroit, LV_GRID_ALIGN_STRETCH, 1, 1,
+                         LV_GRID_ALIGN_STRETCH, 2, 1);
+    lv_obj_add_event_cb(BasDroit, Ihm::eventHandler, LV_EVENT_CLICKED, this);
+
+    m_threadLvgl->unlock();
+}
+
 void Ihm::eventHandler(lv_event_t *e)
 {
     Ihm *ihm = static_cast<Ihm *>(lv_event_get_user_data(e));
@@ -326,6 +392,22 @@ void Ihm::eventHandler(lv_event_t *e)
     {
         ihm->flags.set(IHM_FLAG_MSGBOX_CANCEL);
         ihm->msgBox = nullptr;
+    }
+    else if (emetteur == ihm->HautGauche)
+    {
+        ihm->flags.set(IHM_FLAG_RECALAGE_HAUTGAUCHE);
+    }
+    else if (emetteur == ihm->HautDroit)
+    {
+        ihm->flags.set(IHM_FLAG_RECALAGE_HAUTDROIT);
+    }
+    else if (emetteur == ihm->BasGauche)
+    {
+        ihm->flags.set(IHM_FLAG_RECALAGE_BASGAUCHE);
+    }
+    else if (emetteur == ihm->BasDroit)
+    {
+        ihm->flags.set(IHM_FLAG_RECALAGE_BASDROIT);
     }
 }
 

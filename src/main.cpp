@@ -89,7 +89,8 @@ int main()
     ihm.sdMsg(nullptr, buf);
   }
   ihm.matchInit(fichiers);
-
+  ihm.recalagePositionInit();
+  
   int etat = 0;
   int choix = -1;
   int tempsAffiche;
