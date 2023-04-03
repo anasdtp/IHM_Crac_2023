@@ -68,7 +68,8 @@ int main()
   char buf[100];
 
   threadSD.registerCANControl(threadCAN);
-
+  threadCAN.registerIds(0x01, 0x7FF, canProcessRx);
+  
   int secReboot = 60;
   while (1)
   {
@@ -313,9 +314,9 @@ bool listeFichiers()
   // Attend que la carte SD soit prête
   threadSD.waitReady();
   // Se déplace dans le dossier "/strategie" et liste les fichiers présents
-  string reply = threadSD.cdName("/strategie");
+  string reply = threadSD.cdName("/");
   // Vérifie que le dossier "/strategie" existe
-  if (reply.find("/strategie") != 0)
+  if (reply.find("/") != 0)
   {
     return false;
   }
@@ -349,7 +350,7 @@ bool lectureFichier(int choix)
     // Que faire si choix == -1 ????
     return false;
   }
-  ficStrat = "/sd/strategie/" + fichiers[choix];
+  ficStrat = "/sd/" + fichiers[choix];
   ifstream monFlux(ficStrat); // Ouverture d'un fichier en lecture
   if (monFlux)
   {
@@ -428,8 +429,6 @@ void process_instructions(struct S_Instruction instruction)
     if (instruction.nextActionType == MECANIQUE)
     {
       instruction.nextActionType = WAIT;
-      waitingAckID = ASSERVISSEMENT_RECALAGE;
-      waitingAckFrom = ACKNOWLEDGE_MOTEUR;
       int16_t distance = (((instruction.direction == FORWARD) ? 1 : -1) * 1000); // On indique une distance de 3000 pour etre sur que le robot va ce recaler
       uint8_t coordonnee = 0;
       uint16_t val_recalage;
@@ -451,6 +450,8 @@ void process_instructions(struct S_Instruction instruction)
         val_recalage = instruction.arg1;
       }
       deplacement.recalage(distance, coordonnee, val_recalage);
+      waitingAckID = ASSERVISSEMENT_RECALAGE;
+      waitingAckFrom = ACKNOWLEDGE_MOTEUR;
       flag.wait_all(AckFrom_FLAG, 20000); // si jamais il y a un timeout, qu'est ce qu'il faut faire? retenter? arreter le match?
 
       waitingAckID_FIN = ASSERVISSEMENT_RECALAGE;
