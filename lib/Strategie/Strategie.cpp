@@ -153,7 +153,7 @@ void canProcessRx(CANMessage *rxMsg)
                 break;
 
             case ALIVE_ACTIONNEURS_AVANT:    //pas de break donc passe directement dans ECRAN_ALL_CHECK mais conserve l'ident initial
-            case ALIVE_ACTIONNEURS_ARRIERE:
+            //case ALIVE_ACTIONNEURS_ARRIERE:
             case ALIVE_HERKULEX:
             case ECRAN_ALL_CHECK:{
                 if(waitingAckFrom == rxMsg->id) {
@@ -193,17 +193,12 @@ void canProcessRx(CANMessage *rxMsg)
             /////////////////////////////////////Acknowledges de Reception de la demande d'action////////////////////////////////////////
             case ACKNOWLEDGE_HERKULEX:{
 
-            }
+            }break;
             case ACKNOWLEDGE_BALISE:    //pas de break donc passe directement dans ACK_FIN_ACTION mais conserve l'ident initial
             {
 
-            }
-            case ACKNOWLEDGE_TELEMETRE:{
-
-            }
-            /////////////////////////////////////////////Acknowledges de la fin d'action/////////////////////////////////////////////////
-            case ACKNOWLEDGE_MOTEUR:{
-                printf("ACKNOWLEDGE_MOTEUR\n");
+            }break;
+            case ACKNOWLEDGE_ACTIONNEURS:{
                 unsigned short recieveAckID = (unsigned short)rxMsg->data[0]  | ( ((unsigned short)rxMsg->data[1]) <<8);
                 if( (waitingAckFrom == identifiant )&& (recieveAckID == waitingAckID) ) 
                 {
@@ -218,18 +213,48 @@ void canProcessRx(CANMessage *rxMsg)
                     waitingAckID_FIN = 0;
                     flag.set(AckFrom_FIN_FLAG);
                 }
-                break;
-            }
-            case INSTRUCTION_END_BALISE:{
-
-            }
+            }break;
+            /////////////////////////////////////////////Acknowledges de la fin d'action/////////////////////////////////////////////////
+            case ACKNOWLEDGE_MOTEUR:{
+                ////printf("ACKNOWLEDGE_MOTEUR\n");
+                unsigned short recieveAckID = (unsigned short)rxMsg->data[0]  | ( ((unsigned short)rxMsg->data[1]) <<8);
+                if( (waitingAckFrom == identifiant )&& (recieveAckID == waitingAckID) ) 
+                {
+                    ////printf(" ack de debut recu \n");
+                    waitingAckFrom = 0;
+                    waitingAckID = 0;
+                    flag.set(AckFrom_FLAG);
+                }
+                if( (waitingAckFrom_FIN == identifiant ) && (recieveAckID == waitingAckID_FIN) ) {
+                    //printf(" ack de fin recu \n");
+                    waitingAckFrom_FIN = 0;
+                    waitingAckID_FIN = 0;
+                    flag.set(AckFrom_FIN_FLAG);
+                }
+            }break;
+            case INSTRUCTION_END_PINCE:{
+                unsigned short recieveAckID = (unsigned short)rxMsg->data[0]  | ( ((unsigned short)rxMsg->data[1]) <<8);
+                if( (waitingAckFrom == identifiant )&& (recieveAckID == waitingAckID) ) 
+                {
+                    printf(" ack de debut recu \n");
+                    waitingAckFrom = 0;
+                    waitingAckID = 0;
+                    flag.set(AckFrom_FLAG);
+                }
+                if( (waitingAckFrom_FIN == identifiant ) && (recieveAckID == waitingAckID_FIN) ) {
+                    printf(" ack de fin recu \n");
+                    waitingAckFrom_FIN = 0;
+                    waitingAckID_FIN = 0;
+                    flag.set(AckFrom_FIN_FLAG);
+                }
+            }break;
             case ACK_FIN_ACTION:{
 
-            }
+            }break;
             case INSTRUCTION_END_MOTEUR:
             {
                 unsigned short recieveAckID = (unsigned short)rxMsg->data[0]  | ( ((unsigned short)rxMsg->data[1]) <<8);
-                printf("INSTRUCTION_END_MOTEUR\n");
+                //printf("INSTRUCTION_END_MOTEUR\n");
                 //memcpy(&recieveAckID, rxMsg->data, 2);
                 /*
                 //on desactive la balise dans les rotations XYT
@@ -244,13 +269,13 @@ void canProcessRx(CANMessage *rxMsg)
                 // SendMsgCan(0x666,&ingnorBalise,1);
                 if( (waitingAckFrom == identifiant )&& (recieveAckID == waitingAckID) ) 
                 {
-                    printf(" ack de debut recu \n");
+                    //printf(" ack de debut recu \n");
                     waitingAckFrom = 0;
                     waitingAckID = 0;
                     flag.set(AckFrom_FLAG);
                 }
                 if( (waitingAckFrom_FIN == identifiant ) && (recieveAckID == waitingAckID_FIN) ) {
-                    printf(" ack de fin recu \n");
+                    //printf(" ack de fin recu \n");
                     waitingAckFrom_FIN = 0;
                     waitingAckID_FIN = 0;
                     flag.set(AckFrom_FIN_FLAG);

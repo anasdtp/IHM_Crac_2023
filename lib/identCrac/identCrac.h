@@ -354,4 +354,32 @@ serial5 : RX4-TX4*/
 //-----------------------------------define attendre--------------------------//
 #define ATTENDRE 0x285
 
+
+//Carte herkulex-------------------------------------
+
+#define IDCAN_ACK 0x40
+
+#define IDCAN_HERKULEX 0x50
+#define ID_HERKULEX_VITESSE 0x63
+#define IDCAN_HERKULEX_ANSWER 0x51
+#define IDCAN_HERKULEX_Torque 0x52
+#define IDCAN_HERKULEX_GET_ID 0x53
+#define IDCAN_HERKULEX_CHANGE_ID 0x54
+#define IDCAN_HERKULEX_Clear 0x55
+#define IDCAN_HERKULEX_GET_POS 0x56
+#define IDCAN_HERKULEX_STAT 0x57
+#define IDCAN_HERKULEX_SERIAL_BAUDRATE 0x58
+#define IDCAN_HERKULEX_BAUDRATE_OF_HERKULEX 0x59
+
+
+#define IDCAN_STEP_MOT_POS 0x60
+#define IDCAN_STEP_MOT_MODE 0x61
+
+#define IDCAN_PINCE 0x70
+#define IDCAN_PINCE_CHANGE_ID_HERKULEX 0x71
+
+#define INSTRUCTION_END_STEP_MOTEUR 0x72
+#define INSTRUCTION_END_HERKULEX 0x73 
+#define INSTRUCTION_END_PINCE 0x74 
+
 #endif
