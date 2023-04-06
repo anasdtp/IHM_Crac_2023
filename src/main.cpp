@@ -12,6 +12,7 @@
 #include <threadSD.h>
 #include <threadLvgl.h>
 #include <deplacement.h>
+#include <herkulex.h>
 
 #include <global.h>
 #include <Instruction.h>
@@ -28,8 +29,11 @@ ThreadSD threadSD;
 ThreadLvgl threadLvgl;
 Ihm ihm(&threadLvgl);
 Deplacement deplacement(threadCAN);
+herkulex Herkulex(threadCAN);
 
 vector<string> fichiers;
+
+DigitalIn jackPin(D7);
 
 Thread *recalage;
 void runRecalage();
@@ -68,7 +72,7 @@ int main()
   char buf[100];
 
   threadSD.registerCANControl(threadCAN);
-
+  threadCAN.registerIds(0x01, 0x7FF, canProcessRx);
   int secReboot = 60;
   while (1)
   {
@@ -149,25 +153,25 @@ int main()
       }
       else if (ihm.recalage_HautGaucheClicked())
       {
-        printf("recalage_HautGaucheClicked\n");
+        //printf("recalage_HautGaucheClicked\n");
         Hauteur = ROBOT_EN_HAUT;
         Cote = ROBOT_A_GAUCHE;
       }
       else if (ihm.recalage_BasGaucheClicked())
       {
-        printf("recalage_BasGaucheClicked\n");
+        //printf("recalage_BasGaucheClicked\n");
         Hauteur = ROBOT_EN_BAS;
         Cote = ROBOT_A_GAUCHE;
       }
       else if (ihm.recalage_HautDroitClicked())
       {
-        printf("recalage_HautDroitClicked\n");
+        //printf("recalage_HautDroitClicked\n");
         Hauteur = ROBOT_EN_HAUT;
         Cote = ROBOT_A_DROITE;
       }
       else if (ihm.recalage_BasDroitClicked())
       {
-        printf("recalage_BasDroitClicked\n");
+        //printf("recalage_BasDroitClicked\n");
         Hauteur = ROBOT_EN_BAS;
         Cote = ROBOT_A_DROITE;
       }
@@ -305,7 +309,6 @@ int main()
     ThisThread::sleep_for(10ms);
   }
 }
-
 bool listeFichiers()
 {
   // Vide la liste de fichiers
@@ -338,12 +341,10 @@ bool listeFichiers()
   }
   return true;
 }
-
 bool lectureFichier(int choix)
 {
   string ficStrat;
   struct S_Instruction instruction_ligne;
-
   if (choix < 0)
   {
     // Que faire si choix == -1 ????
@@ -371,19 +372,21 @@ bool lectureFichier(int choix)
   return false;
 }
 
+
 void runRecalage()
 {
   recalageErreur = 0;
   deplacement.asservOn();
   actual_instruction = 0;
   instruction = strat_instructions[actual_instruction];
+  //deplacement.asservOn();
   while (machineRecalage());
 
   /*
   for (int i = 1; i <= 5; i++)
   {
     ThisThread::sleep_for(1s);
-    printf("R%d\n", i);
+    //printf("R%d\n", i);
   }
   */
 }
@@ -391,21 +394,23 @@ void runRecalage()
 void runMatch()
 {
   gameEtat = ETAT_GAME_LOAD_NEXT_INSTRUCTION;
-  while (machineStrategie());
 
-  /*
-  for (int i = 1; i <= 20; i++)
+  for (int i = 1; i <= 3; i++)
   {
     ThisThread::sleep_for(1s);
-    printf("M%d\n", i);
+    //printf("M%d\n", i);
   }
-  */
+
+  while (machineStrategie());
+
+  
+  
 }
 
 // Retourne true si le jack est retiré
 bool jack()
 {
-  return false;
+  return (jackPin.read());
 }
 
 void forceFinMatch()
@@ -428,8 +433,6 @@ void process_instructions(struct S_Instruction instruction)
     if (instruction.nextActionType == MECANIQUE)
     {
       instruction.nextActionType = WAIT;
-      waitingAckID = ASSERVISSEMENT_RECALAGE;
-      waitingAckFrom = ACKNOWLEDGE_MOTEUR;
       int16_t distance = (((instruction.direction == FORWARD) ? 1 : -1) * 1000); // On indique une distance de 3000 pour etre sur que le robot va ce recaler
       uint8_t coordonnee = 0;
       uint16_t val_recalage;
@@ -451,6 +454,8 @@ void process_instructions(struct S_Instruction instruction)
         val_recalage = instruction.arg1;
       }
       deplacement.recalage(distance, coordonnee, val_recalage);
+      waitingAckID = ASSERVISSEMENT_RECALAGE;
+      waitingAckFrom = ACKNOWLEDGE_MOTEUR;
       flag.wait_all(AckFrom_FLAG, 20000); // si jamais il y a un timeout, qu'est ce qu'il faut faire? retenter? arreter le match?
 
       waitingAckID_FIN = ASSERVISSEMENT_RECALAGE;
@@ -489,7 +494,7 @@ void process_instructions(struct S_Instruction instruction)
     waitingAckID = ASSERVISSEMENT_ROTATION;
     waitingAckFrom = ACKNOWLEDGE_MOTEUR;
     deplacement.rotation(angle);
-    printf("deplacement.rotation(angle : %d);\n", angle);
+    //printf("deplacement.rotation(angle : %d);\n", angle);
     flag.wait_all(AckFrom_FLAG, 20000);
 
     waitingAckID_FIN = ASSERVISSEMENT_RECALAGE;
@@ -694,10 +699,26 @@ void process_instructions(struct S_Instruction instruction)
     // {
     // }
     // break;
-    // case ACTION:
-    // {
-    // }
-    // break;
+    case ACTION:
+    {
+      if(instruction.arg1 == 171){
+        uint8_t Etage = instruction.arg2;
+        uint8_t etatHerkulex = instruction.arg3;
+        uint8_t sens = ((instruction.direction == BACKWARD) ? -1 : 1);
+        waitingAckID = IDCAN_PINCE;
+        waitingAckFrom = ACKNOWLEDGE_ACTIONNEURS;
+       // printf("Herkulex.controlePince(Etage : %d, etatHerkulex : %d, sens : %d);\n",Etage,etatHerkulex, sens);
+        Herkulex.controlePince(Etage, etatHerkulex, sens);
+
+        flag.wait_all(AckFrom_FLAG, 20000);
+
+        waitingAckID_FIN = IDCAN_PINCE;
+        waitingAckFrom_FIN = INSTRUCTION_END_PINCE;
+        flag.wait_all(AckFrom_FIN_FLAG, 20000);
+      }
+
+    }
+    break;
     // case POSITION_DEBUT:
     // {
     // }
@@ -707,7 +728,9 @@ void process_instructions(struct S_Instruction instruction)
     break;
   }
 
-  actual_instruction = instruction.nextLineOK;
+  if(!instruction.nextLineOK){actual_instruction += 1;}
+  else{actual_instruction = instruction.nextLineOK;}
+  
   gameEtat = ETAT_GAME_LOAD_NEXT_INSTRUCTION;
 }
 
@@ -720,23 +743,24 @@ bool machineRecalage()
     threadCAN.sendAck(RECALAGE_START, 0);
     int16_t distance = 1000;
     uint16_t val_recalage;
-    if (Cote == ROBOT_A_DROITE)
+    
+    if (Hauteur == ROBOT_EN_BAS)
     {
-      val_recalage = 3000 - (MOITIEE_ROBOT);
-    } // par devant
+      val_recalage = 2000 - (MOITIEE_ROBOT);
+    }
     else
     {
       val_recalage = MOITIEE_ROBOT;
       distance *= -1;
-    } // par derriere
+    }
 
     waitingAckID = ASSERVISSEMENT_RECALAGE;
     waitingAckFrom = ACKNOWLEDGE_MOTEUR;
     deplacement.recalage(distance, 1, val_recalage);
-    printf("deplacement.recalage(distance : %d, 1, val_recalage : %d);\n", distance, val_recalage);
+    //printf("deplacement.recalage(distance : %d, 1, val_recalage : %d);\n", distance, val_recalage);
     if (flag.wait_all(AckFrom_FLAG, 20000) == osErrorTimeout)
     {
-      printf("osErrorTimeout, recalage fail, RECALAGE_1, waitingAckID\n");
+      //printf("osErrorTimeout, recalage fail, RECALAGE_1, waitingAckID\n");
       gameEtat = ETAT_GAME_INIT;
       recalageErreur = -1;
       return false;
@@ -746,7 +770,7 @@ bool machineRecalage()
     waitingAckFrom_FIN = INSTRUCTION_END_MOTEUR;
     if (flag.wait_all(AckFrom_FIN_FLAG, 20000) == osErrorTimeout)
     {
-      printf("osErrorTimeout, recalage fail, RECALAGE_1, waitingAckID_FIN\n");
+      //printf("osErrorTimeout, recalage fail, RECALAGE_1, waitingAckID_FIN\n");
       gameEtat = ETAT_GAME_INIT;
       recalageErreur = -2;
       return false;
@@ -760,15 +784,15 @@ bool machineRecalage()
     waitingAckID = ASSERVISSEMENT_RECALAGE;
     waitingAckFrom = ACKNOWLEDGE_MOTEUR;
     int16_t distance = 100;
-    if (Cote == ROBOT_A_DROITE)
+    if (Hauteur == ROBOT_EN_BAS)
     {
-      distance *= -1;
+      distance *=-1;
     }
     deplacement.toutDroit(distance);
-    printf("deplacement.toutDroit(distance : %d);\n", distance);
+    //printf("deplacement.toutDroit(distance : %d);\n", distance);
     if (flag.wait_all(AckFrom_FLAG, 20000) == osErrorTimeout)
     {
-      printf("osErrorTimeout, recalage fail, RECULER_1, waitingAckID\n");
+      //printf("osErrorTimeout, recalage fail, RECULER_1, waitingAckID\n");
       gameEtat = ETAT_GAME_INIT;
       recalageErreur = -3;
       return false;
@@ -778,7 +802,7 @@ bool machineRecalage()
     waitingAckFrom_FIN = INSTRUCTION_END_MOTEUR;
     if (flag.wait_all(AckFrom_FIN_FLAG, 20000) == osErrorTimeout)
     {
-      printf("osErrorTimeout, recalage fail, RECULER_1, waitingAckID_FIN\n");
+      //printf("osErrorTimeout, recalage fail, RECULER_1, waitingAckID_FIN\n");
       gameEtat = ETAT_GAME_INIT;
       recalageErreur = -4;
       return false;
@@ -791,28 +815,20 @@ bool machineRecalage()
     waitingAckID = ASSERVISSEMENT_ROTATION;
     waitingAckFrom = ACKNOWLEDGE_MOTEUR;
     int16_t angle = 900;
-    if (Cote == ROBOT_A_GAUCHE && Hauteur == ROBOT_EN_HAUT)
+    if (Cote == ROBOT_A_GAUCHE)
     {
       angle = 900;
     }
-    else if (Cote == ROBOT_A_GAUCHE && Hauteur == ROBOT_EN_BAS)
-    {
-      angle = -900;
-    }
-    else if (Cote == ROBOT_A_DROITE && Hauteur == ROBOT_EN_HAUT)
-    {
-      angle = 900;
-    }
-    else if (Cote == ROBOT_A_DROITE && Hauteur == ROBOT_EN_BAS)
+    else if (Cote == ROBOT_A_DROITE)
     {
       angle = -900;
     }
 
     deplacement.rotation(angle);
-    printf("deplacement.rotation(angle : %d);\n", angle);
+    //printf("deplacement.rotation(angle : %d);\n", angle);
     if (flag.wait_all(AckFrom_FLAG, 20000) == osErrorTimeout)
     {
-      printf("osErrorTimeout, recalage fail, TOURNER, waitingAckID\n");
+      //printf("osErrorTimeout, recalage fail, TOURNER, waitingAckID\n");
       gameEtat = ETAT_GAME_INIT;
       recalageErreur = -5;
       return false;
@@ -822,7 +838,7 @@ bool machineRecalage()
     waitingAckFrom_FIN = INSTRUCTION_END_MOTEUR;
     if (flag.wait_all(AckFrom_FIN_FLAG, 20000) == osErrorTimeout)
     {
-      printf("osErrorTimeout, recalage fail, TOURNER, waitingAckID_FIN\n");
+      //printf("osErrorTimeout, recalage fail, TOURNER, waitingAckID_FIN\n");
       gameEtat = ETAT_GAME_INIT;
       recalageErreur = -6;
       return false;
@@ -834,22 +850,23 @@ bool machineRecalage()
   {
     int16_t distance = -1000;
     uint16_t val_recalage;
-    if (Hauteur == ROBOT_EN_BAS)
+    
+    if (Cote == ROBOT_A_DROITE)
     {
-      val_recalage = 2000 - (MOITIEE_ROBOT);
-    }
+      val_recalage = 3000 - (MOITIEE_ROBOT);
+    } // par devant
     else
     {
       val_recalage = MOITIEE_ROBOT;
-    }
+    } // par derriere
 
     waitingAckID = ASSERVISSEMENT_RECALAGE;
     waitingAckFrom = ACKNOWLEDGE_MOTEUR;
     deplacement.recalage(distance, 2, val_recalage);
-    printf("deplacement.recalage(distance : %d, 2, val_recalage : %d);\n", distance, val_recalage);
+    //printf("deplacement.recalage(distance : %d, 2, val_recalage : %d);\n", distance, val_recalage);
     if (flag.wait_all(AckFrom_FLAG, 20000) == osErrorTimeout)
     {
-      printf("osErrorTimeout, recalage fail, RECALAGE_2, waitingAckID\n");
+      //printf("osErrorTimeout, recalage fail, RECALAGE_2, waitingAckID\n");
       gameEtat = ETAT_GAME_INIT;
       recalageErreur = -7;
       return false;
@@ -859,7 +876,7 @@ bool machineRecalage()
     waitingAckFrom_FIN = INSTRUCTION_END_MOTEUR;
     if (flag.wait_all(AckFrom_FIN_FLAG, 20000) == osErrorTimeout)
     {
-      printf("osErrorTimeout, recalage fail, RECALAGE_2, waitingAckID_FIN\n");
+      //printf("osErrorTimeout, recalage fail, RECALAGE_2, waitingAckID_FIN\n");
       gameEtat = ETAT_GAME_INIT;
       recalageErreur = -8;
       return false;
@@ -874,10 +891,10 @@ bool machineRecalage()
     waitingAckFrom = ACKNOWLEDGE_MOTEUR;
     int16_t distance = 100;
     deplacement.toutDroit(distance);
-    printf("deplacement.toutDroit(distance : %d);\n", distance);
+    //printf("deplacement.toutDroit(distance : %d);\n", distance);
     if (flag.wait_all(AckFrom_FLAG, 20000) == osErrorTimeout)
     {
-      printf("osErrorTimeout, recalage fail, RECULER_2, waitingAckID\n");
+      //printf("osErrorTimeout, recalage fail, RECULER_2, waitingAckID\n");
       gameEtat = ETAT_GAME_INIT;
       recalageErreur = -9;
       return false;
@@ -887,7 +904,7 @@ bool machineRecalage()
     waitingAckFrom_FIN = INSTRUCTION_END_MOTEUR;
     if (flag.wait_all(AckFrom_FIN_FLAG, 20000) == osErrorTimeout)
     {
-      printf("osErrorTimeout, recalage fail, RECULER_2, waitingAckID_FIN\n");
+      //printf("osErrorTimeout, recalage fail, RECULER_2, waitingAckID_FIN\n");
       gameEtat = ETAT_GAME_INIT;
       recalageErreur = -10;
       return false;
@@ -900,10 +917,10 @@ bool machineRecalage()
     waitingAckID = ASSERVISSEMENT_XYT;
     waitingAckFrom = ACKNOWLEDGE_MOTEUR;
     deplacement.positionXYTheta(instruction.arg1, instruction.arg2, instruction.arg3, 0);
-    printf("deplacement.positionXYTheta(instruction.arg1 : %d, instruction.arg2 : %d, instruction.arg3 : %d, 0);\n", instruction.arg1, instruction.arg2, instruction.arg3);
+    //printf("deplacement.positionXYTheta(instruction.arg1 : %d, instruction.arg2 : %d, instruction.arg3 : %d, 0);\n", instruction.arg1, instruction.arg2, instruction.arg3);
     if (flag.wait_all(AckFrom_FLAG, 20000) == osErrorTimeout)
     {
-      printf("osErrorTimeout, recalage, GOTOPOS, waitingAckID\n");
+      //printf("osErrorTimeout, recalage, GOTOPOS, waitingAckID\n");
       gameEtat = ETAT_GAME_INIT;
       recalageErreur = -11;
       return false;
@@ -913,7 +930,7 @@ bool machineRecalage()
     waitingAckFrom_FIN = INSTRUCTION_END_MOTEUR;
     if (flag.wait_all(AckFrom_FIN_FLAG, 20000) == osErrorTimeout)
     {
-      printf("osErrorTimeout, recalage, GOTOPOS, waitingAckID_FIN\n");
+      //printf("osErrorTimeout, recalage, GOTOPOS, waitingAckID_FIN\n");
       gameEtat = ETAT_GAME_INIT;
       recalageErreur = -12;
       return false;
@@ -944,7 +961,7 @@ bool machineStrategie()
   switch (gameEtat)
   {
   case ETAT_GAME_LOAD_NEXT_INSTRUCTION:
-    printf("load next instruction\n");
+    //printf("load next instruction\n");
     if (actual_instruction >= nb_instructions || actual_instruction == 255)
     {
       gameEtat = ETAT_END;
@@ -969,7 +986,7 @@ bool machineStrategie()
 
   case ETAT_END:
   {
-    printf("GAME ENDED\n");
+    //printf("GAME ENDED\n");
     return false;
   }
   break;
