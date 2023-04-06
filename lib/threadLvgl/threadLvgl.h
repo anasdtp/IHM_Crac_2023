@@ -50,7 +50,8 @@ protected:
         IHM_FLAG_RECALAGE_HAUTGAUCHE = 0x00000040,
         IHM_FLAG_RECALAGE_HAUTDROIT = 0x00000080,
         IHM_FLAG_RECALAGE_BASGAUCHE = 0x00000100,
-        IHM_FLAG_RECALAGE_BASDROIT = 0x00000200
+        IHM_FLAG_RECALAGE_BASDROIT = 0x00000200,
+        IHM_FLAG_RECALAGE_ETAT = 0x00000400
     } IhmFlag;
     EventFlags flags;
     ThreadLvgl *m_threadLvgl;
@@ -73,6 +74,7 @@ protected:
     lv_obj_t *BasGauche;
     lv_obj_t *HautDroit;
     lv_obj_t *BasDroit;
+    lv_obj_t *etat_recalage;
     // Message Box recalage
     lv_obj_t *msgBoxRecalage;
     // Message Box jack
@@ -105,6 +107,7 @@ public:
     bool recalage_BasGaucheClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_RECALAGE_BASGAUCHE, clearIfSet); }
     bool recalage_HautDroitClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_RECALAGE_HAUTDROIT, clearIfSet); }
     bool recalage_BasDroitClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_RECALAGE_BASDROIT, clearIfSet); }
+    bool ActivationRecalageClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_RECALAGE_ETAT, clearIfSet); }
     int choixStrategie() { return departStrategie; }
     int choixCouleur() { return departCouleur; }
     void msgBoxRecalageInit(const string &strategie);

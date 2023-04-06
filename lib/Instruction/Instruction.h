@@ -11,6 +11,7 @@ enum E_InstructionType
     MV_XYT,         // X -> Aller à
     MV_RECALAGE,    // R -> Recalage bordure
     ACTION,         // A -> Action
+    PINCE,
     UNKNOWN,        // Erreur, instruction inconnue
     POSITION_DEBUT  // P
 };

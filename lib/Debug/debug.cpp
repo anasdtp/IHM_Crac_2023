@@ -34,6 +34,7 @@ char* InstructionTypeToString(enum E_InstructionType type)
         case MV_XYT:            return "Position XYT";
         case MV_RECALAGE:       return "Recalage";
         case ACTION:            return "Action";
+        case PINCE:             return "Pince";
         default:                return "Inconnue";
     }    
 }

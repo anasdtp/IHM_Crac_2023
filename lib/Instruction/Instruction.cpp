@@ -11,6 +11,7 @@ enum E_InstructionType charToInstructionType(char type)
         case 'X': return MV_XYT;
         case 'R': return MV_RECALAGE;
         case 'A': return ACTION;
+        case 'H': return PINCE;
         case 'P': return POSITION_DEBUT;
         default:  return UNKNOWN;
     }    
