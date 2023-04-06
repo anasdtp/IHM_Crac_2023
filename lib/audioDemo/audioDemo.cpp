@@ -25,6 +25,11 @@
 #include <sstream>
 #include <fstream>
 
+#include <sound.h>
+
+static int indexSound = 0;
+const int sizeSound = 204800;
+
 /** @addtogroup STM32F7xx_HAL_Examples
  * @{
  */
@@ -123,7 +128,7 @@ void AudioPlay_demo(void)
   }
 
   /* Play audio on slots 1 and 3 */
-  BSP_AUDIO_OUT_SetAudioFrameSlot(CODEC_AUDIOFRAME_SLOT_13);
+  BSP_AUDIO_OUT_SetAudioFrameSlot(CODEC_AUDIOFRAME_SLOT_0123);
 
   /*
   Start playing the file from a circular buffer, once the DMA is enabled, it is
@@ -234,8 +239,24 @@ bool ouvertureFichierAudio()
  */
 AUDIO_ErrorTypeDef AUDIO_Start()
 {
-  if (!ouvertureFichierAudio())
-    return AUDIO_ERROR_EOF;
+  // if (!ouvertureFichierAudio())
+  //   return AUDIO_ERROR_EOF;
+  // uint32_t bytesread;
+
+  // buffer_ctl.state = BUFFER_OFFSET_NONE;
+
+  // bytesread = GetData(&buffer_ctl.buff[0],
+  //                     AUDIO_BUFFER_SIZE);
+  // printf("Start - Lecture de %u octets\n", bytesread);                      
+  // if (bytesread > 0)
+  // {
+  //   BSP_AUDIO_OUT_Play((uint16_t *)&buffer_ctl.buff[0], AUDIO_BUFFER_SIZE);
+  //   audio_state = AUDIO_STATE_PLAYING;
+  //   buffer_ctl.fptr = bytesread;
+  //   return AUDIO_ERROR_NONE;
+  // }
+  // return AUDIO_ERROR_IO;
+
   uint32_t bytesread;
 
   buffer_ctl.state = BUFFER_OFFSET_NONE;
@@ -325,7 +346,15 @@ uint8_t AUDIO_Process(void)
  */
 static uint32_t GetData(uint8_t *pbuf, uint32_t NbrOfData)
 {
-  return audioFile.readsome((char *)pbuf, NbrOfData);
+  uint32_t i;
+  for (i=0; i<NbrOfData; i++) {
+    if (indexSound >= sizeSound) break;
+    pbuf[i] = (uint8_t)sound[indexSound++];
+  }
+  printf("GetDatas\n");
+  return i;
+
+//  return audioFile.readsome((char *)pbuf, NbrOfData);
 }
 
 /*------------------------------------------------------------------------------

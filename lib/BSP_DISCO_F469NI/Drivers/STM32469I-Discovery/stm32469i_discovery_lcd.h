@@ -28,8 +28,6 @@
 /* Includes ------------------------------------------------------------------*/
 /* Include LCD component Driver */
 
-#define USE_STM32469I_DISCO_REVB
-
 /* Include OTM8009A LCD Driver IC driver code */
 #include "../Components/otm8009a/otm8009a.h"
 /* Include NT35510 LCD Driver IC driver code */

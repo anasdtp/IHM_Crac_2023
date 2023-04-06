@@ -284,16 +284,19 @@ uint8_t BSP_AUDIO_OUT_Play(uint16_t* pBuffer, uint32_t Size)
   {  
     ret = AUDIO_ERROR;
   }
-
+  printf("Play audio codec\n");
   /* Initiate a DMA transfer of PCM samples towards the serial audio interface */  
   if(ret == AUDIO_OK)
   {
+    printf("Start DMA\n");
     if (HAL_SAI_Transmit_DMA(&haudio_out_sai, (uint8_t*) pBuffer, DMA_MAX(Size / AUDIODATA_SIZE))!= HAL_OK)
     {
       ret = AUDIO_ERROR;
+      printf("DMA error\n");
     }
+    printf("DMA started\n");
   }
-        
+  
   return ret;
 }
 
@@ -1480,3 +1483,4 @@ static void TIMx_DeInit(void)
 /**
   * @}
   */
+
