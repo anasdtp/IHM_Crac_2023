@@ -121,14 +121,14 @@
 /* SAI DMA Stream definitions */
 #define AUDIO_SAIx_DMAx_CLK_ENABLE()         __HAL_RCC_DMA2_CLK_ENABLE()
 #define AUDIO_SAIx_DMAx_CLK_DISABLE()        __HAL_RCC_DMA2_CLK_DISABLE()
-#define AUDIO_SAIx_DMAx_STREAM               DMA2_Stream3
+#define AUDIO_SAIx_DMAx_STREAM               DMA2_Stream1
 #define AUDIO_SAIx_DMAx_CHANNEL              DMA_CHANNEL_0
-#define AUDIO_SAIx_DMAx_IRQ                  DMA2_Stream3_IRQn
+#define AUDIO_SAIx_DMAx_IRQ                  DMA2_Stream1_IRQn
 #define AUDIO_SAIx_DMAx_PERIPH_DATA_SIZE     DMA_PDATAALIGN_HALFWORD
 #define AUDIO_SAIx_DMAx_MEM_DATA_SIZE        DMA_MDATAALIGN_HALFWORD
 #define DMA_MAX_SZE                          0xFFFF
 
-#define AUDIO_SAIx_DMAx_IRQHandler           DMA2_Stream3_IRQHandler
+#define AUDIO_SAIx_DMAx_IRQHandler           DMA2_Stream1_IRQHandler
 
 /* Select the interrupt preemption priority for the DMA interrupt */
 #define AUDIO_OUT_IRQ_PREPRIO           5   /* Select the preemption priority level(0 is the highest) */

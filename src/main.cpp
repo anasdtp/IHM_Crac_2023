@@ -23,6 +23,8 @@
 
 #include <lvgl.h>
 
+#include <audioDemo.h>
+
 ThreadCAN threadCAN;
 ThreadSD threadSD;
 ThreadLvgl threadLvgl;
@@ -291,6 +293,7 @@ int main()
         // démarrer le recalage
         recalage = new Thread;
         recalage->start(runRecalage);
+        printf("Tâche audio démarrée\n");
         ihm.msgBoxClose();
         ihm.msgBoxInit("Recalage en cours\n", "Attente\n", true);
       }
@@ -358,9 +361,9 @@ bool lectureFichier(int choix)
     while (getline(monFlux, ligne))
     { // On lit une ligne complète
       printf("%s\n", ligne.c_str());
-      instruction_ligne = stringToInstruction((char *)(ligne.c_str()));
-      strat_instructions[nb_instructions] = instruction_ligne;
-      nb_instructions++;
+      // instruction_ligne = stringToInstruction((char *)(ligne.c_str()));
+      // strat_instructions[nb_instructions] = instruction_ligne;
+      // nb_instructions++;
       // debug_Instruction(strat_instructions[nb_instructions]);
     }
     monFlux.close();
@@ -373,19 +376,21 @@ bool lectureFichier(int choix)
 
 void runRecalage()
 {
-  recalageErreur = 0;
-  deplacement.asservOn();
-  actual_instruction = 0;
-  instruction = strat_instructions[actual_instruction];
-  while (machineRecalage());
+  AudioPlay_demo();
 
-  /*
-  for (int i = 1; i <= 5; i++)
-  {
-    ThisThread::sleep_for(1s);
-    printf("R%d\n", i);
-  }
-  */
+  // recalageErreur = 0;
+  // deplacement.asservOn();
+  // actual_instruction = 0;
+  // instruction = strat_instructions[actual_instruction];
+  // while (machineRecalage());
+
+  
+  // for (int i = 1; i <= 5; i++)
+  // {
+  //   ThisThread::sleep_for(1s);
+  //   printf("R%d\n", i);
+  // }
+  
 }
 
 void runMatch()

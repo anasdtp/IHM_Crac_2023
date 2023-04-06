@@ -166,7 +166,7 @@ void BSP_LED_Init(Led_TypeDef Led)
 {
   GPIO_InitTypeDef  gpio_init_structure;
 
-  if (Led <= DISCO_LED4)
+  if (Led <= LED4_DISCO)
   {
     /* Configure the GPIO_LED pin */
     gpio_init_structure.Pin   = GPIO_PIN[Led];
@@ -176,16 +176,16 @@ void BSP_LED_Init(Led_TypeDef Led)
 
     switch(Led)
     {
-    case DISCO_LED1 :
+    case LED1_DISCO :
       LED1_GPIO_CLK_ENABLE();
       break;
-    case DISCO_LED2 :
+    case LED2_DISCO :
       LED2_GPIO_CLK_ENABLE();
       break;
-    case DISCO_LED3 :
+    case LED3_DISCO :
       LED3_GPIO_CLK_ENABLE();
       break;
-    case DISCO_LED4 :
+    case LED4_DISCO :
       LED4_GPIO_CLK_ENABLE();
       break;
     default :
@@ -217,7 +217,7 @@ void BSP_LED_DeInit(Led_TypeDef Led)
 {
   GPIO_InitTypeDef  gpio_init_structure;
 
-  if (Led <= DISCO_LED4)
+  if (Led <= LED4_DISCO)
   {
     /* DeInit the GPIO_LED pin */
     gpio_init_structure.Pin = GPIO_PIN[Led];
@@ -240,7 +240,7 @@ void BSP_LED_DeInit(Led_TypeDef Led)
   */
 void BSP_LED_On(Led_TypeDef Led)
 {
-  if (Led <= DISCO_LED4)
+  if (Led <= LED4_DISCO)
   {
      HAL_GPIO_WritePin(GPIO_PORT[Led], GPIO_PIN[Led], GPIO_PIN_RESET);
   }
@@ -258,7 +258,7 @@ void BSP_LED_On(Led_TypeDef Led)
   */
 void BSP_LED_Off(Led_TypeDef Led)
 {
-  if (Led <= DISCO_LED4)
+  if (Led <= LED4_DISCO)
   {
     HAL_GPIO_WritePin(GPIO_PORT[Led], GPIO_PIN[Led], GPIO_PIN_SET);
   }
@@ -275,7 +275,7 @@ void BSP_LED_Off(Led_TypeDef Led)
   */
 void BSP_LED_Toggle(Led_TypeDef Led)
 {
-  if (Led <= DISCO_LED4)
+  if (Led <= LED4_DISCO)
   {
      HAL_GPIO_TogglePin(GPIO_PORT[Led], GPIO_PIN[Led]);
   }
