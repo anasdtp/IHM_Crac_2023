@@ -104,6 +104,8 @@ AUDIO_ErrorTypeDef AUDIO_Start();
 /* Private functions ---------------------------------------------------------*/
 uint8_t AUDIO_Process(void);
 
+DigitalOut hp(PE_3, 0);
+
 /**
  * @brief  Audio Play demo
  * @param  None
@@ -114,7 +116,7 @@ void AudioPlay_demo(void)
   uint32_t *AudioFreq_ptr;
   AudioFreq_ptr = AudioFreq; /*AF_48K*/
 
-  uwVolume = 40;
+  uwVolume = 60;
 
   /*  if(BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_HEADPHONE1, uwVolume, *AudioFreq_ptr) == 0)
   if(BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_HEADPHONE2, uwVolume, *AudioFreq_ptr) == 0)*/
@@ -346,12 +348,13 @@ uint8_t AUDIO_Process(void)
  */
 static uint32_t GetData(uint8_t *pbuf, uint32_t NbrOfData)
 {
+  static int nb = 0;
   uint32_t i;
   for (i=0; i<NbrOfData; i++) {
     if (indexSound >= sizeSound) break;
     pbuf[i] = (uint8_t)sound[indexSound++];
   }
-  printf("GetDatas\n");
+  printf("%5d GetDatas\n", nb++);
   return i;
 
 //  return audioFile.readsome((char *)pbuf, NbrOfData);

@@ -198,6 +198,11 @@ static void PDMDecoder_Init(uint32_t AudioFreq, uint32_t ChnlNbrIn, uint32_t Chn
 
 void BSP_AUDIO_OUT_ChangeAudioConfig(uint32_t AudioOutOption);
 
+void _DMA_Stream_Audio_IRQHandler(void)
+{
+  HAL_DMA_IRQHandler(haudio_out_sai.hdmatx);
+}
+
 /**
   * @}
   */
@@ -265,6 +270,10 @@ uint8_t BSP_AUDIO_OUT_Init(uint16_t OutputDevice,
       ret = AUDIO_ERROR;
     }
   }
+
+  NVIC_SetVector(DMA2_Stream1_IRQn, (uint32_t)&_DMA_Stream_Audio_IRQHandler);
+  HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 0x0F, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
 
   return ret;
 }
