@@ -25,11 +25,6 @@
 #include <sstream>
 #include <fstream>
 
-#include <sound.h>
-
-static int indexSound = 0;
-const int sizeSound = 204800;
-
 /** @addtogroup STM32F7xx_HAL_Examples
  * @{
  */
@@ -95,7 +90,7 @@ __IO uint32_t uwPauseEnabledStatus = 0;
 
 static uint32_t AudioFreq[1] =
     {
-        96000};
+        48000};
 
 /* Private function prototypes -----------------------------------------------*/
 static uint32_t GetData(uint8_t *pbuf, uint32_t NbrOfData);
@@ -114,11 +109,11 @@ void AudioPlay_demo(void)
   uint32_t *AudioFreq_ptr;
   AudioFreq_ptr = AudioFreq; /*AF_48K*/
 
-  uwVolume = 60;
+  uwVolume = 80;
 
   /*  if(BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_HEADPHONE1, uwVolume, *AudioFreq_ptr) == 0)
   if(BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_HEADPHONE2, uwVolume, *AudioFreq_ptr) == 0)*/
-  if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_BOTH, uwVolume, *AudioFreq_ptr) == 0)
+  if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_SPEAKER, uwVolume, *AudioFreq_ptr) == 0)
   {
     printf("AUDIO CODEC OK\n");
   }
@@ -239,25 +234,7 @@ bool ouvertureFichierAudio()
  */
 AUDIO_ErrorTypeDef AUDIO_Start()
 {
-  // if (!ouvertureFichierAudio())
-  //   return AUDIO_ERROR_EOF;
-  // uint32_t bytesread;
-
-  // buffer_ctl.state = BUFFER_OFFSET_NONE;
-
-  // bytesread = GetData(&buffer_ctl.buff[0],
-  //                     AUDIO_BUFFER_SIZE);
-  // printf("Start - Lecture de %u octets\n", bytesread);                      
-  // if (bytesread > 0)
-  // {
-  //   BSP_AUDIO_OUT_Play((uint16_t *)&buffer_ctl.buff[0], AUDIO_BUFFER_SIZE);
-  //   audio_state = AUDIO_STATE_PLAYING;
-  //   buffer_ctl.fptr = bytesread;
-  //   return AUDIO_ERROR_NONE;
-  // }
-  // return AUDIO_ERROR_IO;
-
-  if (!ouvertureFichierAudio()) return AUDIO_ERROR_IO;
+  if (!ouvertureFichierAudio()) return AUDIO_ERROR_EOF;
 
   uint32_t bytesread;
 
@@ -348,15 +325,6 @@ uint8_t AUDIO_Process(void)
  */
 static uint32_t GetData(uint8_t *pbuf, uint32_t NbrOfData)
 {
-  // static int nb = 0;
-  // uint32_t i;
-  // for (i=0; i<NbrOfData; i++) {
-  //   if (indexSound >= sizeSound) break;
-  //   pbuf[i] = (uint8_t)sound[indexSound++];
-  // }
-  // printf("%5d GetDatas\n", nb++);
-  // return i;
-
   return audioFile.readsome((char *)pbuf, NbrOfData);
 }
 
