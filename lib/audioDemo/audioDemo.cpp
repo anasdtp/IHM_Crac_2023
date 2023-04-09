@@ -257,6 +257,8 @@ AUDIO_ErrorTypeDef AUDIO_Start()
   // }
   // return AUDIO_ERROR_IO;
 
+  if (!ouvertureFichierAudio()) return AUDIO_ERROR_IO;
+
   uint32_t bytesread;
 
   buffer_ctl.state = BUFFER_OFFSET_NONE;
@@ -346,16 +348,16 @@ uint8_t AUDIO_Process(void)
  */
 static uint32_t GetData(uint8_t *pbuf, uint32_t NbrOfData)
 {
-  static int nb = 0;
-  uint32_t i;
-  for (i=0; i<NbrOfData; i++) {
-    if (indexSound >= sizeSound) break;
-    pbuf[i] = (uint8_t)sound[indexSound++];
-  }
-  printf("%5d GetDatas\n", nb++);
-  return i;
+  // static int nb = 0;
+  // uint32_t i;
+  // for (i=0; i<NbrOfData; i++) {
+  //   if (indexSound >= sizeSound) break;
+  //   pbuf[i] = (uint8_t)sound[indexSound++];
+  // }
+  // printf("%5d GetDatas\n", nb++);
+  // return i;
 
-//  return audioFile.readsome((char *)pbuf, NbrOfData);
+  return audioFile.readsome((char *)pbuf, NbrOfData);
 }
 
 /*------------------------------------------------------------------------------
