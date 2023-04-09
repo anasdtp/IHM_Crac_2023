@@ -104,8 +104,6 @@ AUDIO_ErrorTypeDef AUDIO_Start();
 /* Private functions ---------------------------------------------------------*/
 uint8_t AUDIO_Process(void);
 
-DigitalOut hp(PE_3, 0);
-
 /**
  * @brief  Audio Play demo
  * @param  None
