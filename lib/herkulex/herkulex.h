@@ -20,6 +20,7 @@ public:
     void changerIdHerkulexPince(uint8_t id);
 
     void stepMotorHauteur(int mm);
+    void stepMotorMode(uint8_t mode);
 
     void controleHerkulexPosition(uint8_t IDHerkulex, short position, CouleurHerkulex setLed);
     void controleHerkulexPosition_Mul_ensemble(uint8_t IDHerkulex, short position1, uint8_t ID2Herkulex, short position2);

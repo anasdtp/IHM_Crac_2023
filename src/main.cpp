@@ -7,7 +7,7 @@
 #include <FATFileSystem.h>
 
 #include <SDIOBlockDevice.h>
-
+ 
 #include <threadCAN.h>
 #include <threadSD.h>
 #include <threadLvgl.h>
@@ -39,7 +39,7 @@ Thread *recalage;
 void runRecalage();
 int recalageErreur; // 0 si recalage réussi, valeur négative sinon
 
-Thread *match;
+Thread *match; 
 void runMatch();
 bool jack();
 Timeout timerMatch;
@@ -388,6 +388,7 @@ void runRecalage()
 {
   recalageErreur = 0;
   deplacement.asservOn();
+  Herkulex.stepMotorMode(1);
   wait_us(50 * 1000);
   actual_instruction = 0;
   instruction = strat_instructions[actual_instruction];
@@ -407,14 +408,13 @@ void runMatch()
 {
   gameEtat = ETAT_GAME_LOAD_NEXT_INSTRUCTION;
 
-  for (int i = 1; i <= 3; i++)
-  {
-    ThisThread::sleep_for(1s);
-    // printf("M%d\n", i);
-  }
+  // for (int i = 1; i <= 3; i++)
+  // {
+  //   ThisThread::sleep_for(1s);
+  //   // printf("M%d\n", i);
+  // }
 
-  while (machineStrategie())
-    ;
+  while (machineStrategie());
 }
 
 // Retourne true si le jack est retiré
@@ -712,12 +712,12 @@ void process_instructions(struct S_Instruction instruction)
   case PINCE:
   {
     uint8_t Etage = (instruction.arg1 & 0xFF);
-    uint8_t etatHerkulex = instruction.arg2 & 0xFF;
+    uint8_t etatHerkulex = ((instruction.arg2 == 1) ? 1 : 0);
     uint8_t sens = (instruction.arg3 & 0xFF);
     waitingAckID = IDCAN_PINCE;
     waitingAckFrom = ACKNOWLEDGE_ACTIONNEURS;
     // printf("Herkulex.controlePince(Etage : %d, etatHerkulex : %d, sens : %d);\n",Etage,etatHerkulex, sens);
-
+    
     Herkulex.controlePince(Etage, etatHerkulex, sens);
     printf("Herkulex.controlePince(Etage : %d, etatHerkulex : %d, sens : %d);\n", Etage, etatHerkulex, sens);
     flag.wait_all(AckFrom_FLAG, 20000);

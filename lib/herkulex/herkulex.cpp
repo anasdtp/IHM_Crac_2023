@@ -24,7 +24,7 @@ void herkulex::changerIdHerkulexPince(uint8_t id){
 void herkulex::stepMotorHauteur(int mm){
     unsigned int position = mm*3600/80.0;
     CANMessage txMsg;
-    txMsg.id = IDCAN_PINCE_CHANGE_ID_HERKULEX;
+    txMsg.id = IDCAN_STEP_MOT_POS;
     txMsg.len = 4;
     txMsg.data[0] = (position&0xFF);
     txMsg.data[1] = ((position>>8)&0xFF);
@@ -33,10 +33,20 @@ void herkulex::stepMotorHauteur(int mm){
     m_can->send(txMsg);
 }
 
+void herkulex::stepMotorMode(uint8_t mode){
+    CANMessage txMsg;
+    txMsg.id = IDCAN_STEP_MOT_MODE;
+    txMsg.len = 3;
+    txMsg.data[0] = (mode&0x01);
+    txMsg.data[1] = ((mode>>1)&0x01);
+    txMsg.data[2] = ((mode>>2)&0x01);
+    m_can->send(txMsg);
+}
+
 
 void herkulex::controleHerkulexPosition(uint8_t IDHerkulex, short position, CouleurHerkulex setLed){
     char commande = 0, playtime = 0x3C, couleur = 0;
-    if(setLed == VERT){couleur = 0x04;}else if(setLed == ROUGE){couleur = 0x08;}else if(setLed == BLEU){ couleur = 0x10;}
+    if(setLed == VERT){couleur = 0x04;}else if(setLed == ROUGE){couleur = 0x10;}else if(setLed == BLEU){ couleur = 0x08;}
     CANMessage txMsg;
     txMsg.id = IDCAN_HERKULEX;
     txMsg.len = 6;
