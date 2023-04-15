@@ -11,6 +11,9 @@
 #include <threadCAN.h>
 #include <threadSD.h>
 #include <threadLvgl.h>
+
+#include <threadSound.h>
+
 #include <deplacement.h>
 #include <herkulex.h>
 
@@ -295,6 +298,7 @@ int main()
         // démarrer le recalage
         recalage = new Thread;
         recalage->start(runRecalage);
+        printf("Tâche audio démarrée\n");
         ihm.msgBoxClose();
         ihm.msgBoxInit("Recalage en cours\n", "Attente\n", true);
       }
@@ -316,12 +320,13 @@ bool listeFichiers()
   // Attend que la carte SD soit prête
   threadSD.waitReady();
   // Se déplace dans le dossier "/strategie" et liste les fichiers présents
-  string reply = threadSD.cdName("/strategie");
+  string reply = threadSD.cdName("/");
+  // string reply = threadSD.cdName("/strategie");
   // Vérifie que le dossier "/strategie" existe
-  if (reply.find("/strategie") != 0)
-  {
-    return false;
-  }
+  // if (reply.find("/strategie") != 0)
+  // {
+  //   return false;
+  // }
   // Récupère le résultat sous la forme /chemin*dossier1*dossier2*dossier3:fichier1:fichier2:fichier3?   * pour dossier  : pour fichier  ? pour fin
   // Enlève le ? à la fin
   if (!reply.empty())
