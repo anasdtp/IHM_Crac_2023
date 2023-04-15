@@ -50,7 +50,8 @@ class ThreadSound {
     static FILE *m_infile;
     static int m_sampleRate;
     static uint8_t m_volume;
-
+    static bool m_mono;
+    
     static HMP3Decoder m_hMP3Decoder;
     static short m_outBuf[2][MAX_NCHAN * MAX_NGRAN * MAX_NSAMP];
     static uint16_t m_nbDatas[2];

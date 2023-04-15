@@ -182,6 +182,9 @@ uint32_t cs43l22_Init(uint16_t DeviceAddr, uint16_t OutputDevice, uint8_t Volume
     //counter += CODEC_IO_Write(DeviceAddr, CS43L22_REG_PLAYBACK_CTL2, 0x06);
     /* Ne fonctionne pas en Mono avec le câblage de la carte discovery */
     counter += CODEC_IO_Write(DeviceAddr, CS43L22_REG_PLAYBACK_CTL2, 0x00);
+    /* On peut envoyer les datas en Mono vers les sorties 
+       mais la configuration est en mono pour headphone aussi */
+    counter += CODEC_IO_Write(DeviceAddr, CS43L22_REG_CH_MIXER_SWAP, 0x50);
     
     /* Set the Speaker attenuation level */  
     counter += CODEC_IO_Write(DeviceAddr, CS43L22_REG_SPEAKER_A_VOL, 0x00);

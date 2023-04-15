@@ -12,6 +12,7 @@ short ThreadSound::m_outBuf[2][MAX_NCHAN * MAX_NGRAN * MAX_NSAMP];
 uint16_t ThreadSound::m_nbDatas[2];
 int ThreadSound::m_sampleRate = 44100;
 uint8_t ThreadSound::m_volume = 80;
+bool ThreadSound::m_mono = false;
 
 // Création de l'instance unique de la classe
 ThreadSound *const ThreadSound::threadSound = new ThreadSound();
@@ -142,7 +143,8 @@ void ThreadSound::runMp3Decoder() {
         } else {
             /* no error */
             MP3GetLastFrameInfo(m_hMP3Decoder, &mp3FrameInfo);
-            m_sampleRate = mp3FrameInfo.samprate;        
+            m_sampleRate = mp3FrameInfo.samprate;
+            m_mono = mp3FrameInfo.nChans == 1;
             m_nbDatas[indexOutBuf] = mp3FrameInfo.bitsPerSample * mp3FrameInfo.outputSamps / 8;
             if (indexOutBuf == 0) {
                 indexOutBuf = 1;
@@ -182,7 +184,7 @@ void ThreadSound::runPlaySound() {
         return;
     }
 
-//    BSP_AUDIO_OUT_ChangeAudioConfig(BSP_AUDIO_OUT_CIRCULARMODE | BSP_AUDIO_OUT_MONOMODE);
+    if (m_mono) BSP_AUDIO_OUT_ChangeAudioConfig(BSP_AUDIO_OUT_CIRCULARMODE | BSP_AUDIO_OUT_MONOMODE);
 
     /*
     Start playing the file from a circular buffer, once the DMA is enabled, it is
