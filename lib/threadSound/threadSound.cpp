@@ -4,41 +4,55 @@
 
 // Création des membres statiques
 EventFlags ThreadSound::m_flags;
+EventFlags ThreadSound::m_flagsError;
 Thread *ThreadSound::m_mp3Decoder = nullptr;
 Thread *ThreadSound::m_playSound = nullptr;
+Thread *ThreadSound::m_garbage = nullptr;
 FILE *ThreadSound::m_infile = nullptr;
 HMP3Decoder ThreadSound::m_hMP3Decoder;
 short ThreadSound::m_outBuf[2][MAX_NCHAN * MAX_NGRAN * MAX_NSAMP];
 uint16_t ThreadSound::m_nbDatas[2];
 int ThreadSound::m_sampleRate = 44100;
-uint8_t ThreadSound::m_volume = 80;
+uint8_t ThreadSound::m_volume = 75;
 bool ThreadSound::m_mono = false;
 
 // Création de l'instance unique de la classe
 ThreadSound *const ThreadSound::threadSound = new ThreadSound();
 
-ThreadSound::ThreadSound() {
+void ThreadSound::destroy() {
+    BSP_AUDIO_OUT_Stop(CODEC_PDWN_HW);
+    if (m_garbage) {
+        delete m_garbage;
+    }
+    m_garbage = new Thread;
+    m_garbage->start(callback(garbage));
 }
 
-ThreadSound::~ThreadSound() {
+void ThreadSound::garbage() {
     if (m_mp3Decoder) {
-        m_playSound->terminate();
-        m_mp3Decoder->terminate();
-        m_playSound->join();
-        m_mp3Decoder->join();
-        delete m_playSound;
-        m_playSound = nullptr;
+        if (m_mp3Decoder->get_state() != Thread::Deleted) {
+            m_mp3Decoder->terminate();
+            m_mp3Decoder->join();
+        }
         delete m_mp3Decoder;
         m_mp3Decoder = nullptr;
+    }
+    if (m_playSound) {
+        if (m_playSound->get_state() != Thread::Deleted) {
+            m_playSound->terminate();
+            m_playSound->join();
+        }
+        delete m_playSound;
+        m_playSound = nullptr;
     }
     if (m_infile) {
         fclose(m_infile);
         m_infile = nullptr;
     }
+    m_flags.clear();
 }
 
-ThreadSound::ErrorSound ThreadSound::playMp3(const char *file, uint8_t volume) {
-
+ThreadSound::ErrorSound ThreadSound::playMp3(const char *file) {
     ErrorSound error;
     // Teste si la ressource est disponible
     CriticalSectionLock::enable();
@@ -56,15 +70,71 @@ ThreadSound::ErrorSound ThreadSound::playMp3(const char *file, uint8_t volume) {
     if (error != NO_ERROR) return error;
 
     m_flags.clear();
-    m_volume = volume;
+    m_flagsError.clear();
     m_infile = fopen(file, "rb");
     if (!m_infile) {
         return ERROR_FILE_NOT_FOUND;
     }
     m_mp3Decoder = new Thread;
-    m_mp3Decoder->start(callback(ThreadSound::runMp3Decoder));
+    m_mp3Decoder->start(callback(runMp3Decoder));
     m_playSound = new Thread;
-    m_playSound->start(callback(ThreadSound::runPlaySound));
+    m_playSound->start(callback(runPlaySound));
+    return NO_ERROR;
+}
+
+ThreadSound::ErrorSound ThreadSound::stop() {
+    if (m_flags.get() & FLAG_IS_PLAYING) {
+        destroy();
+        return NO_ERROR;
+    }
+    return ERROR_NOT_PLAYING;
+}
+
+ThreadSound::ErrorSound ThreadSound::pause() {
+    uint32_t f = m_flags.get();
+    if ((f & FLAG_IS_PLAYING) && !(f & FLAG_PAUSE)) {
+        if (BSP_AUDIO_OUT_Pause() == AUDIO_ERROR) {
+            return ERROR_PAUSE;
+        }
+        m_flags.set(FLAG_PAUSE);
+        return NO_ERROR;
+    }
+    return ERROR_NOT_PLAYING;
+}
+
+ThreadSound::ErrorSound ThreadSound::resume() {
+    uint32_t f = m_flags.get();
+    if ((f & FLAG_IS_PLAYING) && (f & FLAG_PAUSE)) {
+        if (BSP_AUDIO_OUT_Resume() == AUDIO_ERROR) {
+            return ERROR_RESUME;
+        }
+        m_flags.clear(FLAG_PAUSE);
+        return NO_ERROR;
+    }
+    return ERROR_NOT_PLAYING;
+}
+
+ThreadSound::ErrorSound ThreadSound::volume(uint8_t v) {
+    if (BSP_AUDIO_OUT_SetVolume(v) == AUDIO_ERROR) {
+        return ERROR_VOLUME;
+    }
+    m_volume = v;
+    return NO_ERROR;
+}
+
+ThreadSound::ErrorSound ThreadSound::mute() {
+    if (BSP_AUDIO_OUT_SetMute(AUDIO_MUTE_ON) == AUDIO_ERROR) {
+        return ERROR_MUTE;
+    }
+    m_flags.set(FLAG_MUTE);
+    return NO_ERROR;
+}
+
+ThreadSound::ErrorSound ThreadSound::unMute() {
+    if (BSP_AUDIO_OUT_SetMute(AUDIO_MUTE_OFF) == AUDIO_ERROR) {
+        return ERROR_MUTE;
+    }
+    m_flags.clear(FLAG_MUTE);
     return NO_ERROR;
 }
 
@@ -90,7 +160,6 @@ void ThreadSound::runMp3Decoder() {
     int eofReached = 0;
     unsigned char *readPtr = readBuf;
     int nRead = 0;
-    int nFrames = 0;
     int offset;
     int err;
     MP3FrameInfo mp3FrameInfo;
@@ -98,6 +167,8 @@ void ThreadSound::runMp3Decoder() {
     short *outBuf = m_outBuf[0];
 
     if ((m_hMP3Decoder = MP3InitDecoder()) == 0) {
+        m_flagsError.set(ERROR_MP3_DECODER);
+        destroy();
         return;
     }
 
@@ -124,7 +195,6 @@ void ThreadSound::runMp3Decoder() {
 
         /* decode one MP3 frame - if offset < 0 then bytesLeft was less than a full frame */
         err = MP3Decode(m_hMP3Decoder, &readPtr, &bytesLeft, outBuf, 0);
-        nFrames++;
 
         if (err) {
             /* error occurred */
@@ -166,7 +236,7 @@ void ThreadSound::runMp3Decoder() {
     fclose(m_infile);
     m_infile = nullptr;
 
-    printf("Décodage réussi\n");
+    // printf("Décodage réussi\n");
 }
 
 void ThreadSound::runPlaySound() {
@@ -174,13 +244,13 @@ void ThreadSound::runPlaySound() {
 
     if (!(m_flags.wait_all(FLAG_MP3_DECODER_BUFFER0_READY, 100) & FLAG_MP3_DECODER_BUFFER0_READY)) {
         // erreur ou fin
+        destroy();
         return;
     }
 
-    if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_BOTH, m_volume, m_sampleRate) == 0) {
-        printf("AUDIO CODEC OK\n");
-    } else {
-        printf("AUDIO CODEC FAIL\nTry to reset board\n");
+    if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_BOTH, m_volume, m_sampleRate) != 0) {
+        m_flagsError.set(ERROR_AUDIO_CODEC);
+        destroy();
         return;
     }
 
@@ -193,8 +263,7 @@ void ThreadSound::runPlaySound() {
     (BSP_AUDIO_OUT_TransferComplete_CallBack() or BSP_AUDIO_OUT_HalfTransfer_CallBack()...
     */
 
-    BSP_AUDIO_OUT_Play((uint16_t *)m_outBuf[0], m_nbDatas[0]*2);
-    int datas = m_nbDatas[0];
+    BSP_AUDIO_OUT_Play((uint16_t *)m_outBuf[0], m_nbDatas[0] * 2);
 
     while (1) {
         nbTotalDatas++;
@@ -210,12 +279,11 @@ void ThreadSound::runPlaySound() {
             break;
         }
     }
-    BSP_AUDIO_OUT_Stop(CODEC_PDWN_HW);
 
-    printf("Nb Datas %d x %d = %d\n", nbTotalDatas, datas, nbTotalDatas * datas);
+    // printf("Nb Datas %d x %d = %d\n", nbTotalDatas, datas, nbTotalDatas * datas);
 
     // Libère la ressource
-    m_flags.clear(FLAG_IS_PLAYING);
+    destroy();
 }
 
 /*------------------------------------------------------------------------------
@@ -230,12 +298,9 @@ void ThreadSound::runPlaySound() {
  * @retval None
  */
 void BSP_AUDIO_OUT_TransferComplete_CallBack(void) {
-    ThreadSound::m_flags.set(ThreadSound::FLAG_FULL_BUFFER);
-    //   if (audio_state == AUDIO_STATE_PLAYING)
-    //   {
-    //     /* allows AUDIO_Process() to refill 2nd part of the buffer  */
-    //     buffer_ctl.state = BUFFER_OFFSET_FULL;
-    //   }
+    if (ThreadSound::m_flags.wait_all(ThreadSound::FLAG_IS_PLAYING, 0, false)) {
+        ThreadSound::m_flags.set(ThreadSound::FLAG_FULL_BUFFER);
+    }
 }
 
 /**
@@ -244,12 +309,9 @@ void BSP_AUDIO_OUT_TransferComplete_CallBack(void) {
  * @retval None
  */
 void BSP_AUDIO_OUT_HalfTransfer_CallBack(void) {
-    ThreadSound::m_flags.set(ThreadSound::FLAG_HALF_BUFFER);
-    //   if (audio_state == AUDIO_STATE_PLAYING)
-    //   {
-    //     /* allows AUDIO_Process() to refill 1st part of the buffer  */
-    //     buffer_ctl.state = BUFFER_OFFSET_HALF;
-    //   }
+    if (ThreadSound::m_flags.wait_all(ThreadSound::FLAG_IS_PLAYING, 0, false)) {
+        ThreadSound::m_flags.set(ThreadSound::FLAG_HALF_BUFFER);
+    }
 }
 
 // /**
@@ -257,16 +319,6 @@ void BSP_AUDIO_OUT_HalfTransfer_CallBack(void) {
 //  * @param  None
 //  * @retval None
 //  */
-void BSP_AUDIO_OUT_Error_CallBack(void)
-{
-    ThreadSound::m_flags.set(ThreadSound::FLAG_DMA_ERROR);
-//   /* Display message on the LCD screen */
-//   printf("DMA  ERROR\n");
-
-//   /* Stop the program with an infinite loop */
-//   while (1)
-//     ;
-
-//   /* could also generate a system reset to recover from the error */
-//   /* .... */
+void BSP_AUDIO_OUT_Error_CallBack(void) {
+    ThreadSound::m_flagsError.set(ThreadSound::ERROR_DMA);
 }
