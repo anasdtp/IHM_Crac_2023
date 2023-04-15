@@ -54,6 +54,7 @@ ThreadSound::ErrorSound ThreadSound::playMp3(const char *file, uint8_t volume) {
 
     if (error != NO_ERROR) return error;
 
+    m_flags.clear();
     m_volume = volume;
     m_infile = fopen(file, "rb");
     if (!m_infile) {
@@ -174,10 +175,7 @@ void ThreadSound::runPlaySound() {
         return;
     }
 
-    // Division par 2 car sans doute problème de configuration d'horloge
-    uint32_t audioFreq = m_sampleRate;
-
-    if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_BOTH, m_volume, audioFreq) == 0) {
+    if (BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_BOTH, m_volume, m_sampleRate) == 0) {
         printf("AUDIO CODEC OK\n");
     } else {
         printf("AUDIO CODEC FAIL\nTry to reset board\n");
@@ -210,7 +208,7 @@ void ThreadSound::runPlaySound() {
             break;
         }
     }
-    BSP_AUDIO_OUT_Stop(CODEC_PDWN_SW);
+    BSP_AUDIO_OUT_Stop(CODEC_PDWN_HW);
 
     printf("Nb Datas %d x %d = %d\n", nbTotalDatas, datas, nbTotalDatas * datas);
 

@@ -317,12 +317,13 @@ bool listeFichiers()
   // Attend que la carte SD soit prête
   threadSD.waitReady();
   // Se déplace dans le dossier "/strategie" et liste les fichiers présents
-  string reply = threadSD.cdName("/strategie");
+  string reply = threadSD.cdName("/");
+  // string reply = threadSD.cdName("/strategie");
   // Vérifie que le dossier "/strategie" existe
-  if (reply.find("/strategie") != 0)
-  {
-    return false;
-  }
+  // if (reply.find("/strategie") != 0)
+  // {
+  //   return false;
+  // }
   // Récupère le résultat sous la forme /chemin*dossier1*dossier2*dossier3:fichier1:fichier2:fichier3?   * pour dossier  : pour fichier  ? pour fin
   // Enlève le ? à la fin
   if (!reply.empty())
@@ -353,34 +354,34 @@ bool lectureFichier(int choix)
     // Que faire si choix == -1 ????
     return false;
   }
-  ficStrat = "/sd/strategie/" + fichiers[choix];
-  ifstream monFlux(ficStrat); // Ouverture d'un fichier en lecture
-  if (monFlux)
-  {
-    // Tout est prêt pour la lecture.
-    string ligne;
-    while (getline(monFlux, ligne))
-    { // On lit une ligne complète
-      printf("%s\n", ligne.c_str());
-      // instruction_ligne = stringToInstruction((char *)(ligne.c_str()));
-      // strat_instructions[nb_instructions] = instruction_ligne;
-      // nb_instructions++;
-      // debug_Instruction(strat_instructions[nb_instructions]);
-    }
-    monFlux.close();
-    return true;
-  }
-  // ERREUR: Impossible d'ouvrir le fichier en lecture
-  // On fait la même chose que pour choix == -1 ????
-  return false;
+  // ficStrat = "/sd/strategie/" + fichiers[choix];
+  ficStrat = "/sd/" + fichiers[choix];
+  ThreadSound::playMp3(ficStrat.c_str());
+
+  // ifstream monFlux(ficStrat); // Ouverture d'un fichier en lecture
+  // if (monFlux)
+  // {
+  //   // Tout est prêt pour la lecture.
+  //   string ligne;
+  //   while (getline(monFlux, ligne))
+  //   { // On lit une ligne complète
+  //     printf("%s\n", ligne.c_str());
+  //     // instruction_ligne = stringToInstruction((char *)(ligne.c_str()));
+  //     // strat_instructions[nb_instructions] = instruction_ligne;
+  //     // nb_instructions++;
+  //     // debug_Instruction(strat_instructions[nb_instructions]);
+  //   }
+  //   monFlux.close();
+  //   return true;
+  // }
+  // // ERREUR: Impossible d'ouvrir le fichier en lecture
+  // // On fait la même chose que pour choix == -1 ????
+  // return false;
   return true;
 }
 
 void runRecalage()
 {
-  ThreadSound::playMp3("/sd/lea.mp3");
-  // AudioPlay_demo();
-
   // recalageErreur = 0;
   // deplacement.asservOn();
   // actual_instruction = 0;
