@@ -354,6 +354,19 @@ void Ihm::recalagePositionInit()
                          LV_GRID_ALIGN_STRETCH, 2, 1);
     lv_obj_add_event_cb(BasDroit, Ihm::eventHandler, LV_EVENT_CLICKED, this);
 
+
+    etat_recalage = lv_btn_create(container);
+    label = lv_label_create(etat_recalage);
+    lv_label_set_text(label, "Activation Recalage");
+    lv_obj_add_flag(etat_recalage, LV_OBJ_FLAG_CHECKABLE);
+    lv_obj_set_style_bg_color(etat_recalage, lv_palette_main(LV_PALETTE_GREEN), LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(etat_recalage, lv_palette_main(LV_PALETTE_RED), LV_STATE_CHECKED);
+    lv_obj_center(label);
+    lv_obj_set_grid_cell(etat_recalage, LV_GRID_ALIGN_STRETCH, 1, 1,
+                         LV_GRID_ALIGN_STRETCH, 0, 1);
+    lv_obj_add_event_cb(etat_recalage, Ihm::eventHandler, LV_EVENT_CLICKED, this);
+
+
     m_threadLvgl->unlock();
 }
 
@@ -408,6 +421,8 @@ void Ihm::eventHandler(lv_event_t *e)
     else if (emetteur == ihm->BasDroit)
     {
         ihm->flags.set(IHM_FLAG_RECALAGE_BASDROIT);
+    }else if(emetteur == ihm->etat_recalage){
+        ihm->flags.set(IHM_FLAG_RECALAGE_ETAT);
     }
 }
 
