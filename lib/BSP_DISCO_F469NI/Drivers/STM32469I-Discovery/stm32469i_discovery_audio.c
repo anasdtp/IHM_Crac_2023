@@ -595,6 +595,27 @@ void BSP_AUDIO_OUT_DeInit(void)
 }
 
 /**
+  * @brief  Manages the DMA full Transfer complete event.
+  */
+__weak void BSP_AUDIO_OUT_TransferComplete_CallBack(void)
+{
+}
+
+/**
+  * @brief  Manages the DMA Half Transfer complete event.
+  */
+__weak void BSP_AUDIO_OUT_HalfTransfer_CallBack(void)
+{
+}
+
+/**
+  * @brief  Manages the DMA FIFO error event.
+  */
+__weak void BSP_AUDIO_OUT_Error_CallBack(void)
+{
+}
+
+/**
   * @brief  Tx Transfer completed callbacks.
   * @param  hsai: SAI handle
   */
@@ -623,27 +644,6 @@ void HAL_SAI_TxHalfCpltCallback(SAI_HandleTypeDef *hsai)
 void HAL_SAI_ErrorCallback(SAI_HandleTypeDef *hsai)
 {
   BSP_AUDIO_OUT_Error_CallBack();
-}
-
-/**
-  * @brief  Manages the DMA full Transfer complete event.
-  */
-__weak void BSP_AUDIO_OUT_TransferComplete_CallBack(void)
-{
-}
-
-/**
-  * @brief  Manages the DMA Half Transfer complete event.
-  */
-__weak void BSP_AUDIO_OUT_HalfTransfer_CallBack(void)
-{
-}
-
-/**
-  * @brief  Manages the DMA FIFO error event.
-  */
-__weak void BSP_AUDIO_OUT_Error_CallBack(void)
-{
 }
 
 /**
@@ -867,13 +867,13 @@ static uint8_t SAIx_Init(uint32_t AudioFreq)
 
   /* Configure SAI Block_x Slot
   Slot First Bit Offset: 0
-  Slot Size  : 16
-  Slot Number: 4
+  Slot Size  : 8
+  Slot Number: 2
   Slot Active: All slot actives */
   haudio_out_sai.SlotInit.FirstBitOffset = 0;
   haudio_out_sai.SlotInit.SlotSize = SAI_SLOTSIZE_DATASIZE;
-  haudio_out_sai.SlotInit.SlotNumber = 4;
-  haudio_out_sai.SlotInit.SlotActive = CODEC_AUDIOFRAME_SLOT_0123;
+  haudio_out_sai.SlotInit.SlotNumber = 2;
+  haudio_out_sai.SlotInit.SlotActive = SAI_SLOTACTIVE_0 | SAI_SLOTACTIVE_1;
 
   /* Initializes the SAI peripheral*/
   if (HAL_SAI_Init(&haudio_out_sai) != HAL_OK)

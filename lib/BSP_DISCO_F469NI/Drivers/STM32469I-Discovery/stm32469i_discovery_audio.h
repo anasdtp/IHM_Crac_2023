@@ -77,19 +77,13 @@
                           USER SAI defines parameters
  -----------------------------------------------------------------------------*/
 /** @defgroup CODEC_AudioFrame_SLOT_TDMMode  STM32469I Discovery Audio Slot TDM mode
-  * @brief In W8994 codec the Audio frame contains 4 slots : TDM Mode
+  * @brief In CS43L22 codec the Audio frame contains 2 slots : TDM Mode
   * TDM format :
-  * +------------------|------------------|--------------------|-------------------+
-  * | CODEC_SLOT0 Left | CODEC_SLOT1 Left | CODEC_SLOT0 Right  | CODEC_SLOT1 Right |
-  * +------------------------------------------------------------------------------+
+  * +------------------|------------------|
+  * | CODEC_SLOT0 Left | CODEC_SLOT1 Left |
+  * +--------------------------------------
   * @{
   */
-/* To have 2 separate audio stream in Both headphone and speaker the 4 slot must be activated */
-#define CODEC_AUDIOFRAME_SLOT_0123                   SAI_SLOTACTIVE_0 | SAI_SLOTACTIVE_1 | SAI_SLOTACTIVE_2 | SAI_SLOTACTIVE_3
-/* To have an audio stream in headphone only SAI Slot 0 and Slot 2 must be activated */
-#define CODEC_AUDIOFRAME_SLOT_02                     SAI_SLOTACTIVE_0 | SAI_SLOTACTIVE_2
-/* To have an audio stream in speaker only SAI Slot 1 and Slot 3 must be activated */
-#define CODEC_AUDIOFRAME_SLOT_13                     SAI_SLOTACTIVE_1 | SAI_SLOTACTIVE_3
 /**
   * @}
   */
@@ -244,6 +238,7 @@ extern __IO uint16_t AudioInVolume;
   * @{
   */
 uint8_t BSP_AUDIO_OUT_Init(uint16_t OutputDevice, uint8_t Volume, uint32_t AudioFreq);
+void    BSP_AUDIO_OUT_ChangeAudioConfig(uint32_t AudioOutOption);
 uint8_t BSP_AUDIO_OUT_Play(uint16_t* pBuffer, uint32_t Size);
 void    BSP_AUDIO_OUT_ChangeBuffer(uint16_t *pData, uint16_t Size);
 uint8_t BSP_AUDIO_OUT_Pause(void);

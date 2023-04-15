@@ -179,6 +179,8 @@ uint32_t cs43l22_Init(uint16_t DeviceAddr, uint16_t OutputDevice, uint8_t Volume
   if(OutputDevice != OUTPUT_DEVICE_HEADPHONE)
   {
     /* Set the Speaker Mono mode */  
+    //counter += CODEC_IO_Write(DeviceAddr, CS43L22_REG_PLAYBACK_CTL2, 0x06);
+    /* Ne fonctionne pas en Mono avec le câblage de la carte discovery */
     counter += CODEC_IO_Write(DeviceAddr, CS43L22_REG_PLAYBACK_CTL2, 0x00);
     
     /* Set the Speaker attenuation level */  

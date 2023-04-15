@@ -11,6 +11,9 @@
 #include <threadCAN.h>
 #include <threadSD.h>
 #include <threadLvgl.h>
+
+#include <threadSound.h>
+
 #include <deplacement.h>
 
 #include <global.h>
@@ -22,8 +25,6 @@
 #include <fstream>
 
 #include <lvgl.h>
-
-#include <audioDemo.h>
 
 ThreadCAN threadCAN;
 ThreadSD threadSD;
@@ -69,28 +70,28 @@ int main()
 {
   char buf[100];
 
-//  threadSD.registerCANControl(threadCAN);
+ threadSD.registerCANControl(threadCAN);
 
-  // int secReboot = 60;
-  // while (1)
-  // {
-  //   int flag;
-  //   flag = threadSD.status();
-  //   if (flag & ThreadSD::FLAG_NO_CARD)
-  //   {
-  //     sprintf(buf, "Reboot dans %2ds", secReboot);
-  //     ihm.sdMsg("Carte SD absente", buf);
-  //   }
-  //   else
-  //   {
-  //     ihm.sdMsg("Carte SD présente");
-  //   }
-  //   if (flag & ThreadSD::FLAG_READY)
-  //     break;
-  //   ThisThread::sleep_for(1s);
-  //   if (secReboot-- <= 0)
-  //     NVIC_SystemReset();
-  // }
+  int secReboot = 60;
+  while (1)
+  {
+    int flag;
+    flag = threadSD.status();
+    if (flag & ThreadSD::FLAG_NO_CARD)
+    {
+      sprintf(buf, "Reboot dans %2ds", secReboot);
+      ihm.sdMsg("Carte SD absente", buf);
+    }
+    else
+    {
+      ihm.sdMsg("Carte SD présente");
+    }
+    if (flag & ThreadSD::FLAG_READY)
+      break;
+    ThisThread::sleep_for(1s);
+    if (secReboot-- <= 0)
+      NVIC_SystemReset();
+  }
 
   if (!listeFichiers())
   {
@@ -377,7 +378,8 @@ bool lectureFichier(int choix)
 
 void runRecalage()
 {
-  AudioPlay_demo();
+  ThreadSound::playMp3("/sd/lea.mp3");
+  // AudioPlay_demo();
 
   // recalageErreur = 0;
   // deplacement.asservOn();
