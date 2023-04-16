@@ -331,13 +331,12 @@ bool listeFichiers()
   // Attend que la carte SD soit prête
   threadSD.waitReady();
   // Se déplace dans le dossier "/strategie" et liste les fichiers présents
-  string reply = threadSD.cdName("/");
-  // string reply = threadSD.cdName("/strategie");
+   string reply = threadSD.cdName("/strategie");
   // Vérifie que le dossier "/strategie" existe
-  // if (reply.find("/strategie") != 0)
-  // {
-  //   return false;
-  // }
+  if (reply.find("/strategie") != 0)
+  {
+    return false;
+  }
   // Récupère le résultat sous la forme /chemin*dossier1*dossier2*dossier3:fichier1:fichier2:fichier3?   * pour dossier  : pour fichier  ? pour fin
   // Enlève le ? à la fin
   if (!reply.empty())
@@ -398,26 +397,11 @@ void runRecalage()
   instruction = strat_instructions[actual_instruction];
   // deplacement.asservOn();
   while (machineRecalage());
-
-  /*
-  for (int i = 1; i <= 5; i++)
-  {
-    ThisThread::sleep_for(1s);
-    //printf("R%d\n", i);
-  }
-  */
 }
 
 void runMatch()
 {
   gameEtat = ETAT_GAME_LOAD_NEXT_INSTRUCTION;
-
-  // for (int i = 1; i <= 3; i++)
-  // {
-  //   ThisThread::sleep_for(1s);
-  //   // printf("M%d\n", i);
-  // }
-
   while (machineStrategie());
 }
 
