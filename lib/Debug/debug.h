@@ -6,15 +6,15 @@
 
 void debug_Instruction(struct S_Instruction instruction);
 
-char* InstructionTypeToString(enum E_InstructionType type);
+const char* InstructionTypeToString(enum E_InstructionType type);
 
-char* InstructionDirectionToString(enum E_InstructionDirection type);
+const char* InstructionDirectionToString(enum E_InstructionDirection type);
 
-char* InstructionPrecisionOuRecalageToString(enum E_InstructionPrecisionOuRecalage type);
+const char* InstructionPrecisionOuRecalageToString(enum E_InstructionPrecisionOuRecalage type);
 
-char* InstructionNextActionTypeToString(enum E_InstructionNextActionType type);
+const char* InstructionNextActionTypeToString(enum E_InstructionNextActionType type);
 
-char* InstructionNextActionJumpTypeToString(enum E_InstructionNextActionJumpType type);
+const char* InstructionNextActionJumpTypeToString(enum E_InstructionNextActionJumpType type);
 
 
 

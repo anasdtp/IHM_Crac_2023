@@ -138,6 +138,11 @@ ThreadSound::ErrorSound ThreadSound::unMute() {
     return NO_ERROR;
 }
 
+bool ThreadSound::isPlaying()
+{
+    return bool(m_flags.get() & FLAG_IS_PLAYING);
+}
+
 #define READBUF_SIZE (1024 * 16) /* feel free to change this, but keep big enough for >= one frame at high bitrates */
 
 int ThreadSound::fillReadBuffer(unsigned char *readBuf, unsigned char *readPtr, int bufSize, int bytesLeft) {

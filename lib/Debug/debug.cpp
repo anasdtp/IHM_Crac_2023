@@ -24,7 +24,7 @@ void debug_Instruction(struct S_Instruction instruction)
     printf("*************************************\n");
 }
 
-char* InstructionTypeToString(enum E_InstructionType type)
+const char* InstructionTypeToString(enum E_InstructionType type)
 {
     switch(type)
     {
@@ -38,7 +38,7 @@ char* InstructionTypeToString(enum E_InstructionType type)
         default:                return "Inconnue";
     }    
 }
-char* InstructionDirectionToString(enum E_InstructionDirection type)
+const char* InstructionDirectionToString(enum E_InstructionDirection type)
 {
     switch(type)
     {
@@ -49,7 +49,7 @@ char* InstructionDirectionToString(enum E_InstructionDirection type)
         default:            return "absent";
     }    
 }
-char* InstructionPrecisionOuRecalageToString(enum E_InstructionPrecisionOuRecalage type)
+const char* InstructionPrecisionOuRecalageToString(enum E_InstructionPrecisionOuRecalage type)
 {
     switch(type)
     {
@@ -59,7 +59,7 @@ char* InstructionPrecisionOuRecalageToString(enum E_InstructionPrecisionOuRecala
         default:            return "absent";
     }    
 }
-char* InstructionNextActionTypeToString(enum E_InstructionNextActionType type)
+const char* InstructionNextActionTypeToString(enum E_InstructionNextActionType type)
 {
     switch(type)
     {
@@ -69,7 +69,7 @@ char* InstructionNextActionTypeToString(enum E_InstructionNextActionType type)
         default:            return "absent";
     }    
 }
-char* InstructionNextActionJumpTypeToString(enum E_InstructionNextActionJumpType type)
+const char* InstructionNextActionJumpTypeToString(enum E_InstructionNextActionJumpType type)
 {
     switch(type)
     {
