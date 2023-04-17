@@ -1,6 +1,6 @@
 #include "debug.h"
 
-void debug_Instruction(struct S_Instruction instruction)
+void debug_Instruction(S_Instruction instruction)
 {
     printf("\n********* Debug instruction *********\n");
     

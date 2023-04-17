@@ -247,7 +247,7 @@ void ThreadSound::runMp3Decoder() {
 void ThreadSound::runPlaySound() {
     int nbTotalDatas = 0;
 
-    if (!(m_flags.wait_all(FLAG_MP3_DECODER_BUFFER0_READY, 100) & FLAG_MP3_DECODER_BUFFER0_READY)) {
+    if (m_flags.wait_all(FLAG_MP3_DECODER_BUFFER0_READY, 100) == osFlagsErrorTimeout) {
         // erreur ou fin
         destroy();
         return;
@@ -274,13 +274,13 @@ void ThreadSound::runPlaySound() {
         nbTotalDatas++;
         m_flags.wait_all(FLAG_HALF_BUFFER);
         m_flags.set(FLAG_PLAY_BUFFER0_RELEASE);
-        if (!(m_flags.wait_all(FLAG_MP3_DECODER_BUFFER1_READY, 0) & FLAG_MP3_DECODER_BUFFER1_READY)) {
+        if (!(m_flags.get() & FLAG_MP3_DECODER_BUFFER1_READY)) {
             break;
         }
         nbTotalDatas++;
         m_flags.wait_all(FLAG_FULL_BUFFER);
         m_flags.set(FLAG_PLAY_BUFFER1_RELEASE);
-        if (!(m_flags.wait_all(FLAG_MP3_DECODER_BUFFER0_READY, 0) & FLAG_MP3_DECODER_BUFFER0_READY)) {
+        if (!(m_flags.get() & FLAG_MP3_DECODER_BUFFER0_READY)) {
             break;
         }
     }

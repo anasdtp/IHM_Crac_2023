@@ -2,9 +2,9 @@
 #define CRAC_DEBUG
 //debug
 #include "global.h"
-#include <Instruction.h>
+#include <instruction.h>
 
-void debug_Instruction(struct S_Instruction instruction);
+void debug_Instruction(S_Instruction instruction);
 
 const char* InstructionTypeToString(enum E_InstructionType type);
 

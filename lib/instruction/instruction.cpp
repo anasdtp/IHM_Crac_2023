@@ -1,6 +1,14 @@
-#include <global.h>
-#include <Instruction.h>
-enum E_InstructionType charToInstructionType(char type)
+#include <stdio.h>
+#include <instruction.h>
+
+ListeInstructions listeInstructions;
+
+// S_Instruction strat_instructions[150];  // La liste des instruction chargé en mémoire
+// unsigned char nb_instructions;                              // Le nombre d'instruction dans le fichier de strategie
+// unsigned char actual_instruction = 0;                       // La ligne de l'instruction en cours d'execution
+// S_Instruction instruction;
+
+E_InstructionType charToInstructionType(char type)
 {
     switch(type)
     {
@@ -17,7 +25,7 @@ enum E_InstructionType charToInstructionType(char type)
     }    
 }
 
-enum E_InstructionDirection charToInstructionDirection(char type)
+E_InstructionDirection charToInstructionDirection(char type)
 {
     switch(type)
     {
@@ -30,7 +38,7 @@ enum E_InstructionDirection charToInstructionDirection(char type)
     } 
 }
 
-enum E_InstructionPrecisionOuRecalage charToInstructionPrecisionOuRecalage(char type)
+E_InstructionPrecisionOuRecalage charToInstructionPrecisionOuRecalage(char type)
 {
     switch(type)
     {
@@ -42,7 +50,7 @@ enum E_InstructionPrecisionOuRecalage charToInstructionPrecisionOuRecalage(char 
     } 
 }
 
-enum E_InstructionNextActionType charToInstructionNextActionType(char type)
+E_InstructionNextActionType charToInstructionNextActionType(char type)
 {
     switch(type)
     {
@@ -55,7 +63,7 @@ enum E_InstructionNextActionType charToInstructionNextActionType(char type)
     } 
 }
 
-enum E_InstructionNextActionJumpType charToInstructionNextActionJumpType(char type)
+E_InstructionNextActionJumpType charToInstructionNextActionJumpType(char type)
 {
     switch(type)
     {
@@ -69,8 +77,8 @@ enum E_InstructionNextActionJumpType charToInstructionNextActionJumpType(char ty
 /* FUNCTION NAME: stringToInstruction                                                   */
 /* DESCRIPTION  : Conversion d'une ligne du fichier de strat en instruction             */
 /****************************************************************************************/
-struct S_Instruction stringToInstruction(char line[]) {
-    struct S_Instruction instruction;
+S_Instruction ListeInstructions::stringToInstruction(const char *line) {
+    S_Instruction instruction;
     
     char instructionOrder;
     char instructionDirection;
@@ -81,7 +89,7 @@ struct S_Instruction stringToInstruction(char line[]) {
     /*
     Info sur la fonction sscanf
     %d -> Entier signé
-    %u -> Entié non signé
+    %u -> Entier non signé
     %c -> char
     */
   errorCode = sscanf(line, "%hd,%c,%c,%hu,%hu,%hd,%c,%c,%c,%hu,%hu,%hd,%hd,%hu,%hu,%hd",
@@ -117,3 +125,16 @@ struct S_Instruction stringToInstruction(char line[]) {
     return instruction;
 }
 
+void ListeInstructions::suivante()
+{
+    if (!liste[actuelle].nextLineOK) {
+        actuelle++;
+    } else {
+        actuelle = liste[actuelle].nextLineOK;
+    }
+}
+
+bool ListeInstructions::fin()
+{
+    return ((size_t(actuelle) >= liste.size()) || (actuelle == 255));
+}

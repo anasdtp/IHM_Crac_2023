@@ -3,6 +3,7 @@
 
 #include "mbed.h"
 #include "threadSD.h"
+#include <instruction.h>
 
 #define AckFrom_FLAG        (1UL << 0)
 #define AckFrom_FIN_FLAG    (1UL << 1)
@@ -86,5 +87,10 @@ void Strategie(void);
 
 void printCANMsg(CANMessage& msg);
 void remplirStruct(CANMessage &theDATA, int idf, char lenf, char dt0f, char dt1f, char dt2f, char dt3f, char dt4f, char dt5f, char dt6f, char dt7f);
+
+bool machineStrategie();
+bool machineRecalageInit();
+bool machineRecalage();
+void process_instructions(S_Instruction instruction);
 
 #endif

@@ -25,7 +25,6 @@
 #define SIZE_FIFO               50 //Taille du buffer pour le bus CAN
 
 #define SIZE                    750 //Taille d'une ligne du fichier
-#define SIZE_BUFFER_FILE        150 //Taille du buffer d'instruction 
 
 
 /****
@@ -63,12 +62,8 @@ extern unsigned char Hauteur;
 extern short SCORE_GLOBAL;
 extern short SCORE_PR, SCORE_GR;
 
-extern struct S_Instruction strat_instructions[SIZE_BUFFER_FILE]; //La liste des instruction chargé en mémoire
 extern struct S_Dodge_queue dodgeq;
 extern EventFlags flag;
-extern unsigned char nb_instructions; //Le nombre d'instruction dans le fichier de strategie
-extern unsigned char actual_instruction;//La ligne de l'instruction en cours d'execution
-
 
 extern unsigned char InversStrat;//Si à 1, indique que l'on part de l'autre cote de la table(inversion des Y)
 
