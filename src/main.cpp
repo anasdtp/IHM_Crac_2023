@@ -4,14 +4,15 @@
  */
 #include <instruction.h>
 #include <strategie.h>
-#include <debug.h>
+//#include <debug.h>
 #include <deplacement.h>
 #include <global.h>
 #include <herkulex.h>
 #include <lvgl.h>
-#include <mIni.h>
+#include <config.h>
 #include <threadCAN.h>
 #include <threadLvgl.h>
+#include <ihm.h>
 #include <threadSD.h>
 #include <threadSound.h>
 
@@ -26,8 +27,6 @@ ThreadLvgl threadLvgl;
 Ihm ihm(&threadLvgl);
 Deplacement deplacement(threadCAN);
 Herkulex herkulex(threadCAN);
-
-vector<string> fichiers;
 
 DigitalIn jackPin(D7);
 
@@ -44,18 +43,9 @@ void forceFinMatch();
 volatile bool flagForceFinMatch = false;
 bool Recalage = true;
 
-bool readIni();
+vector<string> fichiers;
 bool listeFichiers();
 bool lectureFichier(int choix);
-
-unsigned char InversStrat = 1;                              // Si à 1, indique que l'on part de l'autre cote de la table(inversion des Y)
-unsigned short waitingAckID = 0;                            // L'id du ack attendu
-unsigned short waitingAckFrom = 0;                          // La provenance du ack attendu
-int waitingAckID_FIN;
-int waitingAckFrom_FIN;
-unsigned short waitingId = 0;
-E_stratGameEtat gameEtat = ETAT_GAME_INIT;
-EventFlags flag;
 
 int main() {
     char buf[100];
@@ -79,10 +69,11 @@ int main() {
             NVIC_SystemReset();
     }
 
-    readIni();
+    readConfig();
 
     if (!listeFichiers()) {
-        ihm.sdMsg(nullptr, "Dossier /strategie non trouvé");
+        string msg = "Dossier "+config["Dossiers"]["strategie"]+" non trouvé";
+        ihm.sdMsg(nullptr, msg.c_str());
     } else if (fichiers.size() == 0) {
         ihm.sdMsg(nullptr, "Aucun fichier trouvé");
     } else {
@@ -96,6 +87,7 @@ int main() {
     }
     ihm.matchInit(fichiers);
     ihm.recalagePositionInit();
+    ihm.configInit(fichiers, ThreadSound::volume());
 
     int etat = 0;
     int choix = -1;
@@ -119,19 +111,19 @@ int main() {
                     ihm.msgBoxInit("Lecture de la stratégie\n", "En cours", false);
                     ThisThread::sleep_for(1s);
                     etat = 10;
-                } else if (ihm.recalage_HautGaucheClicked()) {
+                } else if (ihm.recalageHautGaucheClicked()) {
                     // printf("recalage_HautGaucheClicked\n");
                     Hauteur = ROBOT_EN_HAUT;
                     Cote = ROBOT_A_GAUCHE;
-                } else if (ihm.recalage_BasGaucheClicked()) {
+                } else if (ihm.recalageBasGaucheClicked()) {
                     // printf("recalage_BasGaucheClicked\n");
                     Hauteur = ROBOT_EN_BAS;
                     Cote = ROBOT_A_GAUCHE;
-                } else if (ihm.recalage_HautDroitClicked()) {
+                } else if (ihm.recalageHautDroitClicked()) {
                     // printf("recalage_HautDroitClicked\n");
                     Hauteur = ROBOT_EN_HAUT;
                     Cote = ROBOT_A_DROITE;
-                } else if (ihm.recalage_BasDroitClicked()) {
+                } else if (ihm.recalageBasDroitClicked()) {
                     // printf("recalage_BasDroitClicked\n");
                     Hauteur = ROBOT_EN_BAS;
                     Cote = ROBOT_A_DROITE;
@@ -201,6 +193,7 @@ int main() {
                     // Si fin du match
                     if (flagForceFinMatch) {
                         match->terminate();
+                        match->join();
                         delete match;
                         match = nullptr;
                         etat = 4;
@@ -262,10 +255,10 @@ bool listeFichiers() {
     fichiers.clear();
     // Attend que la carte SD soit prête
     threadSD.waitReady();
-    // Se déplace dans le dossier "/strategie" et liste les fichiers présents
-    string reply = threadSD.cdName("/strategie");
-    // Vérifie que le dossier "/strategie" existe
-    if (reply.find("/strategie") != 0) {
+    // Se déplace dans le dossier des stratégies et liste les fichiers présents
+    string reply = threadSD.cdName(config["Dossiers"]["strategie"].c_str());
+    // Vérifie que le dossier des stratégies existe
+    if (reply.find(config["Dossiers"]["strategie"].c_str()) != 0) {
         return false;
     }
     // Récupère le résultat sous la forme /chemin*dossier1*dossier2*dossier3:fichier1:fichier2:fichier3?   * pour dossier  : pour fichier  ? pour fin
@@ -287,18 +280,17 @@ bool listeFichiers() {
 
 bool lectureFichier(int choix) {
     string ficStrat;
-    S_Instruction instruction_ligne;
     if (choix < 0) {
         // Que faire si choix == -1 ????
         return false;
     }
-    ficStrat = "/sd/strategie/" + fichiers[choix];
+    ficStrat = "/sd" + config["Dossiers"]["strategie"] + "/" + fichiers[choix];
     ifstream monFlux(ficStrat);  // Ouverture d'un fichier en lecture
     if (monFlux) {
         // Tout est prêt pour la lecture.
         string ligne;
         while (getline(monFlux, ligne)) {  // On lit une ligne complète
-            printf("%s\n", ligne.c_str());
+            // printf("%s\n", ligne.c_str());
             listeInstructions.ajout(ligne.c_str());
             // debug_Instruction(listeInstructions.derniere());
         }
@@ -312,13 +304,15 @@ bool lectureFichier(int choix) {
 
 void runRecalage() {
     if (machineRecalageInit()) {
-      while (machineRecalage());
+        while (machineRecalage())
+            ;
     }
 }
 
 void runMatch() {
     gameEtat = ETAT_GAME_LOAD_NEXT_INSTRUCTION;
-    while (machineStrategie());
+    while (machineStrategie())
+        ;
 }
 
 // Retourne true si le jack est retiré
@@ -332,9 +326,4 @@ void forceFinMatch() {
 
 int tempsRestant() {
     return std::chrono::duration_cast<std::chrono::seconds>(timerMatch.remaining_time()).count();
-}
-
-bool readIni()
-{
-  return true;
 }

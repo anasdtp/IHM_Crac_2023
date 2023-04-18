@@ -35,7 +35,8 @@ class ThreadSound {
     static ErrorSound stop();
     static ErrorSound pause();
     static ErrorSound resume();
-    static ErrorSound volume(uint8_t v);
+    static ErrorSound setVolume(uint8_t v);
+    static uint8_t volume() {  return m_volume;  }
     static ErrorSound mute();
     static ErrorSound unMute();
     static bool isPlaying();
@@ -44,7 +45,7 @@ class ThreadSound {
     // Unique instance de la classe
     static ThreadSound *const threadSound;
     // Permet d'interdire la création d'autres instances
-    ThreadSound() {}
+    ThreadSound();
     ThreadSound(ThreadSound &other) {}
     ThreadSound &operator=(ThreadSound &other) {  return *this;  }
 

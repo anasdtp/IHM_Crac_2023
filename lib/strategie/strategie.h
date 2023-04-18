@@ -59,7 +59,7 @@ typedef enum
     ETAT_GAME_WAIT_FOR_JACK,//Attente du retrait du jack
     ETAT_GAME_START,//Lancement du timer 100s
     ETAT_GAME_LOAD_NEXT_INSTRUCTION, // 
-    ETAT_GAME_PROCESS_INSTRUCTION, // 
+    ETAT_GAME_PROCESInstruction, // 
     ETAT_GAME_WAIT_ACK, // 
     ETAT_GAME_JUMP_TIME,
     ETAT_GAME_JUMP_CONFIG,
@@ -91,6 +91,6 @@ void remplirStruct(CANMessage &theDATA, int idf, char lenf, char dt0f, char dt1f
 bool machineStrategie();
 bool machineRecalageInit();
 bool machineRecalage();
-void process_instructions(S_Instruction instruction);
+void procesInstructions(Instruction instruction);
 
 #endif

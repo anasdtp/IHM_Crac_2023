@@ -6,7 +6,6 @@
 // #include <debug.h>
 
 #include <CAN.h>
-//#include <DirHandle.h>
 #include <threadCAN.h>
 #include <threadSD.h>
 #include <threadLvgl.h>
@@ -32,13 +31,13 @@
 ***/
 
 //-------------------------------------------------------------------------
-    #define NOMBRE_CARTES           2//Le nombre de carte présente sur le petit robot
-    #define POSITION_DEBUT_X 300
-    #define POSITION_DEBUT_Y 300
-    #define POSITION_DEBUT_T 0
-    #define MOITIEE_ROBOT 115
-    
-    #define M_PI 3.14159265358979323846
+#define NOMBRE_CARTES           2 //Le nombre de carte présente sur le petit robot
+#define POSITION_DEBUT_X 300
+#define POSITION_DEBUT_Y 300
+#define POSITION_DEBUT_T 0
+#define MOITIEE_ROBOT 115
+
+#define M_PI 3.14159265358979323846
 // extern E_stratGameEtat gameEtat = ETAT_GAME_INIT;
 //extern T_etat strat_etat_s = INIT;
 
@@ -62,7 +61,6 @@ extern unsigned char Hauteur;
 extern short SCORE_GLOBAL;
 extern short SCORE_PR, SCORE_GR;
 
-extern struct S_Dodge_queue dodgeq;
 extern EventFlags flag;
 
 extern unsigned char InversStrat;//Si à 1, indique que l'on part de l'autre cote de la table(inversion des Y)

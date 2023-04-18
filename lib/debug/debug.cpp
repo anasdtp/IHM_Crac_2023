@@ -1,20 +1,20 @@
 #include "debug.h"
 
-void debug_Instruction(S_Instruction instruction)
+void debugInstruction(Instruction instruction)
 {
     printf("\n********* Debug instruction *********\n");
     
     printf("* Line      => %d\n", instruction.lineNumber);
-    printf("* Type      => %s\n", InstructionTypeToString(instruction.order));
-    printf("* Direction => %s\n", InstructionDirectionToString(instruction.direction));
+    printf("* Type      => %s\n", instructionTypeToString(instruction.order));
+    printf("* Direction => %s\n", instructionDirectionToString(instruction.direction));
     
     printf("* Arg1      => %d\n", instruction.arg1);
     printf("* Arg2      => %d\n", instruction.arg2);
     printf("* Arg3      => %d\n", instruction.arg3);
     
-    printf("* Recalage  => %s\n", InstructionPrecisionOuRecalageToString(instruction.precision));
-    printf("* NextAction=> %s\n", InstructionNextActionTypeToString(instruction.nextActionType));
-    printf("* JumpAction=> %s\n", InstructionNextActionJumpTypeToString(instruction.jumpAction));
+    printf("* Recalage  => %s\n", instructionPrecisionOuRecalageToString(instruction.precision));
+    printf("* NextAction=> %s\n", instructionNextActionTypeToString(instruction.nextActionType));
+    printf("* JumpAction=> %s\n", instructionNextActionJumpTypeToString(instruction.jumpAction));
     
     printf("* JumpTimeOrX   => %d\n", instruction.JumpTimeOrX);
     printf("* JumpY         => %d\n", instruction.JumpY);
@@ -24,7 +24,7 @@ void debug_Instruction(S_Instruction instruction)
     printf("*************************************\n");
 }
 
-const char* InstructionTypeToString(enum E_InstructionType type)
+const char* instructionTypeToString(enum EnumInstructionType type)
 {
     switch(type)
     {
@@ -38,7 +38,7 @@ const char* InstructionTypeToString(enum E_InstructionType type)
         default:                return "Inconnue";
     }    
 }
-const char* InstructionDirectionToString(enum E_InstructionDirection type)
+const char* instructionDirectionToString(enum EnumInstructionDirection type)
 {
     switch(type)
     {
@@ -49,7 +49,7 @@ const char* InstructionDirectionToString(enum E_InstructionDirection type)
         default:            return "absent";
     }    
 }
-const char* InstructionPrecisionOuRecalageToString(enum E_InstructionPrecisionOuRecalage type)
+const char* instructionPrecisionOuRecalageToString(enum EnumInstructionPrecisionOuRecalage type)
 {
     switch(type)
     {
@@ -59,7 +59,7 @@ const char* InstructionPrecisionOuRecalageToString(enum E_InstructionPrecisionOu
         default:            return "absent";
     }    
 }
-const char* InstructionNextActionTypeToString(enum E_InstructionNextActionType type)
+const char* instructionNextActionTypeToString(enum EnumInstructionNextActionType type)
 {
     switch(type)
     {
@@ -69,7 +69,7 @@ const char* InstructionNextActionTypeToString(enum E_InstructionNextActionType t
         default:            return "absent";
     }    
 }
-const char* InstructionNextActionJumpTypeToString(enum E_InstructionNextActionJumpType type)
+const char* instructionNextActionJumpTypeToString(enum EnumInstructionNextActionJumpType type)
 {
     switch(type)
     {

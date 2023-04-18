@@ -3,12 +3,7 @@
 
 ListeInstructions listeInstructions;
 
-// S_Instruction strat_instructions[150];  // La liste des instruction chargé en mémoire
-// unsigned char nb_instructions;                              // Le nombre d'instruction dans le fichier de strategie
-// unsigned char actual_instruction = 0;                       // La ligne de l'instruction en cours d'execution
-// S_Instruction instruction;
-
-E_InstructionType charToInstructionType(char type)
+EnumInstructionType decodeInstructionType(char type)
 {
     switch(type)
     {
@@ -22,10 +17,10 @@ E_InstructionType charToInstructionType(char type)
         case 'H': return PINCE;
         case 'P': return POSITION_DEBUT;
         default:  return UNKNOWN;
-    }    
+    }
 }
 
-E_InstructionDirection charToInstructionDirection(char type)
+EnumInstructionDirection decodeInstructionDirection(char type)
 {
     switch(type)
     {
@@ -38,7 +33,7 @@ E_InstructionDirection charToInstructionDirection(char type)
     } 
 }
 
-E_InstructionPrecisionOuRecalage charToInstructionPrecisionOuRecalage(char type)
+EnumInstructionPrecisionOuRecalage decodeInstructionPrecisionOuRecalage(char type)
 {
     switch(type)
     {
@@ -50,7 +45,7 @@ E_InstructionPrecisionOuRecalage charToInstructionPrecisionOuRecalage(char type)
     } 
 }
 
-E_InstructionNextActionType charToInstructionNextActionType(char type)
+EnumInstructionNextActionType decodeInstructionNextActionType(char type)
 {
     switch(type)
     {
@@ -63,7 +58,7 @@ E_InstructionNextActionType charToInstructionNextActionType(char type)
     } 
 }
 
-E_InstructionNextActionJumpType charToInstructionNextActionJumpType(char type)
+EnumInstructionNextActionJumpType decodeInstructionNextActionJumpType(char type)
 {
     switch(type)
     {
@@ -77,8 +72,8 @@ E_InstructionNextActionJumpType charToInstructionNextActionJumpType(char type)
 /* FUNCTION NAME: stringToInstruction                                                   */
 /* DESCRIPTION  : Conversion d'une ligne du fichier de strat en instruction             */
 /****************************************************************************************/
-S_Instruction ListeInstructions::stringToInstruction(const char *line) {
-    S_Instruction instruction;
+Instruction ListeInstructions::stringToInstruction(const char *line) {
+    Instruction instruction;
     
     char instructionOrder;
     char instructionDirection;
@@ -112,14 +107,14 @@ S_Instruction ListeInstructions::stringToInstruction(const char *line) {
     );
     /*
     if(errorCode != 13) {
-        errorInstructionLoop();//L'instruction est pas bonne !!  
+        errorInstructionLoop();//L'instruction n'est pas bonne !!  
     }*/
     
-    instruction.order           = charToInstructionType(instructionOrder);
-    instruction.direction       = charToInstructionDirection(instructionDirection);
-    instruction.precision       = charToInstructionPrecisionOuRecalage(instructionPrecision);
-    instruction.nextActionType  = charToInstructionNextActionType(instructionNextActionType);
-    instruction.jumpAction      = charToInstructionNextActionJumpType(instructionJumpAction);
+    instruction.order           = decodeInstructionType(instructionOrder);
+    instruction.direction       = decodeInstructionDirection(instructionDirection);
+    instruction.precision       = decodeInstructionPrecisionOuRecalage(instructionPrecision);
+    instruction.nextActionType  = decodeInstructionNextActionType(instructionNextActionType);
+    instruction.jumpAction      = decodeInstructionNextActionJumpType(instructionJumpAction);
     
     
     return instruction;

@@ -19,6 +19,10 @@ bool ThreadSound::m_mono = false;
 // Création de l'instance unique de la classe
 ThreadSound *const ThreadSound::threadSound = new ThreadSound();
 
+ThreadSound::ThreadSound() {
+    BSP_AUDIO_OUT_Init(OUTPUT_DEVICE_BOTH, m_volume, m_sampleRate);
+}
+
 void ThreadSound::destroy() {
     BSP_AUDIO_OUT_Stop(CODEC_PDWN_HW);
     if (m_garbage) {
@@ -114,7 +118,10 @@ ThreadSound::ErrorSound ThreadSound::resume() {
     return ERROR_NOT_PLAYING;
 }
 
-ThreadSound::ErrorSound ThreadSound::volume(uint8_t v) {
+ThreadSound::ErrorSound ThreadSound::setVolume(uint8_t v) {
+    if (v>100) {
+        return ERROR_VOLUME;
+    }
     if (BSP_AUDIO_OUT_SetVolume(v) == AUDIO_ERROR) {
         return ERROR_VOLUME;
     }

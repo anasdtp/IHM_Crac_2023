@@ -7,6 +7,17 @@
 extern Herkulex herkulex;
 extern int recalageErreur;  // 0 si recalage réussi, valeur négative sinon
 
+struct S_Dodge_queue dodgeq;
+
+unsigned char InversStrat = 1;                              // Si à 1, indique que l'on part de l'autre cote de la table(inversion des Y)
+unsigned short waitingAckID = 0;                            // L'id du ack attendu
+unsigned short waitingAckFrom = 0;                          // La provenance du ack attendu
+int waitingAckID_FIN;
+int waitingAckFrom_FIN;
+unsigned short waitingId = 0;
+E_stratGameEtat gameEtat = ETAT_GAME_INIT;
+EventFlags flag;
+
 // // E_stratGameEtat gameEtat = ETAT_CHECK_CARTES;
 // T_etat strat_etat_s = INIT;
 
@@ -54,7 +65,7 @@ unsigned short flag_check_carte = 0; //, flag_strat = 0, flag_timer;
 signed short x_robot,y_robot,theta_robot;//La position du robot
 signed short target_x_robot, target_y_robot, target_theta_robot;
 // signed short avant_gauche, avant_droit;
-// //E_InstructionType actionPrecedente;
+// //EnumInstructionType actionPrecedente;
 // //unsigned char FIFO_ecriture=0; //Position du fifo pour la reception CAN
 // int flagSendCan=1;
 unsigned char Cote = 0; //0 -> JAUNE | 1 -> VIOLET
@@ -78,8 +89,7 @@ short direction;
 
 // unsigned char ingnorInversionOnce = 0;//Pour ignorer l'inversion des instruction une fois
 
-// // S_Instruction instruction;
-struct S_Dodge_queue dodgeq;
+// // Instruction instruction;
 
 // char couleur1, couleur2, couleur3;
 // float cptf;
@@ -354,7 +364,7 @@ void remplirStruct(CANMessage &theDATA, int idf, char lenf, char dt0f, char dt1f
   theDATA.data[7] = dt7f;
 }
 
-void process_instructions(S_Instruction instruction) {
+void procesInstructions(Instruction instruction) {
     switch (instruction.order) {
         case MV_RECALAGE: {
             if (instruction.nextActionType == MECANIQUE) {
@@ -539,7 +549,7 @@ void process_instructions(S_Instruction instruction) {
             /*if(InversStrat == 1 && ingnorInversionOnce == 0) {
                 localData1 = -localData1;//Inversion de la direction
             }*/
-            enum E_InstructionDirection directionxyt;
+            enum EnumInstructionDirection directionxyt;
             waitingAckID = ASSERVISSEMENT_COURBURE;
             waitingAckFrom = ACKNOWLEDGE_MOTEUR;
             deplacement.courbure(instruction.arg1, angle, sens);
@@ -661,7 +671,7 @@ bool machineRecalageInit()
 }
 
 bool machineRecalage() {
-    const S_Instruction &instruction = listeInstructions.enCours();
+    const Instruction &instruction = listeInstructions.enCours();
     switch (etat_pos) {
         case RECALAGE_1: {
             threadCAN.sendAck(RECALAGE_START, 0);
@@ -848,7 +858,7 @@ bool machineRecalage() {
 }
 
 bool machineStrategie() {
-    static S_Instruction instruction;
+    static Instruction instruction;
     switch (gameEtat) {
         case ETAT_GAME_LOAD_NEXT_INSTRUCTION:
             // printf("load next instruction\n");
@@ -860,14 +870,14 @@ bool machineStrategie() {
                 // instruction = strat_instructions[actual_instruction];
                 instruction = listeInstructions.enCours();
                 // On effectue le traitement de l'instruction
-                gameEtat = ETAT_GAME_PROCESS_INSTRUCTION;
+                gameEtat = ETAT_GAME_PROCESInstruction;
             }
             break;
 
-        case ETAT_GAME_PROCESS_INSTRUCTION: {
+        case ETAT_GAME_PROCESInstruction: {
             //      Traitement de l'instruction, envoie de la trame CAN
-            debug_Instruction(instruction);
-            process_instructions(instruction);
+            debugInstruction(instruction);
+            procesInstructions(instruction);
         } break;
 
         case ETAT_END: {

@@ -4,17 +4,17 @@
 #include "global.h"
 #include <instruction.h>
 
-void debug_Instruction(S_Instruction instruction);
+void debugInstruction(Instruction instruction);
 
-const char* InstructionTypeToString(enum E_InstructionType type);
+const char* instructionTypeToString(enum EnumInstructionType type);
 
-const char* InstructionDirectionToString(enum E_InstructionDirection type);
+const char* instructionDirectionToString(enum EnumInstructionDirection type);
 
-const char* InstructionPrecisionOuRecalageToString(enum E_InstructionPrecisionOuRecalage type);
+const char* instructionPrecisionOuRecalageToString(enum EnumInstructionPrecisionOuRecalage type);
 
-const char* InstructionNextActionTypeToString(enum E_InstructionNextActionType type);
+const char* instructionNextActionTypeToString(enum EnumInstructionNextActionType type);
 
-const char* InstructionNextActionJumpTypeToString(enum E_InstructionNextActionJumpType type);
+const char* instructionNextActionJumpTypeToString(enum EnumInstructionNextActionJumpType type);
 
 
 
