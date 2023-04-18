@@ -201,7 +201,7 @@ void Ihm::recalagePositionInit() {
     m_threadLvgl->unlock();
 }
 
-void Ihm::configInit(const vector<string> fichiers, int volume) {
+void Ihm::configInit(const vector<string> fichiers, int v) {
     m_threadLvgl->lock();
 
     // Création de l'onglet tabConfig
@@ -239,25 +239,34 @@ void Ihm::configInit(const vector<string> fichiers, int volume) {
                          LV_GRID_ALIGN_STRETCH, 6, 1);
     lv_obj_add_event_cb(configPlay, Ihm::eventHandler, LV_EVENT_CLICKED, this);
 
-    /*Create a slider */
+    volume = v;
     configVolume = lv_slider_create(cont);
-    /*Create a label */
-    lv_obj_t *slider_label = lv_label_create(cont);
-    lv_label_set_text_fmt(slider_label, "Volume : %d", volume);
-    lv_obj_set_grid_cell(slider_label, LV_GRID_ALIGN_CENTER, 0, 1,
+    labelVolume = lv_label_create(cont);
+    lv_label_set_text_fmt(labelVolume, "Volume : %d", volume);
+    lv_slider_set_value(configVolume, volume, LV_ANIM_OFF);
+    lv_obj_set_grid_cell(labelVolume, LV_GRID_ALIGN_CENTER, 0, 1,
                          LV_GRID_ALIGN_START, 0, 1);
     lv_obj_set_grid_cell(configVolume, LV_GRID_ALIGN_STRETCH, 0, 1,
                          LV_GRID_ALIGN_END, 0, 1);
-    // lv_obj_add_event_cb(slider, slider_event_cb, LV_EVENT_VALUE_CHANGED, NULL);
+    lv_obj_add_event_cb(configVolume, Ihm::eventHandler, LV_EVENT_VALUE_CHANGED, this);
 
-    // depart = lv_btn_create(cont);
-    // label = lv_label_create(depart);
-    // lv_label_set_text(label, "Départ");
-    // lv_obj_set_style_bg_color(depart, lv_palette_main(LV_PALETTE_RED), LV_STATE_DEFAULT);
-    // lv_obj_center(label);
-    // lv_obj_set_grid_cell(depart, LV_GRID_ALIGN_STRETCH, 1, 1,
-    //                      LV_GRID_ALIGN_STRETCH, 2, 1);
-    // lv_obj_add_event_cb(depart, Ihm::eventHandler, LV_EVENT_CLICKED, this);
+    configSave = lv_btn_create(cont);
+    lv_obj_t *label = lv_label_create(configSave);
+    lv_label_set_text(label, "Sauvegarde\n  config");
+    lv_obj_set_style_bg_color(configSave, lv_palette_main(LV_PALETTE_GREEN), LV_STATE_DEFAULT);
+    lv_obj_center(label);
+    lv_obj_set_grid_cell(configSave, LV_GRID_ALIGN_STRETCH, 3, 1,
+                         LV_GRID_ALIGN_STRETCH, 0, 2);
+    lv_obj_add_event_cb(configSave, Ihm::eventHandler, LV_EVENT_CLICKED, this);
+
+    configReset = lv_btn_create(cont);
+    label = lv_label_create(configReset);
+    lv_label_set_text(label, "Reset");
+    lv_obj_set_style_bg_color(configReset, lv_palette_main(LV_PALETTE_RED), LV_STATE_DEFAULT);
+    lv_obj_center(label);
+    lv_obj_set_grid_cell(configReset, LV_GRID_ALIGN_STRETCH, 3, 1,
+                         LV_GRID_ALIGN_STRETCH, 6, 1);
+    lv_obj_add_event_cb(configReset, Ihm::eventHandler, LV_EVENT_CLICKED, this);
 
     m_threadLvgl->unlock();
 }
@@ -310,11 +319,19 @@ void Ihm::eventHandler(lv_event_t *e) {
         lv_state_t etat = lv_obj_get_state(emetteur);
         if (etat & LV_STATE_CHECKED) {
             lv_label_set_text(ihm->labelPlay, LV_SYMBOL_STOP);
+            ihm->mp3 = int(lv_roller_get_selected(ihm->configRoller));
             ihm->flags.set(IHM_FLAG_PLAY);
         } else {
             lv_label_set_text(ihm->labelPlay, LV_SYMBOL_PLAY);
             ihm->flags.set(IHM_FLAG_STOP);
         }
+    } else if (emetteur == ihm->configVolume) {
+        ihm->volume = lv_slider_get_value(ihm->configVolume);
+        lv_label_set_text_fmt(ihm->labelVolume, "Volume : %d", ihm->volume);
+    } else if (emetteur == ihm->configSave) {
+        ihm->flags.set(IHM_FLAG_SAVE_CONFIG);
+    } else if (emetteur == ihm->configReset) {
+        ihm->flags.set(IHM_FLAG_RESET);
     }
 }
 

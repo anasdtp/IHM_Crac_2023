@@ -3,7 +3,7 @@
 
 #include <mIni.h>
 
-static mINI::INIStructure config;
+extern mINI::INIStructure config;
 
 bool readConfig();
 bool writeConfig();

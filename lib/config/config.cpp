@@ -3,6 +3,8 @@
 #include <string>
 #include <threadSound.h>
 
+mINI::INIStructure config;
+
 static int verifieInt(std::string &cle, int min, int max, int parDefaut);
 
 bool readConfig() {
@@ -11,6 +13,9 @@ bool readConfig() {
     // Dossier des stratégies
     std::string &dirStrat = config["Dossiers"]["strategie"];
     if (dirStrat == "") dirStrat = "/strategie";
+    // Dossier des musiques
+    std::string &dirMusique = config["Dossiers"]["musique"];
+    if (dirMusique == "") dirMusique = "/musique";
     // Volume initial
     std::string &volume = config["Audio"]["volume"];
     int vInit = verifieInt(volume, 0, 100, 75);

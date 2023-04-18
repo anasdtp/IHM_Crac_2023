@@ -47,6 +47,9 @@ vector<string> fichiers;
 bool listeFichiers();
 bool lectureFichier(int choix);
 
+vector<string> fichiersMp3;
+bool listeFichiersMp3();
+
 int main() {
     char buf[100];
 
@@ -72,7 +75,7 @@ int main() {
     readConfig();
 
     if (!listeFichiers()) {
-        string msg = "Dossier "+config["Dossiers"]["strategie"]+" non trouvé";
+        string msg = "Dossier " + config["Dossiers"]["strategie"] + " non trouvé";
         ihm.sdMsg(nullptr, msg.c_str());
     } else if (fichiers.size() == 0) {
         ihm.sdMsg(nullptr, "Aucun fichier trouvé");
@@ -87,11 +90,12 @@ int main() {
     }
     ihm.matchInit(fichiers);
     ihm.recalagePositionInit();
-    ihm.configInit(fichiers, ThreadSound::volume());
+    listeFichiersMp3();
+    ihm.configInit(fichiersMp3, ThreadSound::volume());
 
     int etat = 0;
     int choix = -1;
-    int tempsAffiche;
+    int tempsAffiche = 100;
 
     while (1) {
         switch (etat) {
@@ -127,12 +131,23 @@ int main() {
                     // printf("recalage_BasDroitClicked\n");
                     Hauteur = ROBOT_EN_BAS;
                     Cote = ROBOT_A_DROITE;
-                } else if (ihm.ActivationRecalageClicked()) {
+                } else if (ihm.activationRecalageClicked()) {
                     if (Recalage) {
                         Recalage = false;
                     } else {
                         Recalage = true;
                     }
+                } else if (ihm.playClicked()) {
+                    if (fichiersMp3.size()>0) {
+                        ThreadSound::playMp3(("/sd" + config["Dossiers"]["musique"] + "/" + fichiersMp3[ihm.choixMp3()]).c_str());
+                    }
+                } else if (ihm.stopClicked()) {
+                    ThreadSound::stop();
+                } else if (ihm.saveConfigClicked()) {
+                    config["Audio"]["volume"] = std::to_string(ihm.choixVolume());
+                    writeConfig();
+                } else if (ihm.resetClicked()) {
+                    NVIC_SystemReset();
                 }
                 break;
 
@@ -300,6 +315,36 @@ bool lectureFichier(int choix) {
     // ERREUR: Impossible d'ouvrir le fichier en lecture
     // On fait la même chose que pour choix == -1 ????
     return false;
+}
+
+bool listeFichiersMp3() {
+    // Vide la liste de fichiers
+    fichiersMp3.clear();
+    // Attend que la carte SD soit prête
+    threadSD.waitReady();
+    // Se déplace dans le dossier des mp3 et liste les fichiers présents
+    string reply = threadSD.cdName(config["Dossiers"]["musique"].c_str());
+    // Vérifie que le dossier des musique existe
+    if (reply.find(config["Dossiers"]["musique"].c_str()) != 0) {
+        return false;
+    }
+    // Récupère le résultat sous la forme /chemin*dossier1*dossier2*dossier3:fichier1:fichier2:fichier3?   * pour dossier  : pour fichier  ? pour fin
+    // Enlève le ? à la fin
+    if (!reply.empty()) {
+        reply.pop_back();
+    }
+    stringstream txtStream(reply);
+    string item;
+    // Ignore tous les dossiers
+    if (getline(txtStream, item, ':')) {
+        while (getline(txtStream, item, ':')) {
+            // Range chaque nom de fichier dans un tableau de string si extension mp3
+            if (item.substr(item.find_last_of(".") + 1) == "mp3") {
+                fichiersMp3.push_back(item);
+            }
+        }
+    }
+    return true;
 }
 
 void runRecalage() {

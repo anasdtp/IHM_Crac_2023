@@ -15,19 +15,21 @@ class Ihm
 protected:
     typedef enum
     {
-        IHM_FLAG_DEPART = 0x00000001,
-        IHM_FLAG_REFRESH_SD = 0x00000002,
-        IHM_FLAG_RECALAGE = 0x00000004,
-        IHM_FLAG_START = 0x00000008,
-        IHM_FLAG_START_CANCEL = 0x00000010,
-        IHM_FLAG_MSGBOX_CANCEL = 0x00000020,
-        IHM_FLAG_RECALAGE_HAUTGAUCHE = 0x00000040,
-        IHM_FLAG_RECALAGE_HAUTDROIT = 0x00000080,
-        IHM_FLAG_RECALAGE_BASGAUCHE = 0x00000100,
-        IHM_FLAG_RECALAGE_BASDROIT = 0x00000200,
-        IHM_FLAG_RECALAGE_ETAT = 0x00000400,
-        IHM_FLAG_PLAY = 0x00000800,
-        IHM_FLAG_STOP = 0x00001000,
+        IHM_FLAG_DEPART =               (1UL << 0),
+        IHM_FLAG_REFRESH_SD =           (1UL << 1),
+        IHM_FLAG_RECALAGE =             (1UL << 2),
+        IHM_FLAG_START =                (1UL << 3),
+        IHM_FLAG_START_CANCEL =         (1UL << 4),
+        IHM_FLAG_MSGBOX_CANCEL =        (1UL << 5),
+        IHM_FLAG_RECALAGE_HAUTGAUCHE =  (1UL << 6),
+        IHM_FLAG_RECALAGE_HAUTDROIT =   (1UL << 7),
+        IHM_FLAG_RECALAGE_BASGAUCHE =   (1UL << 8),
+        IHM_FLAG_RECALAGE_BASDROIT =    (1UL << 9),
+        IHM_FLAG_RECALAGE_ETAT =        (1UL << 10),
+        IHM_FLAG_PLAY =                 (1UL << 11),
+        IHM_FLAG_STOP =                 (1UL << 12),
+        IHM_FLAG_SAVE_CONFIG =          (1UL << 13),
+        IHM_FLAG_RESET =                (1UL << 14),
         
     } IhmFlag;
     EventFlags flags;
@@ -58,8 +60,11 @@ protected:
     lv_obj_t *configPlay;
     lv_obj_t *labelPlay;
     lv_obj_t *configVolume;
+    lv_obj_t *labelVolume;
     lv_obj_t *configSave;
     lv_obj_t *configReset;
+    int volume;
+    int mp3;
 
     // Message Box recalage
     lv_obj_t *msgBoxRecalage;
@@ -93,9 +98,15 @@ public:
     bool recalageBasGaucheClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_RECALAGE_BASGAUCHE, clearIfSet); }
     bool recalageHautDroitClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_RECALAGE_HAUTDROIT, clearIfSet); }
     bool recalageBasDroitClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_RECALAGE_BASDROIT, clearIfSet); }
-    bool ActivationRecalageClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_RECALAGE_ETAT, clearIfSet); }
+    bool activationRecalageClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_RECALAGE_ETAT, clearIfSet); }
+    bool playClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_PLAY, clearIfSet); }
+    bool stopClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_STOP, clearIfSet); }
+    bool saveConfigClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_SAVE_CONFIG, clearIfSet); }
+    bool resetClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_RESET, clearIfSet); }
     int choixStrategie() { return departStrategie; }
     int choixCouleur() { return departCouleur; }
+    int choixVolume() { return volume; }
+    int choixMp3() { return mp3; }
     void msgBoxRecalageInit(const string &strategie);
     void msgBoxRecalageClose();
     void msgBoxJackInit();
@@ -103,7 +114,7 @@ public:
     void msgBoxInit(const char *titre, const char *msg, bool boutonAnnuler);
     void msgBoxMessage(const char *msg);
     void msgBoxClose();
-    void configInit(const vector<string> fichiers, int volume);
+    void configInit(const vector<string> fichiers, int v);
     void configRollerSetOptions(const vector<string> fichiers, bool lock = true);
 };
 
