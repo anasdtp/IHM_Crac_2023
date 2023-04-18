@@ -848,7 +848,7 @@ bool machineRecalage() {
 }
 
 bool machineStrategie() {
-    S_Instruction instruction;
+    static S_Instruction instruction;
     switch (gameEtat) {
         case ETAT_GAME_LOAD_NEXT_INSTRUCTION:
             // printf("load next instruction\n");
