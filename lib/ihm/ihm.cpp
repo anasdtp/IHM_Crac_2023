@@ -210,7 +210,7 @@ void Ihm::configInit(const vector<string> fichiers, int v) {
     /*Column 1: 1 unit from the remaining free space
      ...
      *Column 5: 1 unit from the remaining free space*/
-    static lv_coord_t col_dsc[] = {LV_GRID_FR(2), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
+    static lv_coord_t col_dsc[] = {LV_GRID_FR(2), 15, LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
 
     /*7 rows same height */
     static lv_coord_t row_dsc[] = {LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1),
@@ -246,16 +246,16 @@ void Ihm::configInit(const vector<string> fichiers, int v) {
     lv_slider_set_value(configVolume, volume, LV_ANIM_OFF);
     lv_obj_set_grid_cell(labelVolume, LV_GRID_ALIGN_CENTER, 0, 1,
                          LV_GRID_ALIGN_START, 0, 1);
-    lv_obj_set_grid_cell(configVolume, LV_GRID_ALIGN_STRETCH, 0, 1,
-                         LV_GRID_ALIGN_END, 0, 1);
+    lv_obj_set_grid_cell(configVolume, LV_GRID_ALIGN_STRETCH, 1, 1,
+                         LV_GRID_ALIGN_STRETCH, 0, 7);
     lv_obj_add_event_cb(configVolume, Ihm::eventHandler, LV_EVENT_VALUE_CHANGED, this);
 
     configSave = lv_btn_create(cont);
     lv_obj_t *label = lv_label_create(configSave);
-    lv_label_set_text(label, "Sauvegarde\n  config");
+    lv_label_set_text(label, "Sauve\nconfig");
     lv_obj_set_style_bg_color(configSave, lv_palette_main(LV_PALETTE_GREEN), LV_STATE_DEFAULT);
     lv_obj_center(label);
-    lv_obj_set_grid_cell(configSave, LV_GRID_ALIGN_STRETCH, 3, 1,
+    lv_obj_set_grid_cell(configSave, LV_GRID_ALIGN_STRETCH, 4, 1,
                          LV_GRID_ALIGN_STRETCH, 0, 2);
     lv_obj_add_event_cb(configSave, Ihm::eventHandler, LV_EVENT_CLICKED, this);
 
@@ -264,7 +264,7 @@ void Ihm::configInit(const vector<string> fichiers, int v) {
     lv_label_set_text(label, "Reset");
     lv_obj_set_style_bg_color(configReset, lv_palette_main(LV_PALETTE_RED), LV_STATE_DEFAULT);
     lv_obj_center(label);
-    lv_obj_set_grid_cell(configReset, LV_GRID_ALIGN_STRETCH, 3, 1,
+    lv_obj_set_grid_cell(configReset, LV_GRID_ALIGN_STRETCH, 4, 1,
                          LV_GRID_ALIGN_STRETCH, 6, 1);
     lv_obj_add_event_cb(configReset, Ihm::eventHandler, LV_EVENT_CLICKED, this);
 
@@ -281,6 +281,14 @@ void Ihm::configRollerSetOptions(const vector<string> fichiers, bool lock) {
     lv_roller_set_options(configRoller, choix.c_str(), LV_ROLLER_MODE_NORMAL);
     if (lock)
         m_threadLvgl->unlock();
+}
+
+void Ihm::configStopPlaying() {
+    lv_state_t etat = lv_obj_get_state(configPlay);
+    if (etat & LV_STATE_CHECKED) {
+        lv_obj_clear_state(configPlay, LV_STATE_CHECKED);
+        lv_label_set_text(labelPlay, LV_SYMBOL_PLAY);
+    }
 }
 
 void Ihm::eventHandler(lv_event_t *e) {
@@ -328,6 +336,7 @@ void Ihm::eventHandler(lv_event_t *e) {
     } else if (emetteur == ihm->configVolume) {
         ihm->volume = lv_slider_get_value(ihm->configVolume);
         lv_label_set_text_fmt(ihm->labelVolume, "Volume : %d", ihm->volume);
+        ihm->flags.set(IHM_FLAG_VOLUME);
     } else if (emetteur == ihm->configSave) {
         ihm->flags.set(IHM_FLAG_SAVE_CONFIG);
     } else if (emetteur == ihm->configReset) {

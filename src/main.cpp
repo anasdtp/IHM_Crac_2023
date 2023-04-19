@@ -148,7 +148,10 @@ int main() {
                     writeConfig();
                 } else if (ihm.resetClicked()) {
                     NVIC_SystemReset();
+                } else if (ihm.volumeChanged()) {
+                    ThreadSound::setVolume(ihm.choixVolume());
                 }
+                if (!ThreadSound::isPlaying()) ihm.configStopPlaying();
                 break;
 
             case 1:

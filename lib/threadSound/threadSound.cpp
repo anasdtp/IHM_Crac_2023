@@ -24,7 +24,6 @@ ThreadSound::ThreadSound() {
 }
 
 void ThreadSound::destroy() {
-    printf("destroy\n");
     BSP_AUDIO_OUT_Stop(CODEC_PDWN_HW);
     if (m_garbage) {
         delete m_garbage;
@@ -34,7 +33,6 @@ void ThreadSound::destroy() {
 }
 
 void ThreadSound::garbage() {
-    printf("garbage\n");
     if (m_mp3Decoder) {
         if (m_mp3Decoder->get_state() != Thread::Deleted) {
             m_mp3Decoder->terminate();
@@ -55,6 +53,7 @@ void ThreadSound::garbage() {
         fclose(m_infile);
         m_infile = nullptr;
     }
+    ThisThread::sleep_for(100ms);
     m_flags.clear();
 }
 
@@ -69,16 +68,17 @@ ThreadSound::ErrorSound ThreadSound::playMp3(const char *file) {
         // Ressource disponible
         error = NO_ERROR;
         // Prend la ressource
+        m_flags.clear();
+        m_flagsError.clear();
         m_flags.set(FLAG_IS_PLAYING);
     }
     CriticalSectionLock::disable();
 
     if (error != NO_ERROR) return error;
 
-    m_flags.clear();
-    m_flagsError.clear();
     m_infile = fopen(file, "rb");
     if (!m_infile) {
+        m_flags.clear(FLAG_IS_PLAYING);
         return ERROR_FILE_NOT_FOUND;
     }
     m_mp3Decoder = new Thread;
@@ -249,8 +249,6 @@ void ThreadSound::runMp3Decoder() {
 
     fclose(m_infile);
     m_infile = nullptr;
-
-    printf("Décodage réussi\n");
 }
 
 void ThreadSound::runPlaySound() {
@@ -286,17 +284,18 @@ void ThreadSound::runPlaySound() {
         if (!(m_flags.get() & FLAG_MP3_DECODER_BUFFER1_READY)) {
             break;
         }
+        m_flags.clear(FLAG_MP3_DECODER_BUFFER1_READY);
         nbTotalDatas++;
         m_flags.wait_all(FLAG_FULL_BUFFER);
         m_flags.set(FLAG_PLAY_BUFFER1_RELEASE);
         if (!(m_flags.get() & FLAG_MP3_DECODER_BUFFER0_READY)) {
             break;
         }
+        m_flags.clear(FLAG_MP3_DECODER_BUFFER0_READY);
     }
 
     // printf("Nb Datas %d x %d = %d\n", nbTotalDatas, datas, nbTotalDatas * datas);
-    printf("Fin du son\n");
-
+    
     // Libère la ressource
     destroy();
 }
@@ -313,9 +312,9 @@ void ThreadSound::runPlaySound() {
  * @retval None
  */
 void BSP_AUDIO_OUT_TransferComplete_CallBack(void) {
-//    if (ThreadSound::m_flags.get() & ThreadSound::FLAG_IS_PLAYING) {
+    if (ThreadSound::m_flags.get() & ThreadSound::FLAG_IS_PLAYING) {
         ThreadSound::m_flags.set(ThreadSound::FLAG_FULL_BUFFER);
-//    }
+    }
 }
 
 /**
@@ -324,9 +323,9 @@ void BSP_AUDIO_OUT_TransferComplete_CallBack(void) {
  * @retval None
  */
 void BSP_AUDIO_OUT_HalfTransfer_CallBack(void) {
-//    if (ThreadSound::m_flags.get() & ThreadSound::FLAG_IS_PLAYING) {
+    if (ThreadSound::m_flags.get() & ThreadSound::FLAG_IS_PLAYING) {
         ThreadSound::m_flags.set(ThreadSound::FLAG_HALF_BUFFER);
-//    }
+    }
 }
 
 // /**

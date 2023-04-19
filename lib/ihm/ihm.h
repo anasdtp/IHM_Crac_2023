@@ -30,6 +30,7 @@ protected:
         IHM_FLAG_STOP =                 (1UL << 12),
         IHM_FLAG_SAVE_CONFIG =          (1UL << 13),
         IHM_FLAG_RESET =                (1UL << 14),
+        IHM_FLAG_VOLUME =               (1UL << 15),
         
     } IhmFlag;
     EventFlags flags;
@@ -103,6 +104,7 @@ public:
     bool stopClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_STOP, clearIfSet); }
     bool saveConfigClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_SAVE_CONFIG, clearIfSet); }
     bool resetClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_RESET, clearIfSet); }
+    bool volumeChanged(bool clearIfSet = true) { return getFlag(IHM_FLAG_VOLUME, clearIfSet); }
     int choixStrategie() { return departStrategie; }
     int choixCouleur() { return departCouleur; }
     int choixVolume() { return volume; }
@@ -116,6 +118,7 @@ public:
     void msgBoxClose();
     void configInit(const vector<string> fichiers, int v);
     void configRollerSetOptions(const vector<string> fichiers, bool lock = true);
+    void configStopPlaying();
 };
 
 #endif
