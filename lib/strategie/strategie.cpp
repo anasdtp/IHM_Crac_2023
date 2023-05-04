@@ -3,6 +3,7 @@
 #include <instruction.h>
 #include <herkulex.h>
 #include <debug.h>
+#include <evitement.h>
 
 extern Herkulex herkulex;
 extern int recalageErreur;  // 0 si recalage réussi, valeur négative sinon
@@ -62,10 +63,10 @@ unsigned short flag_check_carte = 0; //, flag_strat = 0, flag_timer;
 // unsigned short Flag_num_bras;
 
 
-signed short x_robot,y_robot,theta_robot;//La position du robot
+signed short x_robot,y_robot,theta_robot;//La position du robot, theta en dizieme de degree
 signed short target_x_robot, target_y_robot, target_theta_robot;
 // signed short avant_gauche, avant_droit;
-// //EnumInstructionType actionPrecedente;
+EnumInstructionType actionPrecedente;
 // //unsigned char FIFO_ecriture=0; //Position du fifo pour la reception CAN
 // int flagSendCan=1;
 unsigned char Cote = 0; //0 -> JAUNE | 1 -> VIOLET
@@ -129,8 +130,13 @@ short direction;
 // InterruptIn jackA1(PA_6);
 
 
+Instruction instruction;
 
 
+
+Evitement evitement;
+int etat_evitement = 0; bool EVITEMENT = false;
+Timer timer_evitement;
 
 /****************************************************************************************/
 /* FUNCTION NAME: canProcessRx                                                          */
@@ -333,6 +339,53 @@ void canProcessRx(CANMessage *rxMsg)
                 }
             }
                 break;
+            case IDCAN_POS_XY_OBJET:{
+                uint8_t id = rxMsg->data[0];
+                short x_obstacle=rxMsg->data[1]|((unsigned short)(rxMsg->data[2])<<8);
+                short y_obstacle=rxMsg->data[3]|((unsigned short)(rxMsg->data[4])<<8);
+                signed short theta_obstacle=rxMsg->data[5]|((signed short)(rxMsg->data[6])<<8);
+                
+                
+                switch (etat_evitement)
+                {
+                case 0:{
+                    if(evitement.lidar_danger(x_obstacle, y_obstacle, theta_obstacle) == 1){
+                        EVITEMENT = true;
+                        deplacement.asservOff();
+                        flag.set(AckFrom_FLAG);
+                        flag.set(AckFrom_FIN_FLAG);
+
+                        gameEtat  = ETAT_DOING_NOTHING;
+                        etat_evitement = 1;
+                        timer_evitement.start();
+                        timer_evitement.reset();
+                    }
+                }break;
+                
+                case 1:{
+                    if((evitement.lidar_danger(x_obstacle, y_obstacle, theta_obstacle) == -1) || (timer_evitement.read_ms() > 3000)){
+                        timer_evitement.stop();
+                        timer_evitement.reset();
+                        
+                        deplacement.asservOn();
+                        gameEtat  = ETAT_GAME_PROCESInstruction;
+                        etat_evitement = 0; EVITEMENT = false;
+                        flag.clear(AckFrom_FLAG);
+                        flag.clear(AckFrom_FIN_FLAG);
+                        evitement.lidar_end_danger(&instruction, &dodgeq, target_x_robot, target_y_robot, target_theta_robot);
+
+
+                    }
+                }break;
+
+                default:
+                    break;
+                }
+                
+
+            }
+            break;
+
             default:
                 break;
         }
@@ -364,14 +417,50 @@ void remplirStruct(CANMessage &theDATA, int idf, char lenf, char dt0f, char dt1f
   theDATA.data[7] = dt7f;
 }
 
+
+bool machineStrategie() {
+    //static Instruction instruction;
+    switch (gameEtat) {
+        case ETAT_GAME_LOAD_NEXT_INSTRUCTION:
+            // printf("load next instruction\n");
+            // if (actual_instruction >= nb_instructions || actual_instruction == 255) {
+            if (listeInstructions.fin()) {
+                gameEtat = ETAT_END;
+                // Il n'y a plus d'instruction, fin du jeu
+            } else {
+                // instruction = strat_instructions[actual_instruction];
+                instruction = listeInstructions.enCours(); debugInstruction(instruction);
+                // On effectue le traitement de l'instruction
+                gameEtat = ETAT_GAME_PROCESInstruction;
+            }
+            break;
+
+        case ETAT_GAME_PROCESInstruction: {
+            //      Traitement de l'instruction, envoie de la trame CAN
+            debugInstruction(instruction);
+            procesInstructions(instruction);
+        } break;
+
+        case ETAT_END: {
+            // printf("GAME ENDED\n");
+            return false;
+        } break;
+
+        default:
+            break;
+    }
+    return true;
+}
+
 void procesInstructions(Instruction instruction) {
     switch (instruction.order) {
         case MV_RECALAGE: {
-            if (instruction.nextActionType == MECANIQUE) {
+           //if (instruction.nextActionType == MECANIQUE) {
                 instruction.nextActionType = WAIT;
                 int16_t distance = (((instruction.direction == FORWARD) ? 1 : -1) * 1000);  // On indique une distance de 3000 pour etre sur que le robot va ce recaler
                 uint8_t coordonnee = 0;
                 uint16_t val_recalage;
+                actionPrecedente = MV_RECALAGE;
                 if (instruction.precision == RECALAGE_Y) {
                     coordonnee = 2;
                     // if (InversStrat == 1 && ingnorInversionOnce == 0)
@@ -394,15 +483,16 @@ void procesInstructions(Instruction instruction) {
                 waitingAckID_FIN = ASSERVISSEMENT_RECALAGE;
                 waitingAckFrom_FIN = INSTRUCTION_END_MOTEUR;
                 flag.wait_all(AckFrom_FIN_FLAG, 20000);
-            } else {
-            }
+
+            // } else {
+            // }
         } break;
         case MV_TURN: {
             int16_t angle = instruction.arg3;
             target_x_robot = x_robot;
             target_y_robot = y_robot;
             target_theta_robot = theta_robot + angle;
-
+            actionPrecedente = MV_TURN;
             // if (InversStrat == 1 && ingnorInversionOnce == 0)
             // {
             //   angle = -angle;
@@ -432,6 +522,7 @@ void procesInstructions(Instruction instruction) {
         case MV_LINE: {
             waitingAckID = ASSERVISSEMENT_RECALAGE;
             waitingAckFrom = ACKNOWLEDGE_MOTEUR;
+            actionPrecedente = MV_LINE;
             // if (instruction.nextActionType == ENCHAINEMENT)
             // {
             //   MV_enchainement++;
@@ -473,6 +564,7 @@ void procesInstructions(Instruction instruction) {
             uint16_t y;
             int16_t theta;
             uint8_t sens;
+            actionPrecedente = MV_XYT;
             if (instruction.direction == BACKWARD) {
                 sens = -1;
                 // asser_stop_direction = -1;
@@ -516,7 +608,7 @@ void procesInstructions(Instruction instruction) {
 
             float alpha = 0, theta = 0;
             short alph = 0;
-            // actionPrecedente = MV_COURBURE;
+            actionPrecedente = MV_COURBURE;
 
             // if (instruction.nextActionType == ENCHAINEMENT)
             // {
@@ -608,52 +700,75 @@ void procesInstructions(Instruction instruction) {
             uint8_t Etage = (instruction.arg1 & 0xFF);
             uint8_t etatHerkulex = ((instruction.arg2 == 1) ? 1 : 0);
             uint8_t sens = (instruction.arg3 & 0xFF);
-            waitingAckID = IDCAN_PINCE;
-            waitingAckFrom = ACKNOWLEDGE_ACTIONNEURS;
+            actionPrecedente = PINCE;
+            if (instruction.nextActionType != ENCHAINEMENT){
+                waitingAckID = IDCAN_PINCE;
+                waitingAckFrom = ACKNOWLEDGE_ACTIONNEURS;
+            }
+            
             // printf("Herkulex.controlePince(Etage : %d, etatHerkulex : %d, sens : %d);\n",Etage,etatHerkulex, sens);
-
+            
             herkulex.controlePince(Etage, etatHerkulex, sens);
             printf("Herkulex.controlePince(Etage : %d, etatHerkulex : %d, sens : %d);\n", Etage, etatHerkulex, sens);
-            flag.wait_all(AckFrom_FLAG, 20000);
 
-            waitingAckID_FIN = IDCAN_PINCE;
-            waitingAckFrom_FIN = INSTRUCTION_END_PINCE;
-            flag.wait_all(AckFrom_FIN_FLAG, 20000);
+            if (instruction.nextActionType != ENCHAINEMENT){
+                flag.wait_all(AckFrom_FLAG, 20000);
 
-            // else if(instruction.arg1 == 172){
-            //    uint8_t etatPinceArriere = instruction.arg2;
-            //    short position[2]={272, 454};
-            //    if(etatPinceArriere){position[0] = 786; position[1] = 592;}
+                waitingAckID_FIN = IDCAN_PINCE;
+                waitingAckFrom_FIN = INSTRUCTION_END_PINCE;
+                flag.wait_all(AckFrom_FIN_FLAG, 20000);
+            }
 
-            //   waitingAckID = IDCAN_HERKULEX;
-            //   waitingAckFrom = ACKNOWLEDGE_ACTIONNEURS;
-            //   Herkulex.controleHerkulexPosition_Mul_ensemble(2, position[0], 3, position[1]);
-
-            //   flag.wait_all(AckFrom_FLAG, 20000);
-
-            //   waitingAckID_FIN = IDCAN_HERKULEX;
-            //   waitingAckFrom_FIN = INSTRUCTION_END_HERKULEX;
-            //   flag.wait_all(AckFrom_FIN_FLAG, 20000);
-
-            // }
+            
         } break;
-            // case POSITION_DEBUT:
-            // {
-            // }
-            // break;
+            case ACTION:
+            {
+                
+            if ((instruction.arg1 == 30))//Pose cerise
+            {
+                waitingAckID = IDCAN_POSE_CERISE;
+                waitingAckFrom = ACKNOWLEDGE_ACTIONNEURS;
+                herkulex.poseCerise();
+                printf("instruction.arg1 == 30 ; poseCerise\n");
+                flag.wait_all(AckFrom_FLAG, 20000);
+
+                waitingAckID_FIN = IDCAN_POSE_CERISE;
+                waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;
+                flag.wait_all(AckFrom_FIN_FLAG, 20000);
+            }
+            else if (instruction.arg1 == 10)//Pince arriere
+            {
+                
+                uint8_t etat_pince = instruction.arg2;// 0 -> fermé, 1 -> position gateau, 2 -> ouvert
+                bool poseCerise = (instruction.arg3 != 0) ? true : false;
+                waitingAckID = IDCAN_PINCE_ARRIERE;
+                waitingAckFrom = ACKNOWLEDGE_ACTIONNEURS;
+                herkulex.controlePinceArriere(etat_pince, poseCerise);
+                printf("instruction.arg1 == 10 ; Pince arriere ; ");
+                printf("etat_pince : %d ; poseCerise : %d\n", etat_pince, poseCerise);
+                flag.wait_all(AckFrom_FLAG, 20000);
+
+                waitingAckID_FIN = IDCAN_PINCE_ARRIERE;
+                waitingAckFrom_FIN = INSTRUCTION_END_PINCE;
+                flag.wait_all(AckFrom_FIN_FLAG, 20000);
+            }
+            }
+            break;
 
         default:
             break;
     }
 
-    listeInstructions.suivante();
-    // if (!instruction.nextLineOK) {
-    //     actual_instruction += 1;
-    // } else {
-    //     actual_instruction = instruction.nextLineOK;
-    // }
+    if (!EVITEMENT){
+            listeInstructions.suivante();
+            // if (!instruction.nextLineOK) {
+            //     actual_instruction += 1;
+            // } else {
+            //     actual_instruction = instruction.nextLineOK;
+            // }
 
-    gameEtat = ETAT_GAME_LOAD_NEXT_INSTRUCTION;
+            gameEtat = ETAT_GAME_LOAD_NEXT_INSTRUCTION;
+    }
 }
 
 E_Stratposdebut etat_pos = RECALAGE_1;
@@ -675,6 +790,17 @@ bool machineRecalage() {
     switch (etat_pos) {
         case RECALAGE_1: {
             threadCAN.sendAck(RECALAGE_START, 0);
+            
+            waitingAckID = ACKNOWLEDGE_ACTIONNEURS;
+            waitingAckFrom = IDCAN_PINCE_ARRIERE;
+            herkulex.controlePinceArriere(0,0);//position fermer pour ne pas gener recalage arriere
+            printf("herkulex.controlePinceArriere(0,0);\n");
+            flag.wait_all(AckFrom_FLAG, 2000);
+
+            herkulex.controlePince(4,0,0);//position à 80 mm de haut pour ne pas gener recalage avant
+            printf("herkulex.controlePince(4,0,0);\n");
+            deplacement.asservOn();
+            printf("deplacement.asservOn();\n");
             int16_t distance = 1000;
             uint16_t val_recalage;
 
@@ -857,36 +983,3 @@ bool machineRecalage() {
     return true;
 }
 
-bool machineStrategie() {
-    static Instruction instruction;
-    switch (gameEtat) {
-        case ETAT_GAME_LOAD_NEXT_INSTRUCTION:
-            // printf("load next instruction\n");
-            // if (actual_instruction >= nb_instructions || actual_instruction == 255) {
-            if (listeInstructions.fin()) {
-                gameEtat = ETAT_END;
-                // Il n'y a plus d'instruction, fin du jeu
-            } else {
-                // instruction = strat_instructions[actual_instruction];
-                instruction = listeInstructions.enCours();
-                // On effectue le traitement de l'instruction
-                gameEtat = ETAT_GAME_PROCESInstruction;
-            }
-            break;
-
-        case ETAT_GAME_PROCESInstruction: {
-            //      Traitement de l'instruction, envoie de la trame CAN
-            debugInstruction(instruction);
-            procesInstructions(instruction);
-        } break;
-
-        case ETAT_END: {
-            // printf("GAME ENDED\n");
-            return false;
-        } break;
-
-        default:
-            break;
-    }
-    return true;
-}

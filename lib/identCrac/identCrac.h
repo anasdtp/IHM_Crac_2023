@@ -361,6 +361,7 @@ serial5 : RX4-TX4*/
 
 #define IDCAN_HERKULEX 0x50
 #define ID_HERKULEX_VITESSE 0x63
+#define ID_HERKULEX_TOURNER_NB_TOUR 0x64
 #define IDCAN_HERKULEX_ANSWER 0x51
 #define IDCAN_HERKULEX_Torque 0x52
 #define IDCAN_HERKULEX_GET_ID 0x53
@@ -381,5 +382,17 @@ serial5 : RX4-TX4*/
 #define INSTRUCTION_END_STEP_MOTEUR 0x72
 #define INSTRUCTION_END_HERKULEX 0x73 
 #define INSTRUCTION_END_PINCE 0x74 
+
+#define IDCAN_PINCE_ARRIERE 0x75
+
+#define IDCAN_POSE_CERISE 0x90
+
+/****************************************************************************************/
+
+/****************************************************************************************/
+/*                              Identiants pour le bus CAN Lidar                        */
+/****************************************************************************************/
+
+#define IDCAN_POS_XY_OBJET 0x81
 
 #endif

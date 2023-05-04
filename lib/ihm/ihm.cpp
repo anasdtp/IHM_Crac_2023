@@ -271,6 +271,79 @@ void Ihm::configInit(const vector<string> fichiers, int v) {
     m_threadLvgl->unlock();
 }
 
+
+void Ihm::ActionneurInit() {
+    m_threadLvgl->lock();
+
+    /*Column 1: 1 unit from the remaining free space
+     *Column 2: 1 unit from the remaining free space*/
+    static lv_coord_t col[] = {LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
+
+    /*Row 1: 30 pixels
+     *Row 2: 2 unit from the remaining free space
+     *Row 3: 2 unit from the remaining free space*/
+    static lv_coord_t row[] = {30, LV_GRID_FR(2), LV_GRID_FR(2), LV_GRID_TEMPLATE_LAST};
+
+    tabActionneur = lv_tabview_add_tab(tabView, "Test Actionneur");
+    /*Create a container with grid*/
+    lv_obj_t *container = lv_obj_create(tabActionneur);
+    lv_obj_center(container);
+    lv_obj_update_layout(tabActionneur);
+    lv_obj_set_size(container, lv_obj_get_content_width(tabActionneur), lv_obj_get_content_height(tabActionneur));
+    lv_obj_set_grid_dsc_array(container, col, row);
+
+    lv_obj_t *titreActionneur = lv_label_create(container);
+    lv_obj_set_style_text_font(titreActionneur, &liberation_24, 0);
+    lv_label_set_text(titreActionneur, LV_SYMBOL_EDIT " Test des actionneurs un à un");  // LV_SYMBOL_ENVELOPE LV_SYMBOL_DRIVE LV_SYMBOL_EDIT
+    lv_obj_set_grid_cell(titreActionneur, LV_GRID_ALIGN_STRETCH, 0, 1,
+                         LV_GRID_ALIGN_STRETCH, 0, 1);
+
+    poseCerise = lv_btn_create(container);
+    lv_obj_t *label = lv_label_create(poseCerise);
+    lv_label_set_text(label, "Pose cerise");
+    lv_obj_set_style_bg_color(poseCerise, lv_palette_main(LV_PALETTE_LIGHT_BLUE), LV_STATE_DEFAULT);
+    lv_obj_center(label);
+    lv_obj_set_grid_cell(poseCerise, LV_GRID_ALIGN_STRETCH, 0, 1,
+                         LV_GRID_ALIGN_STRETCH, 1, 1);
+    lv_obj_add_event_cb(poseCerise, Ihm::eventHandler, LV_EVENT_CLICKED, this);
+
+    PinceArriere = lv_btn_create(container);
+    label = lv_label_create(PinceArriere);
+    lv_label_set_text(label, "Pince arrière");
+    lv_obj_add_flag(PinceArriere, LV_OBJ_FLAG_CHECKABLE);
+    lv_obj_set_style_bg_color(PinceArriere, lv_palette_main(LV_PALETTE_LIGHT_BLUE), LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(PinceArriere, lv_palette_main(LV_PALETTE_DEEP_PURPLE), LV_STATE_CHECKED);
+    lv_obj_center(label);
+    lv_obj_set_grid_cell(PinceArriere, LV_GRID_ALIGN_STRETCH, 0, 1,
+                         LV_GRID_ALIGN_STRETCH, 2, 1);
+    lv_obj_add_event_cb(PinceArriere, Ihm::eventHandler, LV_EVENT_CLICKED, this);
+
+    PinceAvant = lv_btn_create(container);
+    label = lv_label_create(PinceAvant);
+    lv_label_set_text(label, "Pince avant");
+    lv_obj_add_flag(PinceAvant, LV_OBJ_FLAG_CHECKABLE);
+    lv_obj_set_style_bg_color(PinceAvant, lv_palette_main(LV_PALETTE_LIGHT_BLUE), LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(PinceAvant, lv_palette_main(LV_PALETTE_DEEP_PURPLE), LV_STATE_CHECKED);
+    lv_obj_center(label);
+    lv_obj_set_grid_cell(PinceAvant, LV_GRID_ALIGN_STRETCH, 1, 1,
+                         LV_GRID_ALIGN_STRETCH, 1, 1);
+    lv_obj_add_event_cb(PinceAvant, Ihm::eventHandler, LV_EVENT_CLICKED, this);
+
+    stepMotor = lv_btn_create(container);
+    label = lv_label_create(stepMotor);
+    lv_label_set_text(label, "Moteur pas à pas");
+    lv_obj_add_flag(stepMotor, LV_OBJ_FLAG_CHECKABLE);
+    lv_obj_set_style_bg_color(stepMotor, lv_palette_main(LV_PALETTE_LIGHT_BLUE), LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(stepMotor, lv_palette_main(LV_PALETTE_DEEP_PURPLE), LV_STATE_CHECKED);
+    lv_obj_center(label);
+    lv_obj_set_grid_cell(stepMotor, LV_GRID_ALIGN_STRETCH, 1, 1,
+                         LV_GRID_ALIGN_STRETCH, 2, 1);
+    lv_obj_add_event_cb(stepMotor, Ihm::eventHandler, LV_EVENT_CLICKED, this);
+
+    m_threadLvgl->unlock();
+}
+
+
 void Ihm::configRollerSetOptions(const vector<string> fichiers, bool lock) {
     string choix = "";
     for (auto f : fichiers)
@@ -342,6 +415,16 @@ void Ihm::eventHandler(lv_event_t *e) {
     } else if (emetteur == ihm->configReset) {
         ihm->flags.set(IHM_FLAG_RESET);
     }
+
+    else if(emetteur == ihm->poseCerise){
+        ihm->flags.set(IHM_FLAG_ACTIONNEUR_POSE_CERISE);
+    }else if(emetteur == ihm->PinceArriere){
+        ihm->flags.set(IHM_FLAG_ACTIONNEUR_PINCE_ARRIERE);
+    }else if(emetteur == ihm->PinceAvant){
+        ihm->flags.set(IHM_FLAG_ACTIONNEUR_PINCE_AVANT);
+    }else if(emetteur == ihm->stepMotor){
+        ihm->flags.set(IHM_FLAG_ACTIONNEUR_STEP_MOTOR);
+    }   
 }
 
 bool Ihm::getFlag(IhmFlag f, bool clearIfSet) {

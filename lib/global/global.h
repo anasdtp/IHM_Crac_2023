@@ -11,7 +11,7 @@
 #include <threadLvgl.h>
 #include <deplacement.h>
 #include <identCrac.h>
-//#include <Instruction.h>
+#include <instruction.h>
 //#include "Strategie.h"
 
 
@@ -35,7 +35,7 @@
 #define POSITION_DEBUT_X 300
 #define POSITION_DEBUT_Y 300
 #define POSITION_DEBUT_T 0
-#define MOITIEE_ROBOT 115
+#define MOITIEE_ROBOT 118
 
 #define M_PI 3.14159265358979323846
 // extern E_stratGameEtat gameEtat = ETAT_GAME_INIT;
@@ -62,6 +62,8 @@ extern short SCORE_GLOBAL;
 extern short SCORE_PR, SCORE_GR;
 
 extern EventFlags flag;
+
+extern EnumInstructionType actionPrecedente;
 
 extern unsigned char InversStrat;//Si à 1, indique que l'on part de l'autre cote de la table(inversion des Y)
 

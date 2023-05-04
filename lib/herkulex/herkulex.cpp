@@ -56,3 +56,13 @@ void Herkulex::controleHerkulexCouple(uint8_t IDHerkulex, bool couple) {
 void Herkulex::clearHerkulex(uint8_t IDHerkulex) {
     m_can->send(IDCAN_HERKULEX_Clear, IDHerkulex);
 }
+
+void Herkulex::poseCerise(bool presenceGatoInAccount){
+    m_can->send(IDCAN_POSE_CERISE, (uint8_t)presenceGatoInAccount);
+}
+
+void Herkulex::controlePinceArriere(uint8_t etatPince, bool poseCerise){//// 0 -> fermé, 1 -> position gateau, 2 -> ouvert
+    if(etatPince>2 || etatPince<0){etatPince = 2;}
+    bool presenceGatoInAccount = true;
+    m_can->send(IDCAN_PINCE_ARRIERE, etatPince, (uint8_t)poseCerise, (uint8_t)presenceGatoInAccount);
+}

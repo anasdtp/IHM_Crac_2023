@@ -50,8 +50,11 @@ bool lectureFichier(int choix);
 vector<string> fichiersMp3;
 bool listeFichiersMp3();
 
+int actionneurPinceArriere[2]={2,1}, actionneurPinceArriereTab = 0, actionneurPinceAavant = 0, actionneurStepMotor = 0;
+
 int main() {
     char buf[100];
+
 
     threadSD.registerCANControl(threadCAN);
     threadCAN.registerIds(0x01, 0x7FF, canProcessRx);
@@ -90,6 +93,7 @@ int main() {
     }
     ihm.matchInit(fichiers);
     ihm.recalagePositionInit();
+    ihm.ActionneurInit();
     listeFichiersMp3();
     ihm.configInit(fichiersMp3, ThreadSound::volume());
 
@@ -137,6 +141,26 @@ int main() {
                     } else {
                         Recalage = true;
                     }
+                } else if(ihm.actionneurPinceArriereClicked()){
+                    printf("actionneurPinceArriereClicked\n");
+                    uint8_t etat_pince = actionneurPinceArriere[actionneurPinceArriereTab]; // Serrer : 1, lacher : 0
+                    bool poseCerise = false;
+                    if(etat_pince == 1){poseCerise = true;}
+                    herkulex.controlePinceArriere(etat_pince, poseCerise);
+                    actionneurPinceArriereTab = !actionneurPinceArriereTab;
+
+                } else if(ihm.actionneurPinceAvantClicked()){
+                    printf("actionneurPinceAvantClicked\n");
+                    actionneurPinceAavant = !actionneurPinceAavant;
+                    herkulex.controlePince(0, actionneurPinceAavant,0);
+                } else if(ihm.actionneurPoseCeriseClicked()){
+                    printf("actionneurPoseCeriseClicked\n");
+                    herkulex.poseCerise(false);
+                } else if(ihm.actionneurStepMotorClicked()){
+                    printf("actionneurStepMotorClicked\n");
+                    actionneurStepMotor = !actionneurStepMotor;
+                    actionneurStepMotor = (actionneurStepMotor != 0) ? 4 : 0;
+                    herkulex.controlePince(actionneurStepMotor, 0,0);
                 } else if (ihm.playClicked()) {
                     if (fichiersMp3.size()>0) {
                         ThreadSound::playMp3(("/sd" + config["Dossiers"]["musique"] + "/" + fichiersMp3[ihm.choixMp3()]).c_str());

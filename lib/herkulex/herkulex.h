@@ -25,9 +25,10 @@ public:
     void controleHerkulexPosition(uint8_t IDHerkulex, short position, CouleurHerkulex setLed);
     void controleHerkulexPositionMulEnsemble(uint8_t IDHerkulex, short position1, uint8_t ID2Herkulex, short position2);
     void controleHerkulexTurnMode(uint8_t IDHerkulex, uint16_t vitesse);
-    void controleHerkulexCouple(uint8_t IDHerkulex, bool couple);
+    void controleHerkulexCouple(uint8_t IDHerkulex, bool couple = true);
     void clearHerkulex(uint8_t IDHerkulex);
-
+    void poseCerise(bool presenceGatoInAccount = true);
+    void controlePinceArriere(uint8_t etatPince, bool poseCerise);
     
 
 };
