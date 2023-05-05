@@ -29,6 +29,7 @@ public:
     void clearHerkulex(uint8_t IDHerkulex);
     void poseCerise(bool presenceGatoInAccount = true);
     void controlePinceArriere(uint8_t etatPince, bool poseCerise);
+    void controleAspirateur(bool activation);
     
 
 };

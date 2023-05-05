@@ -21,6 +21,9 @@
 
 #include "mbed.h"
 
+
+BufferedSerial pc(SERIAL_TX, SERIAL_RX,921600);
+
 ThreadCAN threadCAN;
 ThreadSD threadSD;
 ThreadLvgl threadLvgl;
@@ -383,8 +386,7 @@ void runRecalage() {
 
 void runMatch() {
     gameEtat = ETAT_GAME_LOAD_NEXT_INSTRUCTION;
-    while (machineStrategie())
-        ;
+    while (machineStrategie());
 }
 
 // Retourne true si le jack est retiré

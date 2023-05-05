@@ -340,7 +340,7 @@ void canProcessRx(CANMessage *rxMsg)
             }
                 break;
             case IDCAN_POS_XY_OBJET:{
-                uint8_t id = rxMsg->data[0];
+                uint8_t id = rxMsg->data[0];//Ne sert à rien pour le moment car pas 100% fiable mais si c'etait aboutit, cela permettrait de gérer le cas rare où il y aurait deux robots juste en face du notre
                 short x_obstacle=rxMsg->data[1]|((unsigned short)(rxMsg->data[2])<<8);
                 short y_obstacle=rxMsg->data[3]|((unsigned short)(rxMsg->data[4])<<8);
                 signed short theta_obstacle=rxMsg->data[5]|((signed short)(rxMsg->data[6])<<8);
@@ -352,6 +352,8 @@ void canProcessRx(CANMessage *rxMsg)
                     if(evitement.lidar_danger(x_obstacle, y_obstacle, theta_obstacle) == 1){
                         EVITEMENT = true;
                         deplacement.asservOff();
+                        ThisThread::sleep_for(50ms);
+                        deplacement.asservOn();
                         flag.set(AckFrom_FLAG);
                         flag.set(AckFrom_FIN_FLAG);
 
@@ -429,7 +431,7 @@ bool machineStrategie() {
                 // Il n'y a plus d'instruction, fin du jeu
             } else {
                 // instruction = strat_instructions[actual_instruction];
-                instruction = listeInstructions.enCours(); debugInstruction(instruction);
+                instruction = listeInstructions.enCours(); 
                 // On effectue le traitement de l'instruction
                 gameEtat = ETAT_GAME_PROCESInstruction;
             }
@@ -751,6 +753,18 @@ void procesInstructions(Instruction instruction) {
                 waitingAckID_FIN = IDCAN_PINCE_ARRIERE;
                 waitingAckFrom_FIN = INSTRUCTION_END_PINCE;
                 flag.wait_all(AckFrom_FIN_FLAG, 20000);
+            }else if(instruction.arg1 == 20){//Aspirateur
+                bool activationAspirateur = (instruction.arg2 != 0) ? true : false;
+
+                waitingAckID = IDCAN_ASPIRATEUR;
+                waitingAckFrom = ACKNOWLEDGE_ACTIONNEURS;
+                herkulex.controleAspirateur(activationAspirateur);
+
+                flag.wait_all(AckFrom_FLAG, 20000);
+
+                waitingAckID_FIN = IDCAN_ASPIRATEUR;
+                waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;
+                flag.wait_all(AckFrom_FIN_FLAG, 20000);
             }
             }
             break;
@@ -777,8 +791,6 @@ bool machineRecalageInit()
 {
     etat_pos = RECALAGE_1;
     recalageErreur = 0;
-    deplacement.asservOn();
-    herkulex.stepMotorMode(1);
     ThisThread::sleep_for(50ms);
     listeInstructions.debut();
     // deplacement.asservOn();
@@ -801,6 +813,9 @@ bool machineRecalage() {
             printf("herkulex.controlePince(4,0,0);\n");
             deplacement.asservOn();
             printf("deplacement.asservOn();\n");
+            herkulex.stepMotorMode(1);
+            printf("herkulex.stepMotorMode(1);\n");
+
             int16_t distance = 1000;
             uint16_t val_recalage;
 

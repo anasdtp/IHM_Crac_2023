@@ -66,3 +66,7 @@ void Herkulex::controlePinceArriere(uint8_t etatPince, bool poseCerise){//// 0 -
     bool presenceGatoInAccount = true;
     m_can->send(IDCAN_PINCE_ARRIERE, etatPince, (uint8_t)poseCerise, (uint8_t)presenceGatoInAccount);
 }
+
+void Herkulex::controleAspirateur(bool activation){
+    m_can->send(IDCAN_ASPIRATEUR, (uint8_t)activation);
+}
