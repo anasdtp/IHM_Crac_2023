@@ -344,11 +344,12 @@ void canProcessRx(CANMessage *rxMsg)
                 short x_obstacle=rxMsg->data[1]|((unsigned short)(rxMsg->data[2])<<8);
                 short y_obstacle=rxMsg->data[3]|((unsigned short)(rxMsg->data[4])<<8);
                 signed short theta_obstacle=rxMsg->data[5]|((signed short)(rxMsg->data[6])<<8);
-                
+                printf("reçu IDCAN_POS_XY_OBJET ; x_obstacle : %d ; y_obstacle : %d ; theta_obstacle : %d\n", x_obstacle, y_obstacle, theta_obstacle);
                 
                 switch (etat_evitement)
                 {
                 case 0:{
+                    
                     if(evitement.lidar_danger(x_obstacle, y_obstacle, theta_obstacle) == 1){
                         EVITEMENT = true;
                         deplacement.asservOff();
@@ -361,21 +362,27 @@ void canProcessRx(CANMessage *rxMsg)
                         etat_evitement = 1;
                         timer_evitement.start();
                         timer_evitement.reset();
+
+                        threadCAN.send(BALISE_DANGER);
+                    }else if(evitement.lidar_danger(x_obstacle, y_obstacle, theta_obstacle) == 2){  // A enlever en temps de match mais à laisser pour les tests
+                        deplacement.asservOff();
+                        ThisThread::sleep_for(50ms); 
+                        deplacement.asservOn();
                     }
                 }break;
-                
+
                 case 1:{
                     if((evitement.lidar_danger(x_obstacle, y_obstacle, theta_obstacle) == -1) || (timer_evitement.read_ms() > 3000)){
                         timer_evitement.stop();
                         timer_evitement.reset();
-                        
+
                         deplacement.asservOn();
                         gameEtat  = ETAT_GAME_PROCESInstruction;
                         etat_evitement = 0; EVITEMENT = false;
                         flag.clear(AckFrom_FLAG);
                         flag.clear(AckFrom_FIN_FLAG);
                         evitement.lidar_end_danger(&instruction, &dodgeq, target_x_robot, target_y_robot, target_theta_robot);
-
+                        threadCAN.send(BALISE_END_DANGER);
 
                     }
                 }break;
@@ -765,6 +772,13 @@ void procesInstructions(Instruction instruction) {
                 waitingAckID_FIN = IDCAN_ASPIRATEUR;
                 waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;
                 flag.wait_all(AckFrom_FIN_FLAG, 20000);
+            }else if(instruction.arg1 == 40){//Reglage vitesse et acceleration
+                uint16_t vitesse = 600 - instruction.arg2 * 300;//3 niveau de vitesse
+                if(vitesse<=150){vitesse = 150;}
+
+
+                deplacement.vitesse(vitesse);
+            
             }
             }
             break;

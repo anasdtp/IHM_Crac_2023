@@ -1,21 +1,31 @@
 #include "global.h"
 #include "evitement.h"
 #include <strategie.h>
+#include "math.h"
 
-int Evitement::lidar_danger(short x_obstacle, short y_obstacle, signed short angle_obstacle){
+int Evitement::lidar_danger(short x_obstacle, short y_obstacle, signed short angle_obstacle)
+{
 
-    if((actionPrecedente==MV_COURBURE)||(actionPrecedente==MV_LINE)||(actionPrecedente==MV_XYT))
+    signed short debut_angle_detection = theta_robot - 225, fin_angle_detection = theta_robot + 225;
+    int distance_lim = 225;
+
+    // si angle_obstacle E [debut_angle_detection ; fin_angle_detection]
+    if (angle_obstacle >= debut_angle_detection && angle_obstacle <= fin_angle_detection)
     {
-        signed short debut_angle_detection = theta_robot - 225, fin_angle_detection = theta_robot + 225 ; int distance_lim = 200;
-
-        //si angle_obstacle E [debut_angle_detection ; fin_angle_detection]
-        if(angle_obstacle>=debut_angle_detection && angle_obstacle<=fin_angle_detection){
-            if((abs(x_robot - x_obstacle) < distance_lim) && (abs(y_robot - y_obstacle) < distance_lim)){
-                return 1;
+        int delta_x = x_robot - x_obstacle, delta_y = y_robot - y_obstacle;
+        int distance = sqrt((delta_x * delta_x) + (delta_y * delta_y));
+        if (distance < distance_lim)
+        {
+            if ((actionPrecedente == MV_COURBURE) || (actionPrecedente == MV_LINE) || (actionPrecedente == MV_XYT))
+            {
+                return 1;//S'arreter
+            }else{
+                return 2;
             }
-            else{
-                return -1;
-            }
+        }
+        else
+        {
+            return -1;
         }
     }
     return 0;

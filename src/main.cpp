@@ -94,6 +94,7 @@ int main() {
         }
         ihm.sdMsg(nullptr, buf);
     }
+    
     ihm.matchInit(fichiers);
     ihm.recalagePositionInit();
     ihm.ActionneurInit();

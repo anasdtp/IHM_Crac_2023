@@ -32,7 +32,7 @@ public:
     void setOdo(uint16_t x, uint16_t y, int16_t theta);
 
     void vitesse(uint16_t valeur);
-    void vitesseAccelDecel(uint16_t vitesse, uint16_t acceleration, uint16_t deceleration);
+    void vitesseAccelDecel(uint16_t vitesse, uint16_t acceleration);//, uint16_t deceleration);
     void accelDecel(uint16_t acceleration, uint16_t deceleration);
     void courbeBezier(uint8_t nbCourbes, int16_t P1[][2], int16_t C1[][2], int16_t C2[][2], uint8_t sens);
 };

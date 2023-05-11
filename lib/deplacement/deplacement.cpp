@@ -56,12 +56,12 @@ void Deplacement::setOdo(uint16_t x, uint16_t y, int16_t theta)
 
 void Deplacement::vitesse(uint16_t valeur)
 {
-    m_can->send(ASSERVISSEMENT_CONFIG_VIT, valeur);
+    m_can->send(ASSERVISSEMENT_CONFIG_VIT, valeur);//N'est pas configurée
 }
 
-void Deplacement::vitesseAccelDecel(uint16_t vitesse, uint16_t acceleration, uint16_t deceleration)
+void Deplacement::vitesseAccelDecel(uint16_t vitesse, uint16_t acceleration)//, uint16_t deceleration)
 {
-    m_can->send(ASSERVISSEMENT_CONFIG, vitesse, acceleration, deceleration);
+    m_can->send(ASSERVISSEMENT_CONFIG, vitesse, acceleration);//, deceleration);//deceleration calculé automatiquement a partir de l'acceleration, DMAX = ((double)amax)*0.75*k*k;
 
     // msgTx.data[6]=(uint8_t)(acceleration&0x00FF);//cloto
     // msgTx.data[7]=(uint8_t)((acceleration&0xFF00)>>8);//cloto
