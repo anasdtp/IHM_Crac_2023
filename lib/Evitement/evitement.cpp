@@ -3,32 +3,58 @@
 #include <strategie.h>
 #include "math.h"
 
-int Evitement::lidar_danger(short x_obstacle, short y_obstacle, signed short angle_obstacle)
+int Evitement::lidar_danger(short x_obstacle, short y_obstacle, signed short angle_obstacle, int distance)
 {
 
     signed short debut_angle_detection = theta_robot - 225, fin_angle_detection = theta_robot + 225;
-    int distance_lim = 225;
+    int distance_lim = 500;
 
-    // si angle_obstacle E [debut_angle_detection ; fin_angle_detection]
-    if (angle_obstacle >= debut_angle_detection && angle_obstacle <= fin_angle_detection)
-    {
-        int delta_x = x_robot - x_obstacle, delta_y = y_robot - y_obstacle;
-        int distance = sqrt((delta_x * delta_x) + (delta_y * delta_y));
-        if (distance < distance_lim)
+    if(x_obstacle<=0 || y_obstacle<=0){return NO_POINT;}
+    // si angle_obstacle E [debut_angle_detection ; fin_angle_detection] angle_obstacle en dizieme de degree
+    // if (angle_obstacle >= debut_angle_detection && angle_obstacle <= fin_angle_detection)
+    // {
+        // int delta_x = x_robot - x_obstacle, delta_y = y_robot - y_obstacle;
+        // int distance = sqrt((delta_x * delta_x) + (delta_y * delta_y));
+        if (distance > 0 && distance < distance_lim)
         {
             if ((actionPrecedente == MV_COURBURE) || (actionPrecedente == MV_LINE) || (actionPrecedente == MV_XYT))
             {
-                return 1;//S'arreter
+                return DANGER_MV;//S'arreter
             }else{
-                return 2;
+                return DANGER_ST;
             }
         }
         else
         {
-            return -1;
+            int coef_directeur_robot = (target_y_robot - y_robot) / (target_x_robot - x_robot);
+            int coef_directeur_obstacle = (y_obstacle - y_robot) / (x_obstacle - x_robot);
+
+            // Calcul de la différence entre les coefficients directeurs
+            float diff_coef_directeur = fabs(coef_directeur_robot - coef_directeur_obstacle);
+
+            // Définir une marge d'erreur acceptable
+            float tolerance = 0.1; // Valeur à ajuster en fonction de la précision souhaitée
+
+            // Vérifier si la différence des coefficients directeurs est inférieure à la tolérance
+            if (diff_coef_directeur < tolerance)
+            {
+                return OBSTACLE_SUR_TRAJECTOIRE;
+            }
+            else
+            {
+                return NO_DANGER;
+            }
+            // if (coef_directeur_robot == coef_directeur_obstacle)
+            // {
+            //     return OBSTACLE_SUR_TRAJECTOIRE;
+            // }
+            // else
+            // {
+            //     return NO_DANGER;
+            // }
         }
-    }
-    return 0;
+    // }
+    return NO_POINT;
 }
 
 void Evitement::lidar_end_danger(Instruction* instruction, S_Dodge_queue* dodgeq, signed short local_target_x_robot, signed short local_target_y_robot, signed short local_target_theta_robot){

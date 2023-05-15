@@ -395,6 +395,6 @@ serial5 : RX4-TX4*/
 /*                              Identiants pour le bus CAN Lidar                        */
 /****************************************************************************************/
 
-#define IDCAN_POS_XY_OBJET 0x81
+#define IDCAN_POS_XY_OBJET 0x82
 
 #endif

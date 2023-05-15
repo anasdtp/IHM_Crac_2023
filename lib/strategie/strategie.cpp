@@ -269,6 +269,22 @@ void canProcessRx(CANMessage *rxMsg)
                     flag.set(AckFrom_FIN_FLAG);
                 }
             }break;
+            case INSTRUCTION_END_ACTIONNEURS:{
+                unsigned short recieveAckID = (unsigned short)rxMsg->data[0]  | ( ((unsigned short)rxMsg->data[1]) <<8);
+                if( (waitingAckFrom == identifiant )&& (recieveAckID == waitingAckID) ) 
+                {
+                    printf(" ack de debut recu \n");
+                    waitingAckFrom = 0;
+                    waitingAckID = 0;
+                    flag.set(AckFrom_FLAG);
+                }
+                if( (waitingAckFrom_FIN == identifiant ) && (recieveAckID == waitingAckID_FIN) ) {
+                    printf(" ack de fin recu \n");
+                    waitingAckFrom_FIN = 0;
+                    waitingAckID_FIN = 0;
+                    flag.set(AckFrom_FIN_FLAG);
+                }
+            }break;
             case ACK_FIN_ACTION:{
 
             }break;
@@ -340,21 +356,31 @@ void canProcessRx(CANMessage *rxMsg)
             }
                 break;
             case IDCAN_POS_XY_OBJET:{
-                uint8_t id = rxMsg->data[0];//Ne sert à rien pour le moment car pas 100% fiable mais si c'etait aboutit, cela permettrait de gérer le cas rare où il y aurait deux robots juste en face du notre
+                uint8_t id = rxMsg->data[0];
                 short x_obstacle=rxMsg->data[1]|((unsigned short)(rxMsg->data[2])<<8);
                 short y_obstacle=rxMsg->data[3]|((unsigned short)(rxMsg->data[4])<<8);
-                signed short theta_obstacle=rxMsg->data[5]|((signed short)(rxMsg->data[6])<<8);
-                printf("reçu IDCAN_POS_XY_OBJET ; x_obstacle : %d ; y_obstacle : %d ; theta_obstacle : %d\n", x_obstacle, y_obstacle, theta_obstacle);
+                signed short theta_obstacle= (rxMsg->data[5]|((signed short)(rxMsg->data[6])<<8)) * 10.0;//dizieme de degree
+                // short distance_lidar = (rxMsg->data[6]|((unsigned short)(rxMsg->data[7])<<8));
+
+                int delta_x = x_robot - x_obstacle, delta_y = y_robot - y_obstacle;
+                int distance_lidar = sqrt((delta_x * delta_x) + (delta_y * delta_y));
+                //if(distance != distance_lidar){printf("distance != distance_lidar\n");}
+                if(distance_lidar<600){
+                    printf("IDCAN_POS_XY_OBJET ; x_obstacle : %d ; y_obstacle : %d ; theta_obstacle : %d, distance_lidar : %d\n", x_obstacle, y_obstacle, theta_obstacle, distance_lidar);
+                }
                 
                 switch (etat_evitement)
                 {
                 case 0:{
-                    
-                    if(evitement.lidar_danger(x_obstacle, y_obstacle, theta_obstacle) == 1){
+                    if(id == 0xFF){break;}
+                    if(evitement.lidar_danger(x_obstacle, y_obstacle, theta_obstacle, distance_lidar) == DANGER_MV){
+                        printf("IDCAN_POS_XY_OBJET ;DANGER_MV ; x_obstacle : %d ; y_obstacle : %d ; theta_obstacle : %d, distance_lidar : %d\n", x_obstacle, y_obstacle, theta_obstacle, distance_lidar);
                         EVITEMENT = true;
                         deplacement.asservOff();
-                        ThisThread::sleep_for(50ms);
-                        deplacement.asservOn();
+                        wait_us(20 * 1000);
+                        deplacement.toutDroit(1);
+                        wait_us(20 * 1000);
+                        deplacement.asservOn(true);
                         flag.set(AckFrom_FLAG);
                         flag.set(AckFrom_FIN_FLAG);
 
@@ -364,28 +390,44 @@ void canProcessRx(CANMessage *rxMsg)
                         timer_evitement.reset();
 
                         threadCAN.send(BALISE_DANGER);
-                    }else if(evitement.lidar_danger(x_obstacle, y_obstacle, theta_obstacle) == 2){  // A enlever en temps de match mais à laisser pour les tests
+                    }else if(evitement.lidar_danger(x_obstacle, y_obstacle, theta_obstacle, distance_lidar) == DANGER_ST){  // A enlever en temps de match mais à laisser pour les tests
+                        printf("IDCAN_POS_XY_OBJET ;DANGER_ST ; x_obstacle : %d ; y_obstacle : %d ; theta_obstacle : %d, distance_lidar : %d\n", x_obstacle, y_obstacle, theta_obstacle, distance_lidar);
                         deplacement.asservOff();
-                        ThisThread::sleep_for(50ms); 
-                        deplacement.asservOn();
+                        wait_us(20 * 1000);
+                        deplacement.toutDroit(1);
+                        wait_us(20 * 1000);
+                        deplacement.asservOn(true);
+                        timer_evitement.start();
+                        timer_evitement.reset();
+                        etat_evitement = 2;
+
                     }
                 }break;
 
                 case 1:{
-                    if((evitement.lidar_danger(x_obstacle, y_obstacle, theta_obstacle) == -1) || (timer_evitement.read_ms() > 3000)){
+                    if((evitement.lidar_danger(x_obstacle, y_obstacle, theta_obstacle, distance_lidar) == NO_DANGER && distance_lidar<1250) || (timer_evitement.read_ms() > 3000)){
                         timer_evitement.stop();
                         timer_evitement.reset();
 
-                        deplacement.asservOn();
+                        deplacement.asservOn(true);
                         gameEtat  = ETAT_GAME_PROCESInstruction;
                         etat_evitement = 0; EVITEMENT = false;
                         flag.clear(AckFrom_FLAG);
                         flag.clear(AckFrom_FIN_FLAG);
                         evitement.lidar_end_danger(&instruction, &dodgeq, target_x_robot, target_y_robot, target_theta_robot);
+
                         threadCAN.send(BALISE_END_DANGER);
 
                     }
                 }break;
+                case 2:{
+                    if((evitement.lidar_danger(x_obstacle, y_obstacle, theta_obstacle, distance_lidar) == NO_DANGER && distance_lidar<1250) || (timer_evitement.read_ms() > 3000)){
+                        timer_evitement.stop();
+                        timer_evitement.reset();
+                        deplacement.asservOn(true);
+                        etat_evitement = 0;
+                    }
+                }break;                
 
                 default:
                     break;
@@ -555,11 +597,12 @@ void procesInstructions(Instruction instruction) {
             // else
             //   asser_stop_direction = -1;
             // GoStraight(localData2, 0, 0, localData5);
-            deplacement.toutDroit(distance);
-
+            
             target_x_robot = x_robot + distance * cos((double)theta_robot * M_PI / 1800.0);
             target_y_robot = y_robot + distance * sin((double)theta_robot * M_PI / 1800.0);
             target_theta_robot = theta_robot;
+
+            deplacement.toutDroit(distance);
 
             flag.wait_all(AckFrom_FLAG, 20000);
 
