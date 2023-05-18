@@ -130,7 +130,7 @@ void Ihm::recalagePositionInit() {
 
     /*Column 1: 1 unit from the remaining free space
      *Column 2: 1 unit from the remaining free space*/
-    static lv_coord_t col[] = {LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
+    static lv_coord_t col[] = {LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
 
     /*Row 1: 30 pixels
      *Row 2: 1 unit from the remaining free space
@@ -169,12 +169,30 @@ void Ihm::recalagePositionInit() {
                          LV_GRID_ALIGN_STRETCH, 2, 1);
     lv_obj_add_event_cb(basGauche, Ihm::eventHandler, LV_EVENT_CLICKED, this);
 
+    hautMilieu = lv_btn_create(container);
+    label = lv_label_create(hautMilieu);
+    lv_label_set_text(label, "En Haut au milieu");
+    lv_obj_set_style_bg_color(hautMilieu, lv_palette_main(LV_PALETTE_LIGHT_BLUE), LV_STATE_DEFAULT);
+    lv_obj_center(label);
+    lv_obj_set_grid_cell(hautMilieu, LV_GRID_ALIGN_STRETCH, 1, 1,
+                         LV_GRID_ALIGN_STRETCH, 1, 1);
+    lv_obj_add_event_cb(hautMilieu, Ihm::eventHandler, LV_EVENT_CLICKED, this);
+
+    basMilieu = lv_btn_create(container);
+    label = lv_label_create(basMilieu);
+    lv_label_set_text(label, "En Bas au milieu");
+    lv_obj_set_style_bg_color(basMilieu, lv_palette_main(LV_PALETTE_LIGHT_BLUE), LV_STATE_DEFAULT);
+    lv_obj_center(label);
+    lv_obj_set_grid_cell(basMilieu, LV_GRID_ALIGN_STRETCH, 1, 1,
+                         LV_GRID_ALIGN_STRETCH, 2, 1);
+    lv_obj_add_event_cb(basMilieu, Ihm::eventHandler, LV_EVENT_CLICKED, this);
+
     hautDroit = lv_btn_create(container);
     label = lv_label_create(hautDroit);
     lv_label_set_text(label, "En Haut à droite");
     lv_obj_set_style_bg_color(hautDroit, lv_palette_main(LV_PALETTE_LIGHT_BLUE), LV_STATE_DEFAULT);
     lv_obj_center(label);
-    lv_obj_set_grid_cell(hautDroit, LV_GRID_ALIGN_STRETCH, 1, 1,
+    lv_obj_set_grid_cell(hautDroit, LV_GRID_ALIGN_STRETCH, 2, 1,
                          LV_GRID_ALIGN_STRETCH, 1, 1);
     lv_obj_add_event_cb(hautDroit, Ihm::eventHandler, LV_EVENT_CLICKED, this);
 
@@ -183,7 +201,7 @@ void Ihm::recalagePositionInit() {
     lv_label_set_text(label, "En Bas à droite");
     lv_obj_set_style_bg_color(basDroit, lv_palette_main(LV_PALETTE_LIGHT_BLUE), LV_STATE_DEFAULT);
     lv_obj_center(label);
-    lv_obj_set_grid_cell(basDroit, LV_GRID_ALIGN_STRETCH, 1, 1,
+    lv_obj_set_grid_cell(basDroit, LV_GRID_ALIGN_STRETCH, 2, 1,
                          LV_GRID_ALIGN_STRETCH, 2, 1);
     lv_obj_add_event_cb(basDroit, Ihm::eventHandler, LV_EVENT_CLICKED, this);
 
@@ -394,6 +412,10 @@ void Ihm::eventHandler(lv_event_t *e) {
         ihm->flags.set(IHM_FLAG_RECALAGE_BASGAUCHE);
     } else if (emetteur == ihm->basDroit) {
         ihm->flags.set(IHM_FLAG_RECALAGE_BASDROIT);
+    } else if (emetteur == ihm->basMilieu) {
+        ihm->flags.set(IHM_FLAG_RECALAGE_BASMILIEU);
+    } else if (emetteur == ihm->hautMilieu) {
+        ihm->flags.set(IHM_FLAG_RECALAGE_HAUTMILIEU);
     } else if (emetteur == ihm->etatRecalage) {
         ihm->flags.set(IHM_FLAG_RECALAGE_ETAT);
     } else if (emetteur == ihm->configPlay) {

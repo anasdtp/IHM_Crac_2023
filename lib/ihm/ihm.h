@@ -35,7 +35,9 @@ protected:
         IHM_FLAG_ACTIONNEUR_PINCE_ARRIERE = (1UL << 17),
         IHM_FLAG_ACTIONNEUR_PINCE_AVANT =   (1UL << 18),
         IHM_FLAG_ACTIONNEUR_STEP_MOTOR =    (1UL << 19),
-        
+        IHM_FLAG_RECALAGE_BASMILIEU =       (1UL << 20),
+        IHM_FLAG_RECALAGE_HAUTMILIEU =      (1UL << 21),
+         
     } IhmFlag;
     EventFlags flags;
     ThreadLvgl *m_threadLvgl;
@@ -55,10 +57,10 @@ protected:
     // Onglet "recalage"
     lv_obj_t *tabRecalage;
     lv_obj_t *hautGauche;
-    lv_obj_t *MilieuHaut;
+    lv_obj_t *hautMilieu;
     lv_obj_t *basGauche;
     lv_obj_t *hautDroit;
-    lv_obj_t *MilieuBas;
+    lv_obj_t *basMilieu;
     lv_obj_t *basDroit;
     lv_obj_t *etatRecalage;
     // Onglet "config"
