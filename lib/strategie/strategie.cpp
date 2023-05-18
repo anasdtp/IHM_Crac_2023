@@ -64,7 +64,7 @@ unsigned short flag_check_carte = 0; //, flag_strat = 0, flag_timer;
 
 
 signed short x_robot,y_robot,theta_robot;//La position du robot, theta en dizieme de degree
-signed short target_x_robot, target_y_robot, target_theta_robot;
+signed short target_x_robot, target_y_robot, target_theta_robot, target_sens;
 // signed short avant_gauche, avant_droit;
 EnumInstructionType actionPrecedente;
 // //unsigned char FIFO_ecriture=0; //Position du fifo pour la reception CAN
@@ -510,8 +510,9 @@ bool machineStrategie() {
         } break;
 
         case ETAT_GAME_MVT_DANGER: {
-            flag.wait_all(AckFrom_FIN_FLAG, 20000);
-            if (gameEtat != ETAT_GAME_OBSTACLE) gameEtat = ETAT_GAME_INSTRUCTION_FINIE;
+            if (flag.wait_all(AckFrom_FIN_FLAG, 50) != osFlagsErrorTimeout) {
+                if (gameEtat != ETAT_GAME_OBSTACLE) gameEtat = ETAT_GAME_INSTRUCTION_FINIE;
+            }
         } break;
 
         case ETAT_GAME_INSTRUCTION_FINIE: {
@@ -520,7 +521,14 @@ bool machineStrategie() {
         } break;
 
         case ETAT_GAME_OBSTACLE: {
-
+            ThisThread::sleep_for(1s);
+            deplacement.positionXYTheta(target_x_robot, target_y_robot, target_theta_robot, target_sens);
+            waitingAckID = ASSERVISSEMENT_XYT;
+            waitingAckFrom = ACKNOWLEDGE_MOTEUR;
+            flag.wait_all(AckFrom_FLAG, 20000);
+            waitingAckID_FIN = ASSERVISSEMENT_XYT;
+            waitingAckFrom_FIN = INSTRUCTION_END_MOTEUR;
+            gameEtat = ETAT_GAME_MVT_DANGER;
         } break;
 
         case ETAT_END: {
@@ -633,6 +641,7 @@ void procesInstructions(Instruction instruction) {
             target_x_robot = x_robot + distance * cos((double)theta_robot * M_PI / 1800.0);
             target_y_robot = y_robot + distance * sin((double)theta_robot * M_PI / 1800.0);
             target_theta_robot = theta_robot;
+            target_sens = (instruction.direction == FORWARD) ? 1 : -1;
 
             deplacement.toutDroit(distance);
 
@@ -679,6 +688,7 @@ void procesInstructions(Instruction instruction) {
             target_x_robot = instruction.arg1;
             target_y_robot = y;
             target_theta_robot = theta;
+            target_sens = sens;
 
             flag.wait_all(AckFrom_FLAG, 20000);
 
