@@ -5,8 +5,11 @@
 #include "threadSD.h"
 #include <instruction.h>
 
-#define AckFrom_FLAG        (1UL << 0)
-#define AckFrom_FIN_FLAG    (1UL << 1)
+enum
+{
+    AckFrom_FLAG     =   (1UL << 0),
+    AckFrom_FIN_FLAG =   (1UL << 1),
+};
 
 typedef enum
 {
@@ -65,6 +68,8 @@ typedef enum
     ETAT_GAME_JUMP_CONFIG,
     ETAT_GAME_JUMP_POSITION,
     ETAT_GAME_WAIT_END_INSTRUCTION,
+    ETAT_GAME_MVT_DANGER,
+    ETAT_GAME_INSTRUCTION_FINIE,
     ETAT_END,
     ETAT_END_LOOP,
 } E_stratGameEtat;

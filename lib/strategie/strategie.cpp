@@ -356,96 +356,99 @@ void canProcessRx(CANMessage *rxMsg)
             }
                 break;
             case IDCAN_POS_XY_OBJET:{
-                uint8_t id = rxMsg->data[0];
-                short x_obstacle=rxMsg->data[1]|((unsigned short)(rxMsg->data[2])<<8);
-                short y_obstacle=rxMsg->data[3]|((unsigned short)(rxMsg->data[4])<<8);
-                signed short theta_obstacle= (rxMsg->data[5]|((signed short)(rxMsg->data[6])<<8)) * 10.0;//dizieme de degree
-                // short distance_lidar = (rxMsg->data[6]|((unsigned short)(rxMsg->data[7])<<8));
+                evitement.trameCan(rxMsg);
 
-                int delta_x = x_robot - x_obstacle, delta_y = y_robot - y_obstacle;
-                int distance_lidar = sqrt((delta_x * delta_x) + (delta_y * delta_y));
-                //if(distance != distance_lidar){printf("distance != distance_lidar\n");}
-                if(distance_lidar<600 && distance_lidar > 200){
-                    printf("IDCAN_POS_XY_OBJET ; x_obstacle : %d ; y_obstacle : %d ; theta_obstacle : %d, distance_lidar : %d\n", x_obstacle, y_obstacle, theta_obstacle, distance_lidar);
-                    // if(gameEtat == ETAT_GAME_LOAD_NEXT_INSTRUCTION ||){deplacement.stop();}
-                }
+                // uint8_t id = rxMsg->data[0];
+                // short x_obstacle=rxMsg->data[1]|((unsigned short)(rxMsg->data[2])<<8);
+                // short y_obstacle=rxMsg->data[3]|((unsigned short)(rxMsg->data[4])<<8);
+                // signed short theta_obstacle= rxMsg->data[5]|((signed short)(rxMsg->data[6])<<8);//dizieme de degree
+                // // short distance_lidar = (rxMsg->data[6]|((unsigned short)(rxMsg->data[7])<<8));
+
+                // int delta_x = x_robot - x_obstacle;
+                // int delta_y = y_robot - y_obstacle;
+                // int distance_lidar = sqrt((delta_x * delta_x) + (delta_y * delta_y));
+                // //if(distance != distance_lidar){printf("distance != distance_lidar\n");}
+                // if(distance_lidar<600 && distance_lidar > 200){
+                //     printf("IDCAN_POS_XY_OBJET ; x_obstacle : %d ; y_obstacle : %d ; theta_obstacle : %d, distance_lidar : %d\n", x_obstacle, y_obstacle, theta_obstacle, distance_lidar);
+                //     // if(gameEtat == ETAT_GAME_LOAD_NEXT_INSTRUCTION ||){deplacement.stop();}
+                // }
                 
-                switch (etat_evitement)
-                {
-                case 0:{
-                    // if(!Activation_Lidar){break;}
-                    if(instruction.lineNumber<=1){break;}
-                    if(id == 0xFF){break;}
-                    if(evitement.lidar_danger(x_obstacle, y_obstacle, theta_obstacle, distance_lidar) == DANGER_MV){
-                        printf("IDCAN_POS_XY_OBJET ;DANGER_MV ; x_obstacle : %d ; y_obstacle : %d ; theta_obstacle : %d, distance_lidar : %d\n", x_obstacle, y_obstacle, theta_obstacle, distance_lidar);
-                        EVITEMENT = true;
-                        deplacement.stop();
-                        // wait_us(5 * 1000);
-                        // deplacement.asservOn(true);
-                        // wait_us(20 * 1000);
-                        // deplacement.toutDroit(2);
-                        // flag.set(AckFrom_FLAG);
-                        // flag.set(AckFrom_FIN_FLAG);
+                // switch (etat_evitement)
+                // {
+                // case 0:{
+                //     // if(!Activation_Lidar){break;}
+                //     if(instruction.lineNumber<=1){break;}
+                //     if(id == 0xFF){break;}
+                //     if(evitement.lidar_danger(x_obstacle, y_obstacle, theta_obstacle, distance_lidar) == DANGER_MV){
+                //         printf("IDCAN_POS_XY_OBJET ;DANGER_MV ; x_obstacle : %d ; y_obstacle : %d ; theta_obstacle : %d, distance_lidar : %d\n", x_obstacle, y_obstacle, theta_obstacle, distance_lidar);
+                //         EVITEMENT = true;
+                //         deplacement.stop();
+                //         // wait_us(5 * 1000);
+                //         // deplacement.asservOn(true);
+                //         // wait_us(20 * 1000);
+                //         // deplacement.toutDroit(2);
+                //         // flag.set(AckFrom_FLAG);
+                //         // flag.set(AckFrom_FIN_FLAG);
 
-                        gameEtat  = ETAT_DOING_NOTHING;
-                        etat_evitement = 1;
-                        timer_evitement.start();
-                        timer_evitement.reset();
+                //         gameEtat  = ETAT_DOING_NOTHING;
+                //         etat_evitement = 1;
+                //         timer_evitement.start();
+                //         timer_evitement.reset();
 
-                        threadCAN.send(BALISE_DANGER);
-                    }else if(evitement.lidar_danger(x_obstacle, y_obstacle, theta_obstacle, distance_lidar) == DANGER_ST){  // A enlever en temps de match mais à laisser pour les tests
-                        // printf("IDCAN_POS_XY_OBJET ;DANGER_ST ; x_obstacle : %d ; y_obstacle : %d ; theta_obstacle : %d, distance_lidar : %d\n", x_obstacle, y_obstacle, theta_obstacle, distance_lidar);
-                        // deplacement.stop();
-                        // wait_us(5 * 1000);
-                        // deplacement.asservOn(true);
-                        // wait_us(20 * 1000);
-                        // deplacement.toutDroit(2);
-                        // deplacement.asservOff();
-                        // wait_us(20 * 1000);
-                        // deplacement.toutDroit(1);
-                        // wait_us(20 * 1000);
-                        // deplacement.asservOn(true);
+                //         threadCAN.send(BALISE_DANGER);
+                //     }else if(evitement.lidar_danger(x_obstacle, y_obstacle, theta_obstacle, distance_lidar) == DANGER_ST){  // A enlever en temps de match mais à laisser pour les tests
+                //         // printf("IDCAN_POS_XY_OBJET ;DANGER_ST ; x_obstacle : %d ; y_obstacle : %d ; theta_obstacle : %d, distance_lidar : %d\n", x_obstacle, y_obstacle, theta_obstacle, distance_lidar);
+                //         // deplacement.stop();
+                //         // wait_us(5 * 1000);
+                //         // deplacement.asservOn(true);
+                //         // wait_us(20 * 1000);
+                //         // deplacement.toutDroit(2);
+                //         // deplacement.asservOff();
+                //         // wait_us(20 * 1000);
+                //         // deplacement.toutDroit(1);
+                //         // wait_us(20 * 1000);
+                //         // deplacement.asservOn(true);
                         
 
-                    }
-                }break;
-
-                case 1:{
-                    // if((evitement.lidar_danger(x_obstacle, y_obstacle, theta_obstacle, distance_lidar) == NO_DANGER && distance_lidar<1250) || (timer_evitement.read_ms() > 3000)){
-                    //     timer_evitement.stop();
-                    //     timer_evitement.reset();
-
-                    //     deplacement.asservOn(true);
-                    //     gameEtat  = ETAT_GAME_PROCESInstruction;
-                    //     etat_evitement = 0; EVITEMENT = false;
-                    //     flag.clear(AckFrom_FLAG);
-                    //     flag.clear(AckFrom_FIN_FLAG);
-                    //     evitement.lidar_end_danger(&instruction, &dodgeq, target_x_robot, target_y_robot, target_theta_robot);
-
-                    //     threadCAN.send(BALISE_END_DANGER);
-
                     // }
-                    if(timer_evitement.read_ms() > 3000){
-                        gameEtat  = ETAT_GAME_LOAD_NEXT_INSTRUCTION;
-                        deplacement.asservOn(true);
-                        etat_evitement = 0; EVITEMENT = false;
-                        flag.clear(AckFrom_FLAG);
-                        flag.clear(AckFrom_FIN_FLAG);
-                    }
-                    
-                }break;
-                case 2:{
-                    if((evitement.lidar_danger(x_obstacle, y_obstacle, theta_obstacle, distance_lidar) == NO_DANGER && distance_lidar<1250) || (timer_evitement.read_ms() > 3000)){
-                        timer_evitement.stop();
-                        timer_evitement.reset();
-                        deplacement.asservOn(true);
-                        etat_evitement = 0;
-                    }
-                }break;                
+                // }break;
 
-                default:
-                    break;
-                }
+                // case 1:{
+                //     // if((evitement.lidar_danger(x_obstacle, y_obstacle, theta_obstacle, distance_lidar) == NO_DANGER && distance_lidar<1250) || (timer_evitement.read_ms() > 3000)){
+                //     //     timer_evitement.stop();
+                //     //     timer_evitement.reset();
+
+                //     //     deplacement.asservOn(true);
+                //     //     gameEtat  = ETAT_GAME_PROCESInstruction;
+                //     //     etat_evitement = 0; EVITEMENT = false;
+                //     //     flag.clear(AckFrom_FLAG);
+                //     //     flag.clear(AckFrom_FIN_FLAG);
+                //     //     evitement.lidar_end_danger(&instruction, &dodgeq, target_x_robot, target_y_robot, target_theta_robot);
+
+                //     //     threadCAN.send(BALISE_END_DANGER);
+
+                //     // }
+                //     if(timer_evitement.read_ms() > 3000){
+                //         gameEtat  = ETAT_GAME_LOAD_NEXT_INSTRUCTION;
+                //         deplacement.asservOn(true);
+                //         etat_evitement = 0; EVITEMENT = false;
+                //         flag.clear(AckFrom_FLAG);
+                //         flag.clear(AckFrom_FIN_FLAG);
+                //     }
+                    
+                // }break;
+                // case 2:{
+                //     if((evitement.lidar_danger(x_obstacle, y_obstacle, theta_obstacle, distance_lidar) == NO_DANGER && distance_lidar<1250) || (timer_evitement.read_ms() > 3000)){
+                //         timer_evitement.stop();
+                //         timer_evitement.reset();
+                //         deplacement.asservOn(true);
+                //         etat_evitement = 0;
+                //     }
+                // }break;                
+
+                // default:
+                //     break;
+                // }
                 
 
             }
@@ -506,6 +509,16 @@ bool machineStrategie() {
             procesInstructions(instruction);
         } break;
 
+        case ETAT_GAME_MVT_DANGER: {
+            flag.wait_all(AckFrom_FIN_FLAG, 20000);
+            gameEtat = ETAT_GAME_INSTRUCTION_FINIE;
+        } break;
+
+        case ETAT_GAME_INSTRUCTION_FINIE: {
+            listeInstructions.suivante();
+            gameEtat = ETAT_GAME_LOAD_NEXT_INSTRUCTION;
+        } break;
+
         case ETAT_END: {
             // printf("GAME ENDED\n");
             return false;
@@ -518,6 +531,7 @@ bool machineStrategie() {
 }
 
 void procesInstructions(Instruction instruction) {
+    gameEtat = ETAT_GAME_INSTRUCTION_FINIE;
     switch (instruction.order) {
         case MV_RECALAGE: {
            //if (instruction.nextActionType == MECANIQUE) {
@@ -580,7 +594,7 @@ void procesInstructions(Instruction instruction) {
             // printf("deplacement.rotation(angle : %d);\n", angle);
             flag.wait_all(AckFrom_FLAG, 20000);
 
-            waitingAckID_FIN = ASSERVISSEMENT_RECALAGE;
+            waitingAckID_FIN = ASSERVISSEMENT_ROTATION;
             waitingAckFrom_FIN = INSTRUCTION_END_MOTEUR;
             flag.wait_all(AckFrom_FIN_FLAG, 20000);
         } break;
@@ -622,7 +636,8 @@ void procesInstructions(Instruction instruction) {
 
             waitingAckID_FIN = ASSERVISSEMENT_RECALAGE;
             waitingAckFrom_FIN = INSTRUCTION_END_MOTEUR;
-            flag.wait_all(AckFrom_FIN_FLAG, 20000);
+            gameEtat = ETAT_GAME_MVT_DANGER;
+//            flag.wait_all(AckFrom_FIN_FLAG, 20000);
         } break;
         case MV_XYT: {
             // on effectue XYT normalement selon les instructions
@@ -665,7 +680,8 @@ void procesInstructions(Instruction instruction) {
 
             waitingAckID_FIN = ASSERVISSEMENT_XYT;
             waitingAckFrom_FIN = INSTRUCTION_END_MOTEUR;
-            flag.wait_all(AckFrom_FIN_FLAG, 20000);
+            gameEtat = ETAT_GAME_MVT_DANGER;
+//            flag.wait_all(AckFrom_FIN_FLAG, 20000);
         } break;
         case MV_COURBURE: {
             //    int16_t rayon;
@@ -755,8 +771,9 @@ void procesInstructions(Instruction instruction) {
 
             waitingAckID_FIN = ASSERVISSEMENT_COURBURE;
             waitingAckFrom_FIN = INSTRUCTION_END_MOTEUR;
+            gameEtat = ETAT_GAME_MVT_DANGER;
 
-            flag.wait_all(AckFrom_FIN_FLAG, 20000);
+//            flag.wait_all(AckFrom_FIN_FLAG, 20000);
         } break;
         // case MV_BEZIER:
         // {
@@ -844,16 +861,6 @@ void procesInstructions(Instruction instruction) {
             break;
     }
 
-    if (!EVITEMENT){
-            listeInstructions.suivante();
-            // if (!instruction.nextLineOK) {
-            //     actual_instruction += 1;
-            // } else {
-            //     actual_instruction = instruction.nextLineOK;
-            // }
-
-            gameEtat = ETAT_GAME_LOAD_NEXT_INSTRUCTION;
-    }
 }
 
 E_Stratposdebut etat_pos = RECALAGE_1;

@@ -3,6 +3,29 @@
 #include <strategie.h>
 #include "math.h"
 
+void Evitement::trameCan(const CANMessage *msg)
+{
+    if (gameEtat == ETAT_GAME_MVT_DANGER) {
+        uint8_t id = msg->data[0];
+        short x_obstacle=msg->data[1]|((unsigned short)(msg->data[2])<<8);
+        short y_obstacle=msg->data[3]|((unsigned short)(msg->data[4])<<8);
+        signed short theta_obstacle= msg->data[5]|((signed short)(msg->data[6])<<8);//dizieme de degree
+
+    }
+
+    // // short distance_lidar = (rxMsg->data[6]|((unsigned short)(rxMsg->data[7])<<8));
+
+    // int delta_x = x_robot - x_obstacle;
+    // int delta_y = y_robot - y_obstacle;
+    // int distance_lidar = sqrt((delta_x * delta_x) + (delta_y * delta_y));
+    // //if(distance != distance_lidar){printf("distance != distance_lidar\n");}
+    // if(distance_lidar<600 && distance_lidar > 200){
+    //     printf("IDCAN_POS_XY_OBJET ; x_obstacle : %d ; y_obstacle : %d ; theta_obstacle : %d, distance_lidar : %d\n", x_obstacle, y_obstacle, theta_obstacle, distance_lidar);
+    //     // if(gameEtat == ETAT_GAME_LOAD_NEXT_INSTRUCTION ||){deplacement.stop();}
+    // }
+
+}
+
 int Evitement::lidar_danger(short x_obstacle, short y_obstacle, signed short angle_obstacle, int distance)
 {
 

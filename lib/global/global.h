@@ -76,4 +76,5 @@ extern unsigned short waitingId;
 
 extern unsigned char isStopEnable;
 
+
 #endif
