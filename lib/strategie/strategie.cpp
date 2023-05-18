@@ -16,7 +16,7 @@ unsigned short waitingAckFrom = 0;                          // La provenance du 
 int waitingAckID_FIN;
 int waitingAckFrom_FIN;
 unsigned short waitingId = 0;
-E_stratGameEtat gameEtat = ETAT_GAME_INIT;
+volatile E_stratGameEtat gameEtat = ETAT_GAME_INIT;
 EventFlags flag;
 
 // // E_stratGameEtat gameEtat = ETAT_CHECK_CARTES;
@@ -511,12 +511,16 @@ bool machineStrategie() {
 
         case ETAT_GAME_MVT_DANGER: {
             flag.wait_all(AckFrom_FIN_FLAG, 20000);
-            gameEtat = ETAT_GAME_INSTRUCTION_FINIE;
+            if (gameEtat != ETAT_GAME_OBSTACLE) gameEtat = ETAT_GAME_INSTRUCTION_FINIE;
         } break;
 
         case ETAT_GAME_INSTRUCTION_FINIE: {
             listeInstructions.suivante();
             gameEtat = ETAT_GAME_LOAD_NEXT_INSTRUCTION;
+        } break;
+
+        case ETAT_GAME_OBSTACLE: {
+
         } break;
 
         case ETAT_END: {

@@ -5,12 +5,18 @@
 
 void Evitement::trameCan(const CANMessage *msg)
 {
+    uint8_t id = msg->data[0];
+    int distance=msg->data[1]|((unsigned short)(msg->data[2])<<8);
+    int angle=(msg->data[3]|((unsigned short)(msg->data[4])<<8)); //dizieme de degree de 0 à 360
+    if (angle>1800) angle -= 3600;
+//    printf("Obs %d %d %d\n", angle, distance, gameEtat);
     if (gameEtat == ETAT_GAME_MVT_DANGER) {
-        uint8_t id = msg->data[0];
-        short x_obstacle=msg->data[1]|((unsigned short)(msg->data[2])<<8);
-        short y_obstacle=msg->data[3]|((unsigned short)(msg->data[4])<<8);
-        signed short theta_obstacle= msg->data[5]|((signed short)(msg->data[6])<<8);//dizieme de degree
-
+//        printf("Danger ?\n");
+        if ((angle>-225)&&(angle<225)&&(distance<600)) {
+            printf("STOP\n");
+            deplacement.stop();
+            gameEtat = ETAT_GAME_OBSTACLE;
+        }
     }
 
     // // short distance_lidar = (rxMsg->data[6]|((unsigned short)(rxMsg->data[7])<<8));

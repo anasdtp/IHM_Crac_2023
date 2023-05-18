@@ -70,10 +70,11 @@ typedef enum
     ETAT_GAME_WAIT_END_INSTRUCTION,
     ETAT_GAME_MVT_DANGER,
     ETAT_GAME_INSTRUCTION_FINIE,
+    ETAT_GAME_OBSTACLE,
     ETAT_END,
     ETAT_END_LOOP,
 } E_stratGameEtat;
-extern E_stratGameEtat gameEtat;
+extern volatile E_stratGameEtat gameEtat;
 extern T_etat strat_etat_s;
 // extern Timer gameTimer;
 
