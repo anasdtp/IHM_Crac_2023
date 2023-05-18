@@ -49,7 +49,7 @@ extern Deplacement deplacement;
 extern signed short x_robot;
 extern signed short y_robot;
 extern signed short theta_robot;
-extern signed short target_x_robot, target_y_robot, target_theta_robot;
+extern signed short target_x_robot, target_y_robot, target_theta_robot, target_sens;
 extern signed char asser_stop_direction;
 extern short direction;
 extern signed char nbStrat;
