@@ -45,6 +45,7 @@ int tempsRestant();
 void forceFinMatch();
 volatile bool flagForceFinMatch = false;
 bool Recalage = true;
+bool Activation_Lidar = false;
 
 vector<string> fichiers;
 bool listeFichiers();
@@ -105,6 +106,10 @@ int main() {
     int choix = -1;
     int tempsAffiche = 100;
 
+  
+
+    herkulex.changerIdHerkulexPince(8);
+
     while (1) {
         switch (etat) {
             case 0:
@@ -139,11 +144,14 @@ int main() {
                     // printf("recalage_BasDroitClicked\n");
                     Hauteur = ROBOT_EN_BAS;
                     Cote = ROBOT_A_DROITE;
+                    Activation_Lidar = true;
                 } else if (ihm.activationRecalageClicked()) {
                     if (Recalage) {
                         Recalage = false;
+                        Activation_Lidar = true;
                     } else {
                         Recalage = true;
+                        Activation_Lidar = false;
                     }
                 } else if(ihm.actionneurPinceArriereClicked()){
                     printf("actionneurPinceArriereClicked\n");
@@ -154,6 +162,8 @@ int main() {
                     actionneurPinceArriereTab = !actionneurPinceArriereTab;
 
                 } else if(ihm.actionneurPinceAvantClicked()){
+                    herkulex.changerIdHerkulexPince(0x08);
+                    wait_us(20 *1000);
                     printf("actionneurPinceAvantClicked\n");
                     actionneurPinceAavant = !actionneurPinceAavant;
                     herkulex.controlePince(0, actionneurPinceAavant,0);

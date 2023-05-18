@@ -365,24 +365,27 @@ void canProcessRx(CANMessage *rxMsg)
                 int delta_x = x_robot - x_obstacle, delta_y = y_robot - y_obstacle;
                 int distance_lidar = sqrt((delta_x * delta_x) + (delta_y * delta_y));
                 //if(distance != distance_lidar){printf("distance != distance_lidar\n");}
-                if(distance_lidar<600){
+                if(distance_lidar<600 && distance_lidar > 200){
                     printf("IDCAN_POS_XY_OBJET ; x_obstacle : %d ; y_obstacle : %d ; theta_obstacle : %d, distance_lidar : %d\n", x_obstacle, y_obstacle, theta_obstacle, distance_lidar);
+                    // if(gameEtat == ETAT_GAME_LOAD_NEXT_INSTRUCTION ||){deplacement.stop();}
                 }
                 
                 switch (etat_evitement)
                 {
                 case 0:{
+                    // if(!Activation_Lidar){break;}
+                    if(instruction.lineNumber<=1){break;}
                     if(id == 0xFF){break;}
                     if(evitement.lidar_danger(x_obstacle, y_obstacle, theta_obstacle, distance_lidar) == DANGER_MV){
                         printf("IDCAN_POS_XY_OBJET ;DANGER_MV ; x_obstacle : %d ; y_obstacle : %d ; theta_obstacle : %d, distance_lidar : %d\n", x_obstacle, y_obstacle, theta_obstacle, distance_lidar);
                         EVITEMENT = true;
-                        deplacement.asservOff();
-                        wait_us(20 * 1000);
-                        deplacement.toutDroit(1);
-                        wait_us(20 * 1000);
-                        deplacement.asservOn(true);
-                        flag.set(AckFrom_FLAG);
-                        flag.set(AckFrom_FIN_FLAG);
+                        deplacement.stop();
+                        // wait_us(5 * 1000);
+                        // deplacement.asservOn(true);
+                        // wait_us(20 * 1000);
+                        // deplacement.toutDroit(2);
+                        // flag.set(AckFrom_FLAG);
+                        // flag.set(AckFrom_FIN_FLAG);
 
                         gameEtat  = ETAT_DOING_NOTHING;
                         etat_evitement = 1;
@@ -391,34 +394,45 @@ void canProcessRx(CANMessage *rxMsg)
 
                         threadCAN.send(BALISE_DANGER);
                     }else if(evitement.lidar_danger(x_obstacle, y_obstacle, theta_obstacle, distance_lidar) == DANGER_ST){  // A enlever en temps de match mais à laisser pour les tests
-                        printf("IDCAN_POS_XY_OBJET ;DANGER_ST ; x_obstacle : %d ; y_obstacle : %d ; theta_obstacle : %d, distance_lidar : %d\n", x_obstacle, y_obstacle, theta_obstacle, distance_lidar);
-                        deplacement.asservOff();
-                        wait_us(20 * 1000);
-                        deplacement.toutDroit(1);
-                        wait_us(20 * 1000);
-                        deplacement.asservOn(true);
-                        timer_evitement.start();
-                        timer_evitement.reset();
-                        etat_evitement = 2;
+                        // printf("IDCAN_POS_XY_OBJET ;DANGER_ST ; x_obstacle : %d ; y_obstacle : %d ; theta_obstacle : %d, distance_lidar : %d\n", x_obstacle, y_obstacle, theta_obstacle, distance_lidar);
+                        // deplacement.stop();
+                        // wait_us(5 * 1000);
+                        // deplacement.asservOn(true);
+                        // wait_us(20 * 1000);
+                        // deplacement.toutDroit(2);
+                        // deplacement.asservOff();
+                        // wait_us(20 * 1000);
+                        // deplacement.toutDroit(1);
+                        // wait_us(20 * 1000);
+                        // deplacement.asservOn(true);
+                        
 
                     }
                 }break;
 
                 case 1:{
-                    if((evitement.lidar_danger(x_obstacle, y_obstacle, theta_obstacle, distance_lidar) == NO_DANGER && distance_lidar<1250) || (timer_evitement.read_ms() > 3000)){
-                        timer_evitement.stop();
-                        timer_evitement.reset();
+                    // if((evitement.lidar_danger(x_obstacle, y_obstacle, theta_obstacle, distance_lidar) == NO_DANGER && distance_lidar<1250) || (timer_evitement.read_ms() > 3000)){
+                    //     timer_evitement.stop();
+                    //     timer_evitement.reset();
 
+                    //     deplacement.asservOn(true);
+                    //     gameEtat  = ETAT_GAME_PROCESInstruction;
+                    //     etat_evitement = 0; EVITEMENT = false;
+                    //     flag.clear(AckFrom_FLAG);
+                    //     flag.clear(AckFrom_FIN_FLAG);
+                    //     evitement.lidar_end_danger(&instruction, &dodgeq, target_x_robot, target_y_robot, target_theta_robot);
+
+                    //     threadCAN.send(BALISE_END_DANGER);
+
+                    // }
+                    if(timer_evitement.read_ms() > 3000){
+                        gameEtat  = ETAT_GAME_LOAD_NEXT_INSTRUCTION;
                         deplacement.asservOn(true);
-                        gameEtat  = ETAT_GAME_PROCESInstruction;
                         etat_evitement = 0; EVITEMENT = false;
                         flag.clear(AckFrom_FLAG);
                         flag.clear(AckFrom_FIN_FLAG);
-                        evitement.lidar_end_danger(&instruction, &dodgeq, target_x_robot, target_y_robot, target_theta_robot);
-
-                        threadCAN.send(BALISE_END_DANGER);
-
                     }
+                    
                 }break;
                 case 2:{
                     if((evitement.lidar_danger(x_obstacle, y_obstacle, theta_obstacle, distance_lidar) == NO_DANGER && distance_lidar<1250) || (timer_evitement.read_ms() > 3000)){
@@ -856,7 +870,125 @@ bool machineRecalageInit()
 
 bool machineRecalage() {
     const Instruction &instruction = listeInstructions.enCours();
-    switch (etat_pos) {
+    switch (etat_pos)
+    {
+    case RECALAGE_1: {
+        threadCAN.sendAck(RECALAGE_START, 0);
+            
+            waitingAckID = ACKNOWLEDGE_ACTIONNEURS;
+            waitingAckFrom = IDCAN_PINCE_ARRIERE;
+            herkulex.controlePinceArriere(0,0);//position fermer pour ne pas gener recalage arriere
+            printf("herkulex.controlePinceArriere(0,0);\n");
+            herkulex.changerIdHerkulexPince(8);
+            printf("herkulex.changerIdHerkulexPince(8);\n");
+
+            herkulex.controlePince(4,0,0);//position à 80 mm de haut pour ne pas gener recalage avant
+            printf("herkulex.controlePince(4,0,0);\n");
+            deplacement.asservOn();
+            printf("deplacement.asservOn();\n");
+            herkulex.stepMotorMode(0);
+            printf("herkulex.stepMotorMode(0);\n");
+
+            int16_t distance = -1000;
+            uint16_t val_recalage;
+
+            if (Hauteur == ROBOT_EN_BAS) {
+                val_recalage = 2000 - (MOITIEE_ROBOT);
+            } else {
+                val_recalage = MOITIEE_ROBOT;
+            }
+
+            waitingAckID = ASSERVISSEMENT_RECALAGE;
+            waitingAckFrom = ACKNOWLEDGE_MOTEUR;
+            deplacement.recalage(distance, 1, val_recalage);
+            // printf("deplacement.recalage(distance : %d, 1, val_recalage : %d);\n", distance, val_recalage);
+            if (flag.wait_all(AckFrom_FLAG, 20000) == osFlagsErrorTimeout) {
+                // printf("osErrorTimeout, recalage fail, RECALAGE_1, waitingAckID\n");
+                gameEtat = ETAT_GAME_INIT;
+                recalageErreur = -1;
+                return false;
+            }
+
+            waitingAckID_FIN = ASSERVISSEMENT_RECALAGE;
+            waitingAckFrom_FIN = INSTRUCTION_END_MOTEUR;
+            if (flag.wait_all(AckFrom_FIN_FLAG, 20000) == osFlagsErrorTimeout) {
+                // printf("osErrorTimeout, recalage fail, RECALAGE_1, waitingAckID_FIN\n");
+                gameEtat = ETAT_GAME_INIT;
+                recalageErreur = -2;
+                return false;
+            }
+
+            etat_pos = RECULER_1;
+    }   
+    break;
+    case RECULER_1: {
+            waitingAckID = ASSERVISSEMENT_RECALAGE;
+            waitingAckFrom = ACKNOWLEDGE_MOTEUR;
+            int16_t distance = 100;
+            
+            deplacement.toutDroit(distance);
+            // printf("deplacement.toutDroit(distance : %d);\n", distance);
+            if (flag.wait_all(AckFrom_FLAG, 20000) == osFlagsErrorTimeout) {
+                // printf("osErrorTimeout, recalage fail, RECULER_1, waitingAckID\n");
+                gameEtat = ETAT_GAME_INIT;
+                recalageErreur = -3;
+                return false;
+            }
+
+            waitingAckID_FIN = ASSERVISSEMENT_RECALAGE;
+            waitingAckFrom_FIN = INSTRUCTION_END_MOTEUR;
+            if (flag.wait_all(AckFrom_FIN_FLAG, 20000) == osFlagsErrorTimeout) {
+                // printf("osErrorTimeout, recalage fail, RECULER_1, waitingAckID_FIN\n");
+                gameEtat = ETAT_GAME_INIT;
+                recalageErreur = -4;
+                return false;
+            }
+            
+   
+            etat_pos = GOTOPOS;
+        } break;
+        case GOTOPOS: {
+            waitingAckID = ASSERVISSEMENT_XYT;
+            waitingAckFrom = ACKNOWLEDGE_MOTEUR;
+            deplacement.positionXYTheta(instruction.arg1, instruction.arg2, instruction.arg3, 0);
+            // printf("deplacement.positionXYTheta(instruction.arg1 : %d, instruction.arg2 : %d, instruction.arg3 : %d, 0);\n", instruction.arg1, instruction.arg2, instruction.arg3);
+            if (flag.wait_all(AckFrom_FLAG, 20000) == osFlagsErrorTimeout) {
+                // printf("osErrorTimeout, recalage, GOTOPOS, waitingAckID\n");
+                gameEtat = ETAT_GAME_INIT;
+                recalageErreur = -11;
+                return false;
+            }
+
+            waitingAckID_FIN = ASSERVISSEMENT_XYT;
+            waitingAckFrom_FIN = INSTRUCTION_END_MOTEUR;
+            if (flag.wait_all(AckFrom_FIN_FLAG, 20000) == osFlagsErrorTimeout) {
+                // printf("osErrorTimeout, recalage, GOTOPOS, waitingAckID_FIN\n");
+                gameEtat = ETAT_GAME_INIT;
+                recalageErreur = -12;
+                return false;
+            }
+            etat_pos = FIN_POS;
+        } break;
+        case FIN_POS: {
+            // actual_instruction = instruction.nextLineOK;
+            listeInstructions.vaLigne(instruction.nextLineOK);
+            target_x_robot = x_robot;
+            target_y_robot = y_robot;
+            target_theta_robot = theta_robot;
+
+            herkulex.controlePince(0,0,0);
+
+            gameEtat = ETAT_GAME_WAIT_FOR_JACK;
+            return false;
+        } break;
+    
+    default:
+        break;
+    }
+    return true;
+}
+/*
+switch (etat_pos) {
         case RECALAGE_1: {
             threadCAN.sendAck(RECALAGE_START, 0);
             
@@ -864,14 +996,15 @@ bool machineRecalage() {
             waitingAckFrom = IDCAN_PINCE_ARRIERE;
             herkulex.controlePinceArriere(0,0);//position fermer pour ne pas gener recalage arriere
             printf("herkulex.controlePinceArriere(0,0);\n");
-            flag.wait_all(AckFrom_FLAG, 2000);
+            herkulex.changerIdHerkulexPince(8);
+            printf("herkulex.changerIdHerkulexPince(8);\n");
 
             herkulex.controlePince(4,0,0);//position à 80 mm de haut pour ne pas gener recalage avant
             printf("herkulex.controlePince(4,0,0);\n");
             deplacement.asservOn();
             printf("deplacement.asservOn();\n");
-            herkulex.stepMotorMode(1);
-            printf("herkulex.stepMotorMode(1);\n");
+            herkulex.stepMotorMode(0);
+            printf("herkulex.stepMotorMode(0);\n");
 
             int16_t distance = 1000;
             uint16_t val_recalage;
@@ -1045,6 +1178,8 @@ bool machineRecalage() {
             target_y_robot = y_robot;
             target_theta_robot = theta_robot;
 
+            herkulex.controlePince(0,0,0);
+
             gameEtat = ETAT_GAME_WAIT_FOR_JACK;
             return false;
         } break;
@@ -1052,6 +1187,4 @@ bool machineRecalage() {
         default:
             break;
     }
-    return true;
-}
-
+    */

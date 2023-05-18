@@ -36,6 +36,8 @@ public:
     void accelDecel(uint16_t acceleration, uint16_t deceleration);
     void courbeBezier(uint8_t nbCourbes, int16_t P1[][2], int16_t C1[][2], int16_t C2[][2], uint8_t sens);
 
+    void stop(bool enable = true);
+
 };
 
 #endif

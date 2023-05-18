@@ -55,8 +55,10 @@ protected:
     // Onglet "recalage"
     lv_obj_t *tabRecalage;
     lv_obj_t *hautGauche;
+    lv_obj_t *MilieuHaut;
     lv_obj_t *basGauche;
     lv_obj_t *hautDroit;
+    lv_obj_t *MilieuBas;
     lv_obj_t *basDroit;
     lv_obj_t *etatRecalage;
     // Onglet "config"
