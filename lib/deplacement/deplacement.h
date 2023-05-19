@@ -3,6 +3,8 @@
 
 #include "threadCAN.h"
 
+
+
 class Deplacement {
 protected:
     ThreadCAN *m_can;

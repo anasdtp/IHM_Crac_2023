@@ -3,6 +3,24 @@
 
 #include <vector>
 
+
+typedef enum
+{
+    NO_ASSIETTE,
+    HG_ASS_VERTE_CARRE,
+    BG_ASS_BLEU_CARRE,
+    HC_ASS_BLEU,
+    HC_ASS_VERT,
+    BC_ASS_BLEU,
+    BC_ASS_VERT,
+    HD_ASS_BLEU,
+    HD_ASS_VERT,
+    BD_ASS_BLEU,
+    BD_ASS_VERT,
+}Assiette;
+
+
+
 enum EnumInstructionType {
     MV_BEZIER,      // B
     MV_COURBURE,  // C -> Courbure

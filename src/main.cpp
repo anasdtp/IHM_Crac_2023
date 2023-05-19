@@ -54,6 +54,8 @@ bool lectureFichier(int choix);
 vector<string> fichiersMp3;
 bool listeFichiersMp3();
 
+Assiette assiette_choisie = NO_ASSIETTE;
+
 int actionneurPinceArriere[2]={2,1}, actionneurPinceArriereTab = 0, actionneurPinceAavant = 0, actionneurStepMotor = 0;
 
 int main() {
@@ -106,7 +108,7 @@ int main() {
     int choix = -1;
     int tempsAffiche = 100;
 
-  
+
 
     herkulex.changerIdHerkulexPince(8);
 
@@ -128,23 +130,62 @@ int main() {
                     ihm.msgBoxInit("Lecture de la stratégie\n", "En cours", false);
                     ThisThread::sleep_for(1s);
                     etat = 10;
-                } else if (ihm.recalageHautGaucheClicked()) {
-                    // printf("recalage_HautGaucheClicked\n");
-                    Hauteur = ROBOT_EN_HAUT;
-                    Cote = ROBOT_A_GAUCHE;
-                } else if (ihm.recalageBasGaucheClicked()) {
-                    // printf("recalage_BasGaucheClicked\n");
-                    Hauteur = ROBOT_EN_BAS;
-                    Cote = ROBOT_A_GAUCHE;
-                } else if (ihm.recalageHautDroitClicked()) {
-                    // printf("recalage_HautDroitClicked\n");
-                    Hauteur = ROBOT_EN_HAUT;
-                    Cote = ROBOT_A_DROITE;
-                } else if (ihm.recalageBasDroitClicked()) {
-                    // printf("recalage_BasDroitClicked\n");
-                    Hauteur = ROBOT_EN_BAS;
-                    Cote = ROBOT_A_DROITE;
-                    Activation_Lidar = true;
+                } else if (ihm.recalageHautGaucheClicked()) {//Recalage sur x
+                     printf("recalage_HautGaucheClicked, choixCouleur() : %d\n", ihm.choixCouleur());
+                    assiette_choisie = HC_ASS_BLEU;
+                    // depart_x =225; depart_y = 450-MOITIEE_ROBOT; depart_theta_robot = 0;
+                    
+                } else if (ihm.recalageBasGaucheClicked()) {//Recalage sur x
+                     printf("recalage_BasGaucheClicked, choixCouleur() : %d\n", ihm.choixCouleur());
+                   assiette_choisie = BC_ASS_VERT;
+                    // depart_x =2000 - 225; depart_y = 450-MOITIEE_ROBOT; depart_theta_robot = 180;
+
+                } else if (ihm.recalageHautDroitClicked()) {//Recalage sur y
+                    //  printf("recalage_HautDroitClicked, choixCouleur() : %d\n", ihm.choixCouleur());
+                    // int VERT = 0, BLEU = 1;
+                    // if(ihm.choixCouleur() == BLEU){
+                    //     assiette_choisie = HD_ASS_BLEU;
+                    //     // depart_x =225; depart_y = 3000-450 + MOITIEE_ROBOT; depart_theta_robot = 0;
+                    // }else{
+                    //     assiette_choisie = HD_ASS_VERT;
+                    //     // depart_x =2000 - 225; depart_y = 450-MOITIEE_ROBOT; depart_theta_robot = -90;
+                    // }
+                    
+                } else if (ihm.recalageBasDroitClicked()) {//Recalage sur y
+                    //  printf("recalage_BasDroitClicked, choixCouleur() : %d\n", ihm.choixCouleur());
+                    // int VERT = 0, BLEU = 1;
+                    // if(ihm.choixCouleur() == BLEU){
+                    //     assiette_choisie = BD_ASS_BLEU;
+                    //     // depart_x =225; depart_y = 3000-450 + MOITIEE_ROBOT; depart_theta_robot = 0;
+                    // }else{
+                    //     assiette_choisie = BD_ASS_VERT;
+                    //     // depart_x =2000 - 225; depart_y = 450-MOITIEE_ROBOT; depart_theta_robot = -90;
+                    // }
+                } 
+                else if(ihm.recalageMilieuHautClicked()){//Recalage sur x
+                printf("recalageMilieuHautClicked, assiette_choisie : %d\n", assiette_choisie);
+                    // int VERT = 0, BLEU = 1;
+                    // if(ihm.choixCouleur() == BLEU){
+                    //     assiette_choisie = HC_ASS_BLEU;
+                    //     // depart_x =225; depart_y = 3000-450 + MOITIEE_ROBOT; depart_theta_robot = 0;
+                    // }else{
+                    //     assiette_choisie = HC_ASS_VERT;
+                    //     // depart_x =2000 - 225; depart_y = 450-MOITIEE_ROBOT; depart_theta_robot = -90;
+                    // }
+                    assiette_choisie = HC_ASS_VERT;
+                }
+                else if(ihm.recalageMilieuBasClicked()){//Recalage sur x
+                
+                    // int VERT = 0, BLEU = 1;
+                    // if(ihm.choixCouleur() == BLEU){
+                    //     assiette_choisie = BC_ASS_BLEU;
+                    //     // depart_x =2000 - n225; depart_y = 3000-450 + MOITIEE_ROBOT; depart_theta_robot = 0;
+                    // }else{
+                    //     assiette_choisie = BC_ASS_VERT;
+                    //     // depart_x =2000 - 225; depart_y = 450-MOITIEE_ROBOT; depart_theta_robot = -90;
+                    // }
+                    assiette_choisie = BC_ASS_BLEU;
+                    printf("recalageMilieuBasClicked, assiette_choisie : %d\n", assiette_choisie);
                 } else if (ihm.activationRecalageClicked()) {
                     if (Recalage) {
                         Recalage = false;

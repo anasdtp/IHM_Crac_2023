@@ -114,6 +114,8 @@ public:
     bool recalageBasGaucheClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_RECALAGE_BASGAUCHE, clearIfSet); }
     bool recalageHautDroitClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_RECALAGE_HAUTDROIT, clearIfSet); }
     bool recalageBasDroitClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_RECALAGE_BASDROIT, clearIfSet); }
+    bool recalageMilieuHautClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_RECALAGE_HAUTMILIEU, clearIfSet);}
+    bool recalageMilieuBasClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_RECALAGE_BASMILIEU, clearIfSet);}
     bool activationRecalageClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_RECALAGE_ETAT, clearIfSet); }
     bool playClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_PLAY, clearIfSet); }
     bool stopClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_STOP, clearIfSet); }

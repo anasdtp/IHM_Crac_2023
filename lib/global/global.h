@@ -64,6 +64,8 @@ extern short SCORE_PR, SCORE_GR;
 
 extern EventFlags flag;
 
+extern Assiette assiette_choisie;
+
 extern EnumInstructionType actionPrecedente;
 
 extern unsigned char InversStrat;//Si à 1, indique que l'on part de l'autre cote de la table(inversion des Y)

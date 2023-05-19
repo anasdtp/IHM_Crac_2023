@@ -153,7 +153,7 @@ void Ihm::recalagePositionInit() {
 
     hautGauche = lv_btn_create(container);
     lv_obj_t *label = lv_label_create(hautGauche);
-    lv_label_set_text(label, "En Haut à gauche");
+    lv_label_set_text(label, "Assiette bleu HC");
     lv_obj_set_style_bg_color(hautGauche, lv_palette_main(LV_PALETTE_LIGHT_BLUE), LV_STATE_DEFAULT);
     lv_obj_center(label);
     lv_obj_set_grid_cell(hautGauche, LV_GRID_ALIGN_STRETCH, 0, 1,
@@ -162,8 +162,8 @@ void Ihm::recalagePositionInit() {
 
     basGauche = lv_btn_create(container);
     label = lv_label_create(basGauche);
-    lv_label_set_text(label, "En Bas à gauche");
-    lv_obj_set_style_bg_color(basGauche, lv_palette_main(LV_PALETTE_LIGHT_BLUE), LV_STATE_DEFAULT);
+    lv_label_set_text(label, "Assiette verte BC");
+    lv_obj_set_style_bg_color(basGauche, lv_palette_main(LV_PALETTE_LIGHT_GREEN), LV_STATE_DEFAULT);
     lv_obj_center(label);
     lv_obj_set_grid_cell(basGauche, LV_GRID_ALIGN_STRETCH, 0, 1,
                          LV_GRID_ALIGN_STRETCH, 2, 1);
@@ -171,8 +171,8 @@ void Ihm::recalagePositionInit() {
 
     hautMilieu = lv_btn_create(container);
     label = lv_label_create(hautMilieu);
-    lv_label_set_text(label, "En Haut au milieu");
-    lv_obj_set_style_bg_color(hautMilieu, lv_palette_main(LV_PALETTE_LIGHT_BLUE), LV_STATE_DEFAULT);
+    lv_label_set_text(label, "Assiette verte HC");
+    lv_obj_set_style_bg_color(hautMilieu, lv_palette_main(LV_PALETTE_LIGHT_GREEN), LV_STATE_DEFAULT);
     lv_obj_center(label);
     lv_obj_set_grid_cell(hautMilieu, LV_GRID_ALIGN_STRETCH, 1, 1,
                          LV_GRID_ALIGN_STRETCH, 1, 1);
@@ -180,7 +180,7 @@ void Ihm::recalagePositionInit() {
 
     basMilieu = lv_btn_create(container);
     label = lv_label_create(basMilieu);
-    lv_label_set_text(label, "En Bas au milieu");
+    lv_label_set_text(label, "Assiette bleu BC");
     lv_obj_set_style_bg_color(basMilieu, lv_palette_main(LV_PALETTE_LIGHT_BLUE), LV_STATE_DEFAULT);
     lv_obj_center(label);
     lv_obj_set_grid_cell(basMilieu, LV_GRID_ALIGN_STRETCH, 1, 1,
@@ -189,8 +189,8 @@ void Ihm::recalagePositionInit() {
 
     hautDroit = lv_btn_create(container);
     label = lv_label_create(hautDroit);
-    lv_label_set_text(label, "En Haut à droite");
-    lv_obj_set_style_bg_color(hautDroit, lv_palette_main(LV_PALETTE_LIGHT_BLUE), LV_STATE_DEFAULT);
+    lv_label_set_text(label, " ");
+    lv_obj_set_style_bg_color(hautDroit, lv_palette_main(LV_PALETTE_YELLOW), LV_STATE_DEFAULT);
     lv_obj_center(label);
     lv_obj_set_grid_cell(hautDroit, LV_GRID_ALIGN_STRETCH, 2, 1,
                          LV_GRID_ALIGN_STRETCH, 1, 1);
@@ -198,8 +198,8 @@ void Ihm::recalagePositionInit() {
 
     basDroit = lv_btn_create(container);
     label = lv_label_create(basDroit);
-    lv_label_set_text(label, "En Bas à droite");
-    lv_obj_set_style_bg_color(basDroit, lv_palette_main(LV_PALETTE_LIGHT_BLUE), LV_STATE_DEFAULT);
+    lv_label_set_text(label, " ");
+    lv_obj_set_style_bg_color(basDroit, lv_palette_main(LV_PALETTE_YELLOW), LV_STATE_DEFAULT);
     lv_obj_center(label);
     lv_obj_set_grid_cell(basDroit, LV_GRID_ALIGN_STRETCH, 2, 1,
                          LV_GRID_ALIGN_STRETCH, 2, 1);

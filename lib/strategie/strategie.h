@@ -83,6 +83,8 @@ extern T_etat strat_etat_s;
 #define ROBOT_EN_HAUT 0
 #define ROBOT_EN_BAS 1
 
+
+
 void canProcessRx(CANMessage *rxMsg);
 void Strategie(void);
 

@@ -51,7 +51,7 @@ void Deplacement::asservOn(bool enable)
 
 void Deplacement::setOdo(uint16_t x, uint16_t y, int16_t theta)
 {
-     m_can->send(0x0 /*ASSERVISSEMENT_ODOMETRIE*/, x, y, (uint16_t)theta);
+     m_can->send(ODOMETRIE_BIG_POSITION/*ASSERVISSEMENT_ODOMETRIE*/, x, y, (uint16_t)theta);
 }
 
 void Deplacement::vitesse(uint16_t valeur)

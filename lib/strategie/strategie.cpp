@@ -65,6 +65,7 @@ unsigned short flag_check_carte = 0; //, flag_strat = 0, flag_timer;
 
 signed short x_robot,y_robot,theta_robot;//La position du robot, theta en dizieme de degree
 signed short target_x_robot, target_y_robot, target_theta_robot, target_sens;
+signed short depart_x, depart_y, depart_theta_robot;
 // signed short avant_gauche, avant_droit;
 EnumInstructionType actionPrecedente;
 // //unsigned char FIFO_ecriture=0; //Position du fifo pour la reception CAN
@@ -809,11 +810,11 @@ void procesInstructions(Instruction instruction) {
             printf("Herkulex.controlePince(Etage : %d, etatHerkulex : %d, sens : %d);\n", Etage, etatHerkulex, sens);
 
             if (instruction.nextActionType != ENCHAINEMENT){
-                flag.wait_all(AckFrom_FLAG, 20000);
+                flag.wait_all(AckFrom_FLAG, 1000);
 
                 waitingAckID_FIN = IDCAN_PINCE;
                 waitingAckFrom_FIN = INSTRUCTION_END_PINCE;
-                flag.wait_all(AckFrom_FIN_FLAG, 20000);
+                flag.wait_all(AckFrom_FIN_FLAG, 1000);
             }
 
             
@@ -903,25 +904,76 @@ bool machineRecalage() {
             herkulex.changerIdHerkulexPince(8);
             printf("herkulex.changerIdHerkulexPince(8);\n");
 
-            herkulex.controlePince(4,0,0);//position à 80 mm de haut pour ne pas gener recalage avant
-            printf("herkulex.controlePince(4,0,0);\n");
+            herkulex.controlePince(0,0,0);//position à 80 mm de haut pour ne pas gener recalage avant
+            printf("herkulex.controlePince(0,0,0);\n");
             deplacement.asservOn();
             printf("deplacement.asservOn();\n");
             herkulex.stepMotorMode(0);
             printf("herkulex.stepMotorMode(0);\n");
 
             int16_t distance = -1000;
-            uint16_t val_recalage;
+            uint16_t val_recalage = MOITIEE_ROBOT;
 
-            if (Hauteur == ROBOT_EN_BAS) {
+            // if (Hauteur == ROBOT_EN_BAS) {
+            //     val_recalage = 2000 - (MOITIEE_ROBOT);
+            // } else {
+            //     val_recalage = MOITIEE_ROBOT;
+            // }
+            
+            // if(assiette_choisie == HG_ASS_VERTE_CARRE){
+
+            // }else 
+            if(assiette_choisie == HG_ASS_VERTE_CARRE){
+                depart_x = 225; depart_y = 450 - MOITIEE_ROBOT;         depart_theta_robot = 0;
+
+            }else if(assiette_choisie == BG_ASS_BLEU_CARRE){
+                depart_x = 2000 - 225; depart_y = 450 - MOITIEE_ROBOT;         depart_theta_robot = 1800;
                 val_recalage = 2000 - (MOITIEE_ROBOT);
-            } else {
-                val_recalage = MOITIEE_ROBOT;
+
+            }else if(assiette_choisie == HC_ASS_BLEU){//Base
+                depart_x = 225; depart_y = (900 + 450) - MOITIEE_ROBOT;   depart_theta_robot = 0;
+
+            }else if(assiette_choisie == HC_ASS_VERT){//Base
+                depart_x = 225; depart_y = (3000 - 900 - 450) + MOITIEE_ROBOT;         depart_theta_robot = 0;
+
+            }else if(assiette_choisie == BC_ASS_BLEU){//Base
+                depart_x = 2000-225; depart_y = (3000 - 900 - 450) + MOITIEE_ROBOT;         depart_theta_robot = 1800;
+                val_recalage = 2000 - (MOITIEE_ROBOT);
+
+            }else if(assiette_choisie == BC_ASS_VERT){//Base
+                depart_x = 2000-225; depart_y = (900 + 450) - MOITIEE_ROBOT;         depart_theta_robot = 1800;
+                val_recalage = 2000 - (MOITIEE_ROBOT);
+
+            }else if(assiette_choisie == HD_ASS_BLEU){
+                depart_x = 225; depart_y = 450 - MOITIEE_ROBOT;         depart_theta_robot = 0;
+
+            }else if(assiette_choisie == HD_ASS_VERT){//Recalage sur y
+                depart_x = 225; depart_y = 450 - MOITIEE_ROBOT;         depart_theta_robot = -900;
+
+            }else if(assiette_choisie == BD_ASS_BLEU){//Recalage sur y
+                depart_x = 225; depart_y = 450 - MOITIEE_ROBOT;         depart_theta_robot = -900;
+                val_recalage = 2000 - (MOITIEE_ROBOT);
+
+            }else if(assiette_choisie == BD_ASS_VERT){
+                depart_x = 2000 - 225; depart_y = 450 - MOITIEE_ROBOT;         depart_theta_robot = 0;
+                val_recalage = 2000 - (MOITIEE_ROBOT);
+
+            }else{//HG_ASS_VERTE_CARRE
+                depart_x = 225; depart_y = 450 - MOITIEE_ROBOT;         depart_theta_robot = 0;
+
             }
 
+            deplacement.setOdo(depart_x, depart_y, depart_theta_robot);
+            printf("deplacement.setOdo(depart_x, depart_y, depart_theta_robot);\n");
+            wait_us(5000);
             waitingAckID = ASSERVISSEMENT_RECALAGE;
             waitingAckFrom = ACKNOWLEDGE_MOTEUR;
-            deplacement.recalage(distance, 1, val_recalage);
+            if(assiette_choisie == HD_ASS_VERT || assiette_choisie == BD_ASS_BLEU){
+                deplacement.recalage(distance, 2, val_recalage);
+            }else{
+                deplacement.recalage(distance, 1, val_recalage);
+            }
+            
             // printf("deplacement.recalage(distance : %d, 1, val_recalage : %d);\n", distance, val_recalage);
             if (flag.wait_all(AckFrom_FLAG, 20000) == osFlagsErrorTimeout) {
                 // printf("osErrorTimeout, recalage fail, RECALAGE_1, waitingAckID\n");
