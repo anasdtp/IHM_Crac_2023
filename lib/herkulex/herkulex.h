@@ -30,6 +30,7 @@ public:
     void poseCerise(bool presenceGatoInAccount = true);
     void controlePinceArriere(uint8_t etatPince, bool poseCerise);
     void controleAspirateur(bool activation);
+    void controleLanceur(bool activation);
     
 
 };

@@ -130,18 +130,24 @@ int main() {
                     ihm.msgBoxInit("Lecture de la stratégie\n", "En cours", false);
                     ThisThread::sleep_for(1s);
                     etat = 10;
-                } else if (ihm.recalageHautGaucheClicked()) {//Recalage sur x
-                     printf("recalage_HautGaucheClicked, choixCouleur() : %d\n", ihm.choixCouleur());
+                } else if(ihm.recalageHautDroitClicked()){
+                    //printf("recalage_HautGaucheClicked, choixCouleur() : %d\n", ihm.choixCouleur());
+                    assiette_choisie = HG_ASS_VERTE_CARRE;
+                }else if(ihm.recalageBasDroitClicked()){
+                    assiette_choisie = BG_ASS_BLEU_CARRE;
+                }
+                else if (ihm.recalageHautGaucheClicked()) {//Recalage sur x
+                     //printf("recalage_HautGaucheClicked, choixCouleur() : %d\n", ihm.choixCouleur());
                     assiette_choisie = HC_ASS_BLEU;
                     // depart_x =225; depart_y = 450-MOITIEE_ROBOT; depart_theta_robot = 0;
                     
                 } else if (ihm.recalageBasGaucheClicked()) {//Recalage sur x
-                     printf("recalage_BasGaucheClicked, choixCouleur() : %d\n", ihm.choixCouleur());
+                     //printf("recalage_BasGaucheClicked, choixCouleur() : %d\n", ihm.choixCouleur());
                    assiette_choisie = BC_ASS_VERT;
                     // depart_x =2000 - 225; depart_y = 450-MOITIEE_ROBOT; depart_theta_robot = 180;
 
                 } else if (ihm.recalageHautDroitClicked()) {//Recalage sur y
-                    //  printf("recalage_HautDroitClicked, choixCouleur() : %d\n", ihm.choixCouleur());
+                    //  //printf("recalage_HautDroitClicked, choixCouleur() : %d\n", ihm.choixCouleur());
                     // int VERT = 0, BLEU = 1;
                     // if(ihm.choixCouleur() == BLEU){
                     //     assiette_choisie = HD_ASS_BLEU;
@@ -152,7 +158,7 @@ int main() {
                     // }
                     
                 } else if (ihm.recalageBasDroitClicked()) {//Recalage sur y
-                    //  printf("recalage_BasDroitClicked, choixCouleur() : %d\n", ihm.choixCouleur());
+                    //  //printf("recalage_BasDroitClicked, choixCouleur() : %d\n", ihm.choixCouleur());
                     // int VERT = 0, BLEU = 1;
                     // if(ihm.choixCouleur() == BLEU){
                     //     assiette_choisie = BD_ASS_BLEU;
@@ -163,7 +169,7 @@ int main() {
                     // }
                 } 
                 else if(ihm.recalageMilieuHautClicked()){//Recalage sur x
-                printf("recalageMilieuHautClicked, assiette_choisie : %d\n", assiette_choisie);
+                //printf("recalageMilieuHautClicked, assiette_choisie : %d\n", assiette_choisie);
                     // int VERT = 0, BLEU = 1;
                     // if(ihm.choixCouleur() == BLEU){
                     //     assiette_choisie = HC_ASS_BLEU;
@@ -185,7 +191,7 @@ int main() {
                     //     // depart_x =2000 - 225; depart_y = 450-MOITIEE_ROBOT; depart_theta_robot = -90;
                     // }
                     assiette_choisie = BC_ASS_BLEU;
-                    printf("recalageMilieuBasClicked, assiette_choisie : %d\n", assiette_choisie);
+                    //printf("recalageMilieuBasClicked, assiette_choisie : %d\n", assiette_choisie);
                 } else if (ihm.activationRecalageClicked()) {
                     if (Recalage) {
                         Recalage = false;
@@ -216,7 +222,13 @@ int main() {
                     actionneurStepMotor = !actionneurStepMotor;
                     actionneurStepMotor = (actionneurStepMotor != 0) ? 4 : 0;
                     herkulex.controlePince(actionneurStepMotor, 0,0);
-                } else if (ihm.playClicked()) {
+                }else if(ihm.asservOnClicked()){
+                    deplacement.asservOn(true);
+                }else if(ihm.asservOffClicked()){
+                    deplacement.asservOff(true);
+                }
+                
+                 else if (ihm.playClicked()) {
                     if (fichiersMp3.size()>0) {
                         ThreadSound::playMp3(("/sd" + config["Dossiers"]["musique"] + "/" + fichiersMp3[ihm.choixMp3()]).c_str());
                     }

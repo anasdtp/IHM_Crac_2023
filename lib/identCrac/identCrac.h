@@ -388,6 +388,7 @@ serial5 : RX4-TX4*/
 #define IDCAN_POSE_CERISE 0x90
 #define IDCAN_ASPIRATEUR_GAUCHE 0x91
 #define IDCAN_ASPIRATEUR_DROIT 0x92
+#define IDCAN_LANCEUR 0x93
 
 #define IDCAN_ASPIRATEUR 0x76
 
@@ -398,5 +399,9 @@ serial5 : RX4-TX4*/
 /****************************************************************************************/
 
 #define IDCAN_POS_XY_OBJET 0x82
+
+
+#define IDCAN_SET_SCORE 0x97
+
 
 #endif

@@ -37,6 +37,8 @@ protected:
         IHM_FLAG_ACTIONNEUR_STEP_MOTOR =    (1UL << 19),
         IHM_FLAG_RECALAGE_BASMILIEU =       (1UL << 20),
         IHM_FLAG_RECALAGE_HAUTMILIEU =      (1UL << 21),
+        IHM_FLAG_ACTIONNEUR_ASSERV_ON =     (1UL << 22),
+        IHM_FLAG_ACTIONNEUR_ASSERV_OFF =    (1UL << 23),
          
     } IhmFlag;
     EventFlags flags;
@@ -78,6 +80,8 @@ protected:
     lv_obj_t *PinceArriere;
     lv_obj_t *PinceAvant;
     lv_obj_t *stepMotor;
+    lv_obj_t *AsservOn;
+    lv_obj_t *AsservOff;
     
     int volume;
     int mp3;
@@ -126,6 +130,8 @@ public:
     bool actionneurPinceArriereClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_ACTIONNEUR_PINCE_ARRIERE, clearIfSet); }
     bool actionneurPinceAvantClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_ACTIONNEUR_PINCE_AVANT, clearIfSet); }
     bool actionneurStepMotorClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_ACTIONNEUR_STEP_MOTOR, clearIfSet); }
+    bool asservOnClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_ACTIONNEUR_ASSERV_ON, clearIfSet); }
+    bool asservOffClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_ACTIONNEUR_ASSERV_OFF, clearIfSet); }
     int choixStrategie() { return departStrategie; }
     int choixCouleur() { return departCouleur; }
     int choixVolume() { return volume; }

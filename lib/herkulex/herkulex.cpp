@@ -70,3 +70,7 @@ void Herkulex::controlePinceArriere(uint8_t etatPince, bool poseCerise){//// 0 -
 void Herkulex::controleAspirateur(bool activation){
     m_can->send(IDCAN_ASPIRATEUR, (uint8_t)activation);
 }
+
+void Herkulex::controleLanceur(bool activation){
+    m_can->send(IDCAN_LANCEUR, (uint8_t)activation);
+}

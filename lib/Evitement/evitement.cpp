@@ -13,13 +13,13 @@ void Evitement::trameCan(const CANMessage *msg)
     if (gameEtat == ETAT_GAME_MVT_DANGER) {
 //        printf("Danger ?\n");
         if (target_sens == 1) {
-            if ((angle>-300)&&(angle<300)&&(distance<600)) {
+            if ((angle>-450)&&(angle<450)&&(distance<710)) {
                 printf("STOP\n");
                 deplacement.stop();
                 gameEtat = ETAT_GAME_OBSTACLE;
             }
         } else {
-            if (((angle<-1500)||(angle>1500))&&(distance<600)) {
+            if (((angle<-1350)||(angle>1350))&&(distance<710)) {
                 printf("STOP\n");
                 deplacement.stop();
                 gameEtat = ETAT_GAME_OBSTACLE;

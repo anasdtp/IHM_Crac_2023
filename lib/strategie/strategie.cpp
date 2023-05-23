@@ -47,7 +47,7 @@ signed char asser_stop_direction=0;
 // char counter = 0;
 // char check;
 // char Jack = 1;
-short SCORE_GLOBAL=0;
+short SCORE_GLOBAL=18;
 // short SCORE_GR=0;
 // short SCORE_PR=0;
 // unsigned short distance_recalage;
@@ -150,6 +150,9 @@ void canProcessRx(CANMessage *rxMsg)
         if (waitingId == identifiant) {waitingId = 0;}
         switch(identifiant) {
             case ALIVE_MOTEUR:{
+
+                deplacement.setOdo(x_robot, y_robot, theta_robot);
+                printf("Base roulante a reset !! \n");
 
             }
                 
@@ -455,6 +458,11 @@ void canProcessRx(CANMessage *rxMsg)
             }
             break;
 
+            case IDCAN_SET_SCORE:{
+                unsigned short score = rxMsg->data[0]|((unsigned short)(rxMsg->data[1])<<8);
+                SCORE_GLOBAL = score;
+            }break;
+
             default:
                 break;
         }
@@ -506,7 +514,7 @@ bool machineStrategie() {
 
         case ETAT_GAME_PROCESInstruction: {
             //      Traitement de l'instruction, envoie de la trame CAN
-            debugInstruction(instruction);
+            //debugInstruction(instruction);
             procesInstructions(instruction);
         } break;
 
@@ -522,7 +530,8 @@ bool machineStrategie() {
         } break;
 
         case ETAT_GAME_OBSTACLE: {
-            ThisThread::sleep_for(1s);
+            // ThisThread::sleep_for(1s);
+            wait_us(1000 * 1000);
             deplacement.positionXYTheta(target_x_robot, target_y_robot, target_theta_robot, target_sens);
             waitingAckID = ASSERVISSEMENT_XYT;
             waitingAckFrom = ACKNOWLEDGE_MOTEUR;
@@ -681,22 +690,24 @@ void procesInstructions(Instruction instruction) {
             waitingAckID = ASSERVISSEMENT_XYT;
             waitingAckFrom = ACKNOWLEDGE_MOTEUR;
             if ((instruction.arg1 <= 0) || (y <= 0)) {
-                deplacement.positionXYTheta(target_x_robot, target_y_robot, target_theta_robot, sens);
+                //deplacement.positionXYTheta(target_x_robot, target_y_robot, target_theta_robot, sens);
+               
             } else {
                 deplacement.positionXYTheta(instruction.arg1, y, theta, sens);
+                target_x_robot = instruction.arg1;
+                target_y_robot = y;
+                target_theta_robot = theta;
+                target_sens = sens;
+
+                flag.wait_all(AckFrom_FLAG, 20000);
+
+                waitingAckID_FIN = ASSERVISSEMENT_XYT;
+                waitingAckFrom_FIN = INSTRUCTION_END_MOTEUR;
+                gameEtat = ETAT_GAME_MVT_DANGER;
+//              flag.wait_all(AckFrom_FIN_FLAG, 20000);
             }
 
-            target_x_robot = instruction.arg1;
-            target_y_robot = y;
-            target_theta_robot = theta;
-            target_sens = sens;
-
-            flag.wait_all(AckFrom_FLAG, 20000);
-
-            waitingAckID_FIN = ASSERVISSEMENT_XYT;
-            waitingAckFrom_FIN = INSTRUCTION_END_MOTEUR;
-            gameEtat = ETAT_GAME_MVT_DANGER;
-//            flag.wait_all(AckFrom_FIN_FLAG, 20000);
+            
         } break;
         case MV_COURBURE: {
             //    int16_t rayon;
@@ -799,40 +810,40 @@ void procesInstructions(Instruction instruction) {
             uint8_t etatHerkulex = ((instruction.arg2 == 1) ? 1 : 0);
             uint8_t sens = (instruction.arg3 & 0xFF);
             actionPrecedente = PINCE;
-            if (instruction.nextActionType != ENCHAINEMENT){
+            // if (instruction.nextActionType != ENCHAINEMENT){
                 waitingAckID = IDCAN_PINCE;
                 waitingAckFrom = ACKNOWLEDGE_ACTIONNEURS;
-            }
+            // }
             
             // printf("Herkulex.controlePince(Etage : %d, etatHerkulex : %d, sens : %d);\n",Etage,etatHerkulex, sens);
             
             herkulex.controlePince(Etage, etatHerkulex, sens);
             printf("Herkulex.controlePince(Etage : %d, etatHerkulex : %d, sens : %d);\n", Etage, etatHerkulex, sens);
 
-            if (instruction.nextActionType != ENCHAINEMENT){
-                flag.wait_all(AckFrom_FLAG, 1000);
+            // if (instruction.nextActionType != ENCHAINEMENT){
+                flag.wait_all(AckFrom_FLAG, 20000);
 
                 waitingAckID_FIN = IDCAN_PINCE;
                 waitingAckFrom_FIN = INSTRUCTION_END_PINCE;
-                flag.wait_all(AckFrom_FIN_FLAG, 1000);
-            }
+                flag.wait_all(AckFrom_FIN_FLAG, 10000);
+            // }
 
             
         } break;
             case ACTION:
             {
-                
+                actionPrecedente = ACTION;
             if ((instruction.arg1 == 30))//Pose cerise
             {
                 waitingAckID = IDCAN_POSE_CERISE;
                 waitingAckFrom = ACKNOWLEDGE_ACTIONNEURS;
                 herkulex.poseCerise();
                 printf("instruction.arg1 == 30 ; poseCerise\n");
-                flag.wait_all(AckFrom_FLAG, 20000);
+                flag.wait_all(AckFrom_FLAG, 1000);
 
                 waitingAckID_FIN = IDCAN_POSE_CERISE;
                 waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;
-                flag.wait_all(AckFrom_FIN_FLAG, 20000);
+                flag.wait_all(AckFrom_FIN_FLAG, 1000);
             }
             else if (instruction.arg1 == 10)//Pince arriere
             {
@@ -844,11 +855,11 @@ void procesInstructions(Instruction instruction) {
                 herkulex.controlePinceArriere(etat_pince, poseCerise);
                 printf("instruction.arg1 == 10 ; Pince arriere ; ");
                 printf("etat_pince : %d ; poseCerise : %d\n", etat_pince, poseCerise);
-                flag.wait_all(AckFrom_FLAG, 20000);
+                flag.wait_all(AckFrom_FLAG, 2500);
 
                 waitingAckID_FIN = IDCAN_PINCE_ARRIERE;
                 waitingAckFrom_FIN = INSTRUCTION_END_PINCE;
-                flag.wait_all(AckFrom_FIN_FLAG, 20000);
+                flag.wait_all(AckFrom_FIN_FLAG, 2500);
             }else if(instruction.arg1 == 20){//Aspirateur
                 bool activationAspirateur = (instruction.arg2 != 0) ? true : false;
 
@@ -856,17 +867,32 @@ void procesInstructions(Instruction instruction) {
                 waitingAckFrom = ACKNOWLEDGE_ACTIONNEURS;
                 herkulex.controleAspirateur(activationAspirateur);
 
-                flag.wait_all(AckFrom_FLAG, 20000);
+                flag.wait_all(AckFrom_FLAG, 2500);
 
                 waitingAckID_FIN = IDCAN_ASPIRATEUR;
                 waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;
-                flag.wait_all(AckFrom_FIN_FLAG, 20000);
-            }else if(instruction.arg1 == 40){//Reglage vitesse et acceleration
+                flag.wait_all(AckFrom_FIN_FLAG, 2500);
+            
+            }else if(instruction.arg1 == 40){//Lanceur
+                uint8_t activation = instruction.arg2;
+                if(activation){
+                    waitingAckID = IDCAN_LANCEUR;
+                    waitingAckFrom = ACKNOWLEDGE_ACTIONNEURS;
+                    herkulex.controleLanceur(activation);
+
+                    flag.wait_all(AckFrom_FLAG, 2500);
+
+                    waitingAckID_FIN = IDCAN_LANCEUR;
+                    waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;
+                    flag.wait_all(AckFrom_FIN_FLAG, 2500);
+                }
+            
+            }else if(instruction.arg1 == 50){//Reglage vitesse et acceleration
                 uint16_t vitesse = 600 - instruction.arg2 * 300;//3 niveau de vitesse
                 if(vitesse<=150){vitesse = 150;}
 
 
-                deplacement.vitesse(vitesse);
+                //deplacement.vitesse(vitesse);
             
             }
             }
@@ -907,6 +933,7 @@ bool machineRecalage() {
             herkulex.controlePince(0,0,0);//position à 80 mm de haut pour ne pas gener recalage avant
             printf("herkulex.controlePince(0,0,0);\n");
             deplacement.asservOn();
+            wait_us(5000);
             printf("deplacement.asservOn();\n");
             herkulex.stepMotorMode(0);
             printf("herkulex.stepMotorMode(0);\n");
@@ -965,7 +992,7 @@ bool machineRecalage() {
 
             deplacement.setOdo(depart_x, depart_y, depart_theta_robot);
             printf("deplacement.setOdo(depart_x, depart_y, depart_theta_robot);\n");
-            wait_us(5000);
+            wait_us(1000 * 1000);
             waitingAckID = ASSERVISSEMENT_RECALAGE;
             waitingAckFrom = ACKNOWLEDGE_MOTEUR;
             if(assiette_choisie == HD_ASS_VERT || assiette_choisie == BD_ASS_BLEU){
