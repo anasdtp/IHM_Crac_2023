@@ -262,7 +262,7 @@ int main() {
                         if (tempsAffiche != t) {
                             tempsAffiche = t;
                             if (tempsAffiche > 0) {
-                                sprintf(buf, "Reste %d s", tempsAffiche);
+                                sprintf(buf, "Reste %d s \n Éxecution instruction n° %d", tempsAffiche, listeInstructions.enCours().lineNumber);
                                 ihm.msgBoxMessage(buf);
                             } else {
                                 ihm.msgBoxMessage("Terminé");
