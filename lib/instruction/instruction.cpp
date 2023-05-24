@@ -122,7 +122,7 @@ Instruction ListeInstructions::stringToInstruction(const char *line) {
 
 void ListeInstructions::suivante()
 {
-    if (!liste[actuelle].nextLineOK) {
+    if (!liste[actuelle].nextLineOK || (liste[actuelle].nextLineOK == liste[actuelle].lineNumber)) {
         actuelle++;
     } else {
         actuelle = liste[actuelle].nextLineOK;

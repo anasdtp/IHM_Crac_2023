@@ -315,7 +315,7 @@ int main() {
                         if (tempsAffiche != t) {
                             tempsAffiche = t;
                             if (tempsAffiche > 0) {
-                                sprintf(buf, "Reste %d s", tempsAffiche);
+                                sprintf(buf, "Reste %d s \n\n Instruction numéro %d \n\n %s \n\n Nombre d'instructions en tout : %d", tempsAffiche, listeInstructions.enCours().lineNumber, AckToString(waitingAckFrom).c_str(), listeInstructions.size());
                                 ihm.msgBoxMessage(buf);
                             } else {
                                 ihm.msgBoxMessage("Terminé");
@@ -399,9 +399,10 @@ bool lectureFichier(int choix) {
         // Tout est prêt pour la lecture.
         string ligne;
         while (getline(monFlux, ligne)) {  // On lit une ligne complète
-            // printf("%s\n", ligne.c_str());
+            printf("%s\n", ligne.c_str());
             listeInstructions.ajout(ligne.c_str());
             // debug_Instruction(listeInstructions.derniere());
+            ThisThread::sleep_for(1ms);
         }
         monFlux.close();
         return true;

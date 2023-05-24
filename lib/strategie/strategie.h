@@ -101,4 +101,5 @@ bool machineRecalageInit();
 bool machineRecalage();
 void procesInstructions(Instruction instruction);
 
+string AckToString(int id);
 #endif

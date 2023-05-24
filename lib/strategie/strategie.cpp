@@ -514,7 +514,7 @@ bool machineStrategie() {
 
         case ETAT_GAME_PROCESInstruction: {
             //      Traitement de l'instruction, envoie de la trame CAN
-            //debugInstruction(instruction);
+            debugInstruction(instruction);
             procesInstructions(instruction);
         } break;
 
@@ -1288,3 +1288,30 @@ switch (etat_pos) {
             break;
     }
     */
+
+//ACKNOWLEDGE_MOTEUR ACKNOWLEDGE_ACTIONNEURS INSTRUCTION_END_PINCE
+string AckToString(int id){
+    switch (id)
+    {
+    case ACKNOWLEDGE_MOTEUR:
+        {
+             return "MOTEUR";
+        }
+        break;
+    case ACKNOWLEDGE_ACTIONNEURS:
+        {
+             return "ACTIONNEURS";
+        }
+        break;
+    case INSTRUCTION_END_PINCE:
+        {
+             return "PINCE AVANT";
+        }
+        break;
+    
+    default:
+        break;
+    }
+
+    return "0";
+}

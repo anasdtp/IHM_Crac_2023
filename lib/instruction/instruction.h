@@ -101,6 +101,7 @@ EnumInstructionPrecisionOuRecalage decodeInstructionPrecisionOuRecalage(char typ
 EnumInstructionNextActionType decodeInstructionNextActionType(char type);
 EnumInstructionNextActionJumpType decodeInstructionNextActionJumpType(char type);
 
+
 class ListeInstructions {
    private:
     std::vector<Instruction> liste;
@@ -128,6 +129,7 @@ class ListeInstructions {
     void debut() { actuelle = 0; }
     void suivante();
     bool fin();
+    int size(){return liste.size();}
 };
 
 extern ListeInstructions listeInstructions;
