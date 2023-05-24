@@ -130,6 +130,7 @@ class ListeInstructions {
     void suivante();
     bool fin();
     int size(){return liste.size();}
+    void clear(){liste.clear(); actuelle = 0;}
 };
 
 extern ListeInstructions listeInstructions;

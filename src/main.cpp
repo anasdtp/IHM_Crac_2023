@@ -293,6 +293,7 @@ int main() {
             case 3:
                 // Le match a démarré
                 if (ihm.msgBoxCancelClicked()) {
+                    listeInstructions.clear();
                     // Annuler le match en cours
                     match->terminate();
                     delete match;
@@ -329,6 +330,7 @@ int main() {
                 // Affichage du score
                 sprintf(buf, "Terminé\n\nScore = %d", SCORE_GLOBAL);
                 ihm.msgBoxMessage(buf);
+                listeInstructions.clear();
                 etat = 5;
                 break;
 
