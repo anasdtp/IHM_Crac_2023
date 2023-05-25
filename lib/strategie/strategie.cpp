@@ -1072,7 +1072,19 @@ bool machineRecalage() {
         case GOTOPOS: {
             waitingAckID = ASSERVISSEMENT_XYT;
             waitingAckFrom = ACKNOWLEDGE_MOTEUR;
-            deplacement.positionXYTheta(instruction.arg1, instruction.arg2, instruction.arg3, 0);
+            uint16_t x;
+            uint16_t y = instruction.arg2;
+            int16_t theta;
+
+             if(color == VERT){//code inversion sur X Fait
+                x = 2000 - instruction.arg1;// Inversion du X
+                theta = -instruction.arg3;
+            }else{
+                x = instruction.arg1;
+                theta = instruction.arg3;
+            }
+
+            deplacement.positionXYTheta(x, y, theta, 0);
             // printf("deplacement.positionXYTheta(instruction.arg1 : %d, instruction.arg2 : %d, instruction.arg3 : %d, 0);\n", instruction.arg1, instruction.arg2, instruction.arg3);
             if (flag.wait_all(AckFrom_FLAG, 20000) == osFlagsErrorTimeout) {
                 // printf("osErrorTimeout, recalage, GOTOPOS, waitingAckID\n");
