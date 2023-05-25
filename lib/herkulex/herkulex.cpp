@@ -6,24 +6,8 @@ Herkulex::Herkulex(ThreadCAN &threadCAN) {
     m_can = &threadCAN;
 }
 
-void Herkulex::controlePince(uint8_t Etage, uint8_t etatHerkulex, uint8_t sens) {
-    m_can->send(IDCAN_PINCE, Etage, etatHerkulex, sens);
-}
-
 void Herkulex::changerIdHerkulexPince(uint8_t id) {
     m_can->send(IDCAN_PINCE_CHANGE_ID_HERKULEX, id);
-}
-
-void Herkulex::stepMotorHauteur(int mm) {
-    uint32_t position = mm * (3600.0 / 80.0);
-    m_can->send(IDCAN_STEP_MOT_POS, position);
-}
-
-void Herkulex::stepMotorMode(uint8_t mode) {
-    uint8_t m0 = mode & 0x01;
-    uint8_t m1 = (mode >> 1) & 0x01;
-    uint8_t m2 = (mode >> 2) & 0x01;
-    m_can->send(IDCAN_STEP_MOT_MODE, m0, m1, m2);
 }
 
 void Herkulex::controleHerkulexPosition(uint8_t IDHerkulex, short position, CouleurHerkulex setLed) {
@@ -43,11 +27,6 @@ void Herkulex::controleHerkulexPositionMulEnsemble(uint8_t IDHerkulex, short pos
     m_can->send(IDCAN_HERKULEX, IDHerkulex, commande, (uint16_t)position1, ID2Herkulex, (uint16_t)position2, playtime);
 }
 
-void Herkulex::controleHerkulexTurnMode(uint8_t IDHerkulex, uint16_t vitesse) {
-    uint8_t setLed = 0x04;
-    m_can->send(ID_HERKULEX_VITESSE, IDHerkulex, vitesse, setLed);
-}
-
 void Herkulex::controleHerkulexCouple(uint8_t IDHerkulex, bool couple) {
     uint8_t c = (couple) ? 0x60 : 0x00;
     m_can->send(IDCAN_HERKULEX_Torque, IDHerkulex, c);
@@ -57,15 +36,41 @@ void Herkulex::clearHerkulex(uint8_t IDHerkulex) {
     m_can->send(IDCAN_HERKULEX_Clear, IDHerkulex);
 }
 
-void Herkulex::poseCerise(bool presenceGatoInAccount){
-    m_can->send(IDCAN_POSE_CERISE, (uint8_t)presenceGatoInAccount);
+void Herkulex::controleHerkulexTurnMode(uint8_t IDHerkulex, uint16_t vitesse) {
+    uint8_t setLed = 0x04;
+    m_can->send(ID_HERKULEX_VITESSE, IDHerkulex, vitesse, setLed);
 }
+
+
+void Herkulex::controlePince(uint8_t Etage, uint8_t etatHerkulex, uint8_t sens) {
+    m_can->send(IDCAN_PINCE, Etage, etatHerkulex, sens);
+}
+
 
 void Herkulex::controlePinceArriere(uint8_t etatPince, bool poseCerise){//// 0 -> fermé, 1 -> position gateau, 2 -> ouvert
     if(etatPince>2 || etatPince<0){etatPince = 2;}
     bool presenceGatoInAccount = true;
     m_can->send(IDCAN_PINCE_ARRIERE, etatPince, (uint8_t)poseCerise, (uint8_t)presenceGatoInAccount);
 }
+void Herkulex::poseCerise(bool presenceGatoInAccount){
+    m_can->send(IDCAN_POSE_CERISE, (uint8_t)presenceGatoInAccount);
+}
+
+
+
+void Herkulex::stepMotorHauteur(int mm) {
+    uint32_t position = mm * (3600.0 / 80.0);
+    m_can->send(IDCAN_STEP_MOT_POS, position);
+}
+
+void Herkulex::stepMotorMode(uint8_t mode) {
+    uint8_t m0 = mode & 0x01;
+    uint8_t m1 = (mode >> 1) & 0x01;
+    uint8_t m2 = (mode >> 2) & 0x01;
+    m_can->send(IDCAN_STEP_MOT_MODE, m0, m1, m2);
+}
+
+
 
 void Herkulex::controleAspirateur(bool activation){
     m_can->send(IDCAN_ASPIRATEUR, (uint8_t)activation);

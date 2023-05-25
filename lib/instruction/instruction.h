@@ -19,6 +19,11 @@ typedef enum
     BD_ASS_VERT,
 }Assiette;
 
+typedef enum
+    {
+        VERT = 0,
+        BLEU = 1
+    }couleurDepart;
 
 
 enum EnumInstructionType {

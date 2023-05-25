@@ -58,13 +58,13 @@ extern unsigned char Cote;
 extern unsigned char Hauteur;
 // extern DigitalOut led1,led2,led3,led4;
 
-extern bool Activation_Lidar;
 extern short SCORE_GLOBAL;
 extern short SCORE_PR, SCORE_GR;
 
 extern EventFlags flag;
 
 extern Assiette assiette_choisie;
+extern couleurDepart color;
 extern EnumInstructionType actionPrecedente;
 
 extern unsigned char InversStrat;//Si à 1, indique que l'on part de l'autre cote de la table(inversion des Y)

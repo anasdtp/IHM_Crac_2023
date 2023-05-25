@@ -519,8 +519,8 @@ bool machineStrategie() {
         } break;
 
         case ETAT_GAME_MVT_DANGER: {
-            if (flag.wait_all(AckFrom_FIN_FLAG, 50) != osFlagsErrorTimeout) {
-                if (gameEtat != ETAT_GAME_OBSTACLE) gameEtat = ETAT_GAME_INSTRUCTION_FINIE;
+            if (flag.wait_all(AckFrom_FIN_FLAG, 50) != osFlagsErrorTimeout) {//Si c'est égale à osFlagsErrorTimeout, alors il a timeout, sinon on a bien reçu le ack et on peut passer à la suite
+                if (gameEtat != ETAT_GAME_OBSTACLE) {gameEtat = ETAT_GAME_INSTRUCTION_FINIE;}
             }
         } break;
 
@@ -530,8 +530,7 @@ bool machineStrategie() {
         } break;
 
         case ETAT_GAME_OBSTACLE: {
-            // ThisThread::sleep_for(1s);
-            wait_us(1000 * 1000);
+            ThisThread::sleep_for(1s);
             deplacement.positionXYTheta(target_x_robot, target_y_robot, target_theta_robot, target_sens);
             waitingAckID = ASSERVISSEMENT_XYT;
             waitingAckFrom = ACKNOWLEDGE_MOTEUR;
@@ -553,9 +552,10 @@ bool machineStrategie() {
 }
 
 void procesInstructions(Instruction instruction) {
-    gameEtat = ETAT_GAME_INSTRUCTION_FINIE;
+    gameEtat = ETAT_GAME_INSTRUCTION_FINIE;//Pour passer à la suivante pour toutes les instructions sans MV ou autre
+
     switch (instruction.order) {
-        case MV_RECALAGE: {
+        case MV_RECALAGE: {//code inversion sur X Fait
            //if (instruction.nextActionType == MECANIQUE) {
                 instruction.nextActionType = WAIT;
                 int16_t distance = (((instruction.direction == FORWARD) ? 1 : -1) * 1000);  // On indique une distance de 3000 pour etre sur que le robot va ce recaler
@@ -574,7 +574,12 @@ void procesInstructions(Instruction instruction) {
                     // }
                 } else {
                     coordonnee = 1;
-                    val_recalage = instruction.arg1;
+                    if(color == VERT){
+                        val_recalage = 2000 - instruction.arg1;// Inversion du X
+                    }else{
+                        val_recalage = instruction.arg1;
+                    }
+                    
                 }
                 deplacement.recalage(distance, coordonnee, val_recalage);
                 waitingAckID = ASSERVISSEMENT_RECALAGE;
@@ -588,7 +593,7 @@ void procesInstructions(Instruction instruction) {
             // } else {
             // }
         } break;
-        case MV_TURN: {
+        case MV_TURN: {//code inversion sur X Fait
             int16_t angle = instruction.arg3;
             target_x_robot = x_robot;
             target_y_robot = y_robot;
@@ -598,27 +603,30 @@ void procesInstructions(Instruction instruction) {
             // {
             //   angle = -angle;
             // }
-
-            if (instruction.direction == ABSOLUTE) {
-                // C'est un rotation absolu, il faut la convertir en relative
-
-                angle = (angle - theta_robot) % 3600;
-                if (angle > 1800)
-                    angle = angle - 3600;
-
-                else if (angle < -1800)
-                    angle = angle + 3600;
+            if(color == VERT){
+                angle = -angle;
             }
 
-            waitingAckID = ASSERVISSEMENT_ROTATION;
-            waitingAckFrom = ACKNOWLEDGE_MOTEUR;
-            deplacement.rotation(angle);
-            // printf("deplacement.rotation(angle : %d);\n", angle);
-            flag.wait_all(AckFrom_FLAG, 20000);
+            if (instruction.direction == ABSOLUTE && (int16_t)theta_robot) {
+                // C'est une rotation absolu, il faut la convertir en relative
 
-            waitingAckID_FIN = ASSERVISSEMENT_ROTATION;
-            waitingAckFrom_FIN = INSTRUCTION_END_MOTEUR;
-            flag.wait_all(AckFrom_FIN_FLAG, 20000);
+                angle = (int16_t)(angle - (int16_t)theta_robot);// % 3600;
+                if (angle > 1800){angle -= 3600;}
+                else if (angle <= -1800){angle += 3600;}//Calcule le chemin le plus court
+            }
+            
+            if(angle){
+                waitingAckID = ASSERVISSEMENT_ROTATION;
+                waitingAckFrom = ACKNOWLEDGE_MOTEUR;
+                deplacement.rotation(angle);
+            // printf("deplacement.rotation(angle : %d);\n", angle);
+                flag.wait_all(AckFrom_FLAG, 20000);
+
+                waitingAckID_FIN = ASSERVISSEMENT_ROTATION;
+                waitingAckFrom_FIN = INSTRUCTION_END_MOTEUR;
+                flag.wait_all(AckFrom_FIN_FLAG, 20000);
+            }
+            
         } break;
         case MV_LINE: {
             waitingAckID = ASSERVISSEMENT_RECALAGE;
@@ -662,10 +670,10 @@ void procesInstructions(Instruction instruction) {
             gameEtat = ETAT_GAME_MVT_DANGER;
 //            flag.wait_all(AckFrom_FIN_FLAG, 20000);
         } break;
-        case MV_XYT: {
+        case MV_XYT: {//code inversion sur X Fait
             // on effectue XYT normalement selon les instructions
-            //    uint16_t x;
-            uint16_t y;
+            uint16_t x;
+            uint16_t y = instruction.arg2;
             int16_t theta;
             uint8_t sens;
             actionPrecedente = MV_XYT;
@@ -684,17 +692,26 @@ void procesInstructions(Instruction instruction) {
             // }
             // else
             // {
-            y = instruction.arg2;
-            theta = instruction.arg3;
+            // y = instruction.arg2;
+            // theta = instruction.arg3;
             //}
+
+            if(color == VERT){
+                x = 2000 - instruction.arg1;// Inversion du X
+                theta = -instruction.arg3;
+            }else{
+                x = instruction.arg1;
+                theta = instruction.arg3;
+            }
+
             waitingAckID = ASSERVISSEMENT_XYT;
             waitingAckFrom = ACKNOWLEDGE_MOTEUR;
-            if ((instruction.arg1 <= 0) || (y <= 0)) {
+            if ((x <= 0) || (y <= 0)) {
                 //deplacement.positionXYTheta(target_x_robot, target_y_robot, target_theta_robot, sens);
                
             } else {
-                deplacement.positionXYTheta(instruction.arg1, y, theta, sens);
-                target_x_robot = instruction.arg1;
+                deplacement.positionXYTheta(x, y, theta, sens);
+                target_x_robot = x;
                 target_y_robot = y;
                 target_theta_robot = theta;
                 target_sens = sens;
@@ -704,12 +721,12 @@ void procesInstructions(Instruction instruction) {
                 waitingAckID_FIN = ASSERVISSEMENT_XYT;
                 waitingAckFrom_FIN = INSTRUCTION_END_MOTEUR;
                 gameEtat = ETAT_GAME_MVT_DANGER;
-//              flag.wait_all(AckFrom_FIN_FLAG, 20000);
+//              flag.wait_all(AckFrom_FIN_FLAG, 20000);//A ne pas mettre, geré dans ETAT_GAME_MVT_DANGER avec le le lidar
             }
 
             
         } break;
-        case MV_COURBURE: {
+        case MV_COURBURE: {//code inversion Fait mais a tester
             //    int16_t rayon;
             int16_t angle;
             int8_t sens;
@@ -749,9 +766,14 @@ void procesInstructions(Instruction instruction) {
             /*if(InversStrat == 1 && ingnorInversionOnce == 0) {
                 localData1 = -localData1;//Inversion de la direction
             }*/
+            if(color == VERT){//A tester, je ne suis pas sûre
+                sens = -sens;
+                angle = -angle;//Inversion de la direction
+            }
             enum EnumInstructionDirection directionxyt;
             waitingAckID = ASSERVISSEMENT_COURBURE;
             waitingAckFrom = ACKNOWLEDGE_MOTEUR;
+            
             deplacement.courbure(instruction.arg1, angle, sens);
 
             alph = angle;

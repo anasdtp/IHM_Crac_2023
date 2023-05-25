@@ -98,11 +98,7 @@ protected:
     bool getFlag(IhmFlag f, bool clearIfSet = true);
 
 public:
-    enum
-    {
-        VERT = 0,
-        BLEU = 1
-    };
+    
     Ihm(ThreadLvgl *t);
     void sdMsg(const char *msg1, const char *msg2 = "");
     void matchInit(const vector<string> fichiers);

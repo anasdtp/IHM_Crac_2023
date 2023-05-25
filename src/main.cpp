@@ -45,7 +45,6 @@ int tempsRestant();
 void forceFinMatch();
 volatile bool flagForceFinMatch = false;
 bool Recalage = true;
-bool Activation_Lidar = false;
 
 vector<string> fichiers;
 bool listeFichiers();
@@ -55,6 +54,7 @@ vector<string> fichiersMp3;
 bool listeFichiersMp3();
 
 Assiette assiette_choisie = NO_ASSIETTE;
+couleurDepart color = BLEU;//De base les strat doivent etre faitent en etant en bleu
 
 int actionneurPinceArriere[2]={2,1}, actionneurPinceArriereTab = 0, actionneurPinceAavant = 0, actionneurStepMotor = 0;
 
@@ -111,10 +111,11 @@ int main() {
 
 
     herkulex.changerIdHerkulexPince(8);
-
+    ThisThread::sleep_for(1ms);
     while (1) {
         switch (etat) {
             case 0:
+                //------------------------------------------------------------------------
                 if (ihm.departClicked()) {
                     choix = ihm.choixStrategie();
                     if (choix == -1) {
@@ -130,19 +131,19 @@ int main() {
                     ihm.msgBoxInit("Lecture de la stratégie\n", "En cours", false);
                     ThisThread::sleep_for(1s);
                     etat = 10;
-                } else if(ihm.recalageHautDroitClicked()){
-                    //printf("recalage_HautGaucheClicked, choixCouleur() : %d\n", ihm.choixCouleur());
+                } 
+                //------------------------------------------------------------------------
+                //------------------------------------------------------------------------
+                else if(ihm.recalageHautDroitClicked()){//Recalage sur x
                     assiette_choisie = HG_ASS_VERTE_CARRE;
-                }else if(ihm.recalageBasDroitClicked()){
+                }else if(ihm.recalageBasDroitClicked()){//Recalage sur x
                     assiette_choisie = BG_ASS_BLEU_CARRE;
                 }
                 else if (ihm.recalageHautGaucheClicked()) {//Recalage sur x
-                     //printf("recalage_HautGaucheClicked, choixCouleur() : %d\n", ihm.choixCouleur());
                     assiette_choisie = HC_ASS_BLEU;
                     // depart_x =225; depart_y = 450-MOITIEE_ROBOT; depart_theta_robot = 0;
                     
                 } else if (ihm.recalageBasGaucheClicked()) {//Recalage sur x
-                     //printf("recalage_BasGaucheClicked, choixCouleur() : %d\n", ihm.choixCouleur());
                    assiette_choisie = BC_ASS_VERT;
                     // depart_x =2000 - 225; depart_y = 450-MOITIEE_ROBOT; depart_theta_robot = 180;
 
@@ -195,12 +196,13 @@ int main() {
                 } else if (ihm.activationRecalageClicked()) {
                     if (Recalage) {
                         Recalage = false;
-                        Activation_Lidar = true;
                     } else {
                         Recalage = true;
-                        Activation_Lidar = false;
                     }
-                } else if(ihm.actionneurPinceArriereClicked()){
+                } 
+                //------------------------------------------------------------------------
+                //------------------------------------------------------------------------
+                else if(ihm.actionneurPinceArriereClicked()){
                     printf("actionneurPinceArriereClicked\n");
                     uint8_t etat_pince = actionneurPinceArriere[actionneurPinceArriereTab]; // Serrer : 1, lacher : 0
                     bool poseCerise = false;
@@ -227,7 +229,8 @@ int main() {
                 }else if(ihm.asservOffClicked()){
                     deplacement.asservOff(true);
                 }
-                
+                //------------------------------------------------------------------------
+                //------------------------------------------------------------------------
                  else if (ihm.playClicked()) {
                     if (fichiersMp3.size()>0) {
                         ThreadSound::playMp3(("/sd" + config["Dossiers"]["musique"] + "/" + fichiersMp3[ihm.choixMp3()]).c_str());
@@ -242,7 +245,9 @@ int main() {
                 } else if (ihm.volumeChanged()) {
                     ThreadSound::setVolume(ihm.choixVolume());
                 }
-                if (!ThreadSound::isPlaying()) ihm.configStopPlaying();
+                if (!ThreadSound::isPlaying()) {ihm.configStopPlaying();}
+                //------------------------------------------------------------------------
+
                 break;
 
             case 1:
@@ -343,6 +348,7 @@ int main() {
             case 10:
                 if (lectureFichier(choix)) {
                     etat = 1;
+                    color = (ihm.choixCouleur() == 0) ? VERT : BLEU;
                     if (Recalage) {
                         // démarrer le recalage
                         recalage = new Thread;
