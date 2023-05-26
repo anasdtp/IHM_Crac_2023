@@ -698,7 +698,7 @@ void procesInstructions(Instruction instruction) {
 
             if(color == VERT){//code inversion sur X Fait
                 x = 2000 - instruction.arg1;// Inversion du X
-                theta = instruction.arg3 + 1800; if(theta > 1800){theta -= 3600;} else if(theta < -1800){theta += 3600;}
+                theta = 1800 + instruction.arg3; if(theta > 1800){theta -= 3600;} else if(theta < -1800){theta += 3600;}
             }else{
                 x = instruction.arg1;
                 theta = instruction.arg3;
@@ -1078,7 +1078,7 @@ bool machineRecalage() {
 
             if(color == VERT){//code inversion sur X Fait
                 x = 2000 - instruction.arg1;// Inversion du X
-                theta = instruction.arg3 + 1800; if(theta > 1800){theta -= 3600;} else if(theta < -1800){theta += 3600;}
+                theta = 1800 + instruction.arg3; if(theta > 1800){theta -= 3600;} else if(theta < -1800){theta += 3600;}
             }else{
                 x = instruction.arg1;
                 theta = instruction.arg3;
