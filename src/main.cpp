@@ -288,6 +288,8 @@ int main() {
                     timerMatch.attach(forceFinMatch, std::chrono::seconds(tempsAffiche));
                     // démarrer le match
                     match = new Thread;
+                    deplacement.sendJack();//Envoi l'ordre du jack sur le can, est reçu par le repeteur can ble, est envoyé au deuxieme robot, et simule le jack sur celui ci
+                    
                     match->start(runMatch);
                     ihm.msgBoxJackClose();
                     ihm.msgBoxInit("Match\n", "En cours\n", true);
@@ -321,7 +323,10 @@ int main() {
                         if (tempsAffiche != t) {
                             tempsAffiche = t;
                             if (tempsAffiche > 0) {
-                                sprintf(buf, "Reste %d s \n\n Instruction numéro %d \n\n %s \n\n Nombre d'instructions en tout : %d", tempsAffiche, listeInstructions.enCours().lineNumber, AckToString(waitingAckFrom).c_str(), listeInstructions.size());
+                                sprintf(buf, "Reste %d s \n\n Instruction numéro %d \n\n %s \n\n Nombre d'instructions en tout : %d", 
+                                                                                tempsAffiche, listeInstructions.enCours().lineNumber, 
+                                                                                AckToString(waitingAckID).c_str(), listeInstructions.size());
+
                                 ihm.msgBoxMessage(buf);
                             } else {
                                 ihm.msgBoxMessage("Terminé");
@@ -462,9 +467,9 @@ void runMatch() {
     while (machineStrategie());
 }
 
-// Retourne true si le jack est retiré
+// Retourne true si le jack est retiré, ou si un jack du bus can est reçu
 bool jack() {
-    return (jackPin.read());
+    return ((jackPin.read()) || getFlag(JACK, true));
 }
 
 void forceFinMatch() {

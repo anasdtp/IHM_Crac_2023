@@ -3,7 +3,7 @@
 
 #include "threadCAN.h"
 
-class Herkulex {
+class Herkulex {//Cela devrait plus se nommer Actionneurs, mais flemme de changer mtn
 protected:
     ThreadCAN *m_can;
 
@@ -30,6 +30,7 @@ public:
     void poseCerise(bool presenceGatoInAccount = true);
     void controlePinceArriere(uint8_t etatPince, bool poseCerise);
     void controleAspirateur(bool activation);
+    void controleAspirateurGauche(bool activation);
     void controleLanceur(bool activation);
     
 

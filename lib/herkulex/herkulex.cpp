@@ -73,7 +73,11 @@ void Herkulex::stepMotorMode(uint8_t mode) {
 
 
 void Herkulex::controleAspirateur(bool activation){
-    m_can->send(IDCAN_ASPIRATEUR, (uint8_t)activation);
+    m_can->send(IDCAN_ASPIRATEUR_DROIT, (uint8_t)activation);
+}
+
+void Herkulex::controleAspirateurGauche(bool activation){
+    m_can->send(IDCAN_ASPIRATEUR_GAUCHE, (uint8_t)activation);
 }
 
 void Herkulex::controleLanceur(bool activation){

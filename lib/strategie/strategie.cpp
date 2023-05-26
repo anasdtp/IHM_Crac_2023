@@ -151,7 +151,7 @@ void canProcessRx(CANMessage *rxMsg)
         switch(identifiant) {
             case ALIVE_MOTEUR:{
 
-                deplacement.setOdo(x_robot, y_robot, theta_robot);
+                // deplacement.setOdoPetit(x_robot, y_robot, theta_robot); //Pose probléme au debut lors du recalage du debut
                 printf("Base roulante a reset !! \n");
 
             }
@@ -170,10 +170,11 @@ void canProcessRx(CANMessage *rxMsg)
 
             case DEBUG_FAKE_JAKE://Permet de lancer le match à distance
             case GLOBAL_JACK:{
-                if(gameEtat == ETAT_GAME_WAIT_FOR_JACK) {
-                    gameEtat = ETAT_GAME_START;
-                    //SendRawId(ACKNOWLEDGE_JACK);
-                }
+                // if(gameEtat == ETAT_GAME_WAIT_FOR_JACK) {
+                //     gameEtat = ETAT_GAME_START;
+                //     //SendRawId(ACKNOWLEDGE_JACK);
+                // }
+                flag.set(JACK);
             }
                 break;
 
@@ -882,20 +883,34 @@ void procesInstructions(Instruction instruction) {
                 waitingAckID_FIN = IDCAN_PINCE_ARRIERE;
                 waitingAckFrom_FIN = INSTRUCTION_END_PINCE;
                 flag.wait_all(AckFrom_FIN_FLAG, 2500);
-            }else if(instruction.arg1 == 20){//Aspirateur
+            }else if(instruction.arg1 == 20){//Aspirateur droit
                 bool activationAspirateur = (instruction.arg2 != 0) ? true : false;
 
-                waitingAckID = IDCAN_ASPIRATEUR;
+                waitingAckID = IDCAN_ASPIRATEUR_DROIT;
                 waitingAckFrom = ACKNOWLEDGE_ACTIONNEURS;
                 herkulex.controleAspirateur(activationAspirateur);
 
                 flag.wait_all(AckFrom_FLAG, 2500);
 
-                waitingAckID_FIN = IDCAN_ASPIRATEUR;
+                waitingAckID_FIN = IDCAN_ASPIRATEUR_DROIT;
                 waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;
-                flag.wait_all(AckFrom_FIN_FLAG, 2500);
+                flag.wait_all(AckFrom_FIN_FLAG, 5000);
             
-            }else if(instruction.arg1 == 40){//Lanceur
+            }else if(instruction.arg1 == 30){//Aspirateur gauche
+                bool activationAspirateur = (instruction.arg2 != 0) ? true : false;
+
+                waitingAckID = IDCAN_ASPIRATEUR_GAUCHE;
+                waitingAckFrom = ACKNOWLEDGE_ACTIONNEURS;
+                herkulex.controleAspirateurGauche(activationAspirateur);
+
+                flag.wait_all(AckFrom_FLAG, 2500);
+
+                waitingAckID_FIN = IDCAN_ASPIRATEUR_GAUCHE;
+                waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;
+                flag.wait_all(AckFrom_FIN_FLAG, 5000);
+            
+            }
+            else if(instruction.arg1 == 40){//Lanceur
                 uint8_t activation = instruction.arg2;
                 if(activation){
                     waitingAckID = IDCAN_LANCEUR;
@@ -1012,9 +1027,12 @@ bool machineRecalage() {
 
             }
 
-            deplacement.setOdo(depart_x, depart_y, depart_theta_robot);
-            printf("deplacement.setOdo(depart_x, depart_y, depart_theta_robot);\n");
-            wait_us(1000 * 1000);
+            deplacement.setOdoPetit(depart_x, depart_y, depart_theta_robot);
+            printf("deplacement.setOdoPetit(depart_x, depart_y, depart_theta_robot);\n");
+            ThisThread::sleep_for(50ms);
+            deplacement.setOdoGrand(depart_x, depart_y, depart_theta_robot);
+            ThisThread::sleep_for(50ms);
+
             waitingAckID = ASSERVISSEMENT_RECALAGE;
             waitingAckFrom = ACKNOWLEDGE_MOTEUR;
             if(assiette_choisie == HD_ASS_VERT || assiette_choisie == BD_ASS_BLEU){
@@ -1327,6 +1345,7 @@ switch (etat_pos) {
 string AckToString(int id){
     switch (id)
     {
+        //Partie waitingAckFrom
     case ACKNOWLEDGE_MOTEUR:
         {
              return "MOTEUR";
@@ -1342,10 +1361,70 @@ string AckToString(int id){
              return "PINCE AVANT";
         }
         break;
-    
+    //Partie waitingAckID
+    case ASSERVISSEMENT_RECALAGE:
+        {
+             return "Recalage ou line";
+        }
+        break;
+    case ASSERVISSEMENT_ROTATION:
+        {
+             return "ROTATION";
+        }
+        break;
+    case ASSERVISSEMENT_XYT:
+        {
+             return "XYT";
+        }
+        break;
+    case ASSERVISSEMENT_COURBURE:
+        {
+             return "COURBURE";
+        }
+        break;
+    case IDCAN_PINCE:
+        {
+             return "PINCE AVANT";
+        }
+        break;
+    case IDCAN_POSE_CERISE:
+        {
+             return "POSE CERISE";
+        }
+        break;
+    case IDCAN_PINCE_ARRIERE:
+        {
+             return "PINCE ARRIERE";
+        }
+        break;
+    case IDCAN_ASPIRATEUR_DROIT:
+        {
+             return "ASPIRATEUR DROIT";
+        }
+        break;
+    case IDCAN_ASPIRATEUR_GAUCHE:
+        {
+             return "ASPIRATEUR GAUCHE";
+        }
+        break;
+    case IDCAN_LANCEUR:
+        {
+             return "LANCEUR";
+        }
+        break;
+
     default:
         break;
     }
 
     return "0";
+}
+
+bool getFlag(ACKFlags f, bool clearIfSet) {
+    if (flag.get() & f) {
+        if (clearIfSet)
+            flag.clear(f);
+        return true;
+    }
+    return false;
 }

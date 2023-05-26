@@ -49,9 +49,14 @@ void Deplacement::asservOn(bool enable)
     m_can->send(ASSERVISSEMENT_ENABLE, status);
 }
 
-void Deplacement::setOdo(uint16_t x, uint16_t y, int16_t theta)
+void Deplacement::setOdoGrand(uint16_t x, uint16_t y, int16_t theta)
 {
      m_can->send(ODOMETRIE_BIG_POSITION/*ASSERVISSEMENT_ODOMETRIE*/, x, y, (uint16_t)theta);
+}
+
+void Deplacement::setOdoPetit(uint16_t x, uint16_t y, int16_t theta)
+{
+     m_can->send(ODOMETRIE_SMALL_POSITION/*ASSERVISSEMENT_ODOMETRIE*/, x, y, (uint16_t)theta);
 }
 
 void Deplacement::vitesse(uint16_t valeur)
@@ -92,6 +97,9 @@ void Deplacement::courbeBezier(uint8_t nbCourbes, int16_t P1[][2], int16_t C1[][
     }
 }
 
+void Deplacement::sendJack(bool enable){
+    if(enable){m_can->send(GLOBAL_JACK);}
+}
 void Deplacement::stop(bool enable){
     if(enable){m_can->send(ASSERVISSEMENT_STOP);}
 }

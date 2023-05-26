@@ -5,11 +5,12 @@
 #include "threadSD.h"
 #include <instruction.h>
 
-enum
+typedef enum
 {
     AckFrom_FLAG     =   (1UL << 0),
     AckFrom_FIN_FLAG =   (1UL << 1),
-};
+    JACK             =   (1UL << 2),
+}ACKFlags;
 
 typedef enum
 {
@@ -102,4 +103,5 @@ bool machineRecalage();
 void procesInstructions(Instruction instruction);
 
 string AckToString(int id);
+bool getFlag(ACKFlags f, bool clearIfSet);
 #endif
