@@ -150,8 +150,9 @@ void canProcessRx(CANMessage *rxMsg)
         if (waitingId == identifiant) {waitingId = 0;}
         switch(identifiant) {
             case ALIVE_MOTEUR:{
-
-                // deplacement.setOdoPetit(x_robot, y_robot, theta_robot); //Pose probléme au debut lors du recalage du debut
+                if(gameEtat != ETAT_GAME_INIT){
+                    deplacement.setOdoPetit(x_robot, y_robot, theta_robot); //Pose probléme au debut lors du recalage du debut
+                }
                 printf("Base roulante a reset !! \n");
 
             }
@@ -962,18 +963,26 @@ bool machineRecalage() {
             
             waitingAckID = ACKNOWLEDGE_ACTIONNEURS;
             waitingAckFrom = IDCAN_PINCE_ARRIERE;
-            herkulex.controlePinceArriere(0,0);//position fermer pour ne pas gener recalage arriere
-            printf("herkulex.controlePinceArriere(0,0);\n");
-            herkulex.changerIdHerkulexPince(8);
-            printf("herkulex.changerIdHerkulexPince(8);\n");
 
-            herkulex.controlePince(0,0,0);//position à 80 mm de haut pour ne pas gener recalage avant
-            printf("herkulex.controlePince(0,0,0);\n");
-            deplacement.asservOn();
-            wait_us(5000);
+            deplacement.asservOn(); ThisThread::sleep_for(50ms);
             printf("deplacement.asservOn();\n");
-            herkulex.stepMotorMode(0);
+
+            herkulex.changerIdHerkulexPince(8); ThisThread::sleep_for(50ms);
+            printf("herkulex.changerIdHerkulexPince(8);\n");
+            
+            herkulex.stepMotorMode(0);  ThisThread::sleep_for(50ms);
             printf("herkulex.stepMotorMode(0);\n");
+            
+            //position fermer pour ne pas gener recalage arriere
+            herkulex.controlePinceArriere(0,0); ThisThread::sleep_for(50ms);
+            printf("herkulex.controlePinceArriere(0,0);\n");
+            
+            herkulex.controlePince(0,0,0);  ThisThread::sleep_for(50ms);
+            printf("herkulex.controlePince(0,0,0);\n");
+            
+
+            
+            
 
             int16_t distance = -1000;
             uint16_t val_recalage = MOITIEE_ROBOT;
@@ -1027,12 +1036,11 @@ bool machineRecalage() {
 
             }
 
-            deplacement.setOdoPetit(depart_x, depart_y, depart_theta_robot);
+            deplacement.setOdoPetit(depart_x, depart_y, depart_theta_robot); ThisThread::sleep_for(50ms);
             printf("deplacement.setOdoPetit(depart_x, depart_y, depart_theta_robot);\n");
-            ThisThread::sleep_for(50ms);
-            deplacement.setOdoGrand(depart_x, depart_y, depart_theta_robot);
-            ThisThread::sleep_for(50ms);
-
+            
+            deplacement.setOdoGrand(depart_x, depart_y, depart_theta_robot); ThisThread::sleep_for(50ms);
+            
             waitingAckID = ASSERVISSEMENT_RECALAGE;
             waitingAckFrom = ACKNOWLEDGE_MOTEUR;
             if(assiette_choisie == HD_ASS_VERT || assiette_choisie == BD_ASS_BLEU){
@@ -1107,7 +1115,7 @@ bool machineRecalage() {
             if (flag.wait_all(AckFrom_FLAG, 20000) == osFlagsErrorTimeout) {
                 // printf("osErrorTimeout, recalage, GOTOPOS, waitingAckID\n");
                 gameEtat = ETAT_GAME_INIT;
-                recalageErreur = -11;
+                recalageErreur = -5;
                 return false;
             }
 
@@ -1116,21 +1124,20 @@ bool machineRecalage() {
             if (flag.wait_all(AckFrom_FIN_FLAG, 20000) == osFlagsErrorTimeout) {
                 // printf("osErrorTimeout, recalage, GOTOPOS, waitingAckID_FIN\n");
                 gameEtat = ETAT_GAME_INIT;
-                recalageErreur = -12;
+                recalageErreur = -6;
                 return false;
             }
             etat_pos = FIN_POS;
         } break;
         case FIN_POS: {
             // actual_instruction = instruction.nextLineOK;
-            listeInstructions.vaLigne(instruction.nextLineOK);
+            int ligne = ((instruction.nextLineOK != instruction.lineNumber) ? instruction.nextLineOK : (instruction.lineNumber+1));
+            listeInstructions.vaLigne(ligne);
             target_x_robot = x_robot;
             target_y_robot = y_robot;
             target_theta_robot = theta_robot;
 
             herkulex.controlePince(0,0,0);
-
-            gameEtat = ETAT_GAME_WAIT_FOR_JACK;
             return false;
         } break;
     

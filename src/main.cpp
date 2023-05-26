@@ -457,8 +457,7 @@ bool listeFichiersMp3() {
 
 void runRecalage() {
     if (machineRecalageInit()) {
-        while (machineRecalage())
-            ;
+        while (machineRecalage());
     }
 }
 
