@@ -160,6 +160,7 @@
 #define ACKNOWLEDGE_MOTEUR 0x101  // Acknowledge moteur
 #define ACKNOWLEDGE_IHM 0x102  // Acknowledge ecran tactile
 #define ACKNOWLEDGE_ACTIONNEURS 0x103  // Acknowledge actionneurs
+#define ACKNOWLEDGE_BEZIER 0x104 //Acknowledge bezier
 #define ACKNOWLEDGE_TELEMETRE 0x105 // Acknowledge telemetre
 #define ACKNOWLEDGE_HERKULEX 0x106 // Ack servo
 #define ACKNOWLEDGE_STRAT 0x10A  // Acknowledge pompes
@@ -389,6 +390,7 @@ serial5 : RX4-TX4*/
 #define IDCAN_ASPIRATEUR_GAUCHE 0x91
 #define IDCAN_ASPIRATEUR_DROIT 0x92
 #define IDCAN_LANCEUR 0x93
+#define IDCAN_CAPTEURS_BALLE 0x94
 
 #define IDCAN_ASPIRATEUR 0x76
 

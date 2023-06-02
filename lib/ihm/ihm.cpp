@@ -363,24 +363,26 @@ void Ihm::ActionneurInit() {
     lv_obj_add_event_cb(stepMotor, Ihm::eventHandler, LV_EVENT_CLICKED, this);
 
 
-    AsservOff = lv_btn_create(container);
-    label = lv_label_create(AsservOff);
-    lv_label_set_text(label, " Asserv Off ");
-    lv_obj_set_style_bg_color(AsservOff, lv_palette_main(LV_PALETTE_RED), LV_STATE_DEFAULT);
+    AsservActiv = lv_btn_create(container);
+    label = lv_label_create(AsservActiv);
+    lv_label_set_text(label, "Activation Asserv");
+    lv_obj_add_flag(AsservActiv, LV_OBJ_FLAG_CHECKABLE);
+    lv_obj_set_style_bg_color(AsservActiv, lv_palette_main(LV_PALETTE_GREEN), LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(AsservActiv, lv_palette_main(LV_PALETTE_RED), LV_STATE_CHECKED);
     lv_obj_center(label);
-    lv_obj_set_grid_cell(AsservOff, LV_GRID_ALIGN_STRETCH, 2, 1,
+    lv_obj_set_grid_cell(AsservActiv, LV_GRID_ALIGN_STRETCH, 2, 1,
                          LV_GRID_ALIGN_STRETCH, 1, 1);
-    lv_obj_add_event_cb(AsservOff, Ihm::eventHandler, LV_EVENT_CLICKED, this);
+    lv_obj_add_event_cb(AsservActiv, Ihm::eventHandler, LV_EVENT_CLICKED, this);
 
 
-    AsservOn = lv_btn_create(container);
-    label = lv_label_create(AsservOn);
-    lv_label_set_text(label, " Asserv On ");
-    lv_obj_set_style_bg_color(AsservOn, lv_palette_main(LV_PALETTE_LIGHT_GREEN), LV_STATE_DEFAULT);
+    Aspirateur = lv_btn_create(container);
+    label = lv_label_create(Aspirateur);
+    lv_label_set_text(label, " Aspirateur ");
+    lv_obj_set_style_bg_color(Aspirateur, lv_palette_main(LV_PALETTE_LIGHT_GREEN), LV_STATE_DEFAULT);
     lv_obj_center(label);
-    lv_obj_set_grid_cell(AsservOn, LV_GRID_ALIGN_STRETCH, 2, 1,
+    lv_obj_set_grid_cell(Aspirateur, LV_GRID_ALIGN_STRETCH, 2, 1,
                          LV_GRID_ALIGN_STRETCH, 2, 1);
-    lv_obj_add_event_cb(AsservOn, Ihm::eventHandler, LV_EVENT_CLICKED, this);
+    lv_obj_add_event_cb(Aspirateur, Ihm::eventHandler, LV_EVENT_CLICKED, this);
 
     m_threadLvgl->unlock();
 }
@@ -471,11 +473,11 @@ void Ihm::eventHandler(lv_event_t *e) {
     }else if(emetteur == ihm->stepMotor){
         ihm->flags.set(IHM_FLAG_ACTIONNEUR_STEP_MOTOR);
     }   
-    else if(emetteur == ihm->AsservOff){
-        ihm->flags.set(IHM_FLAG_ACTIONNEUR_ASSERV_OFF);
+    else if(emetteur == ihm->AsservActiv){
+        ihm->flags.set(IHM_FLAG_ACTIONNEUR_ASSERV_ACTIV);
     }   
-    else if(emetteur == ihm->AsservOn){
-        ihm->flags.set(IHM_FLAG_ACTIONNEUR_ASSERV_ON);
+    else if(emetteur == ihm->Aspirateur){
+        ihm->flags.set(IHM_FLAG_ACTIONNEUR_ASPIRATEUR);
     }   
 }
 

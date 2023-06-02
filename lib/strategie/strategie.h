@@ -98,10 +98,10 @@ void printCANMsg(CANMessage& msg);
 void remplirStruct(CANMessage &theDATA, int idf, char lenf, char dt0f, char dt1f, char dt2f, char dt3f, char dt4f, char dt5f, char dt6f, char dt7f);
 
 bool machineStrategie();
+void procesInstructions(Instruction instruction);
 bool machineRecalageInit();
 bool machineRecalage();
-void procesInstructions(Instruction instruction);
-
+void instructionsLigneDroite(int16_t distance);
 string AckToString(int id);
 bool getFlag(ACKFlags f, bool clearIfSet);
 #endif

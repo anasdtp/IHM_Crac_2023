@@ -553,6 +553,7 @@ bool machineStrategie() {
     return true;
 }
 
+
 void procesInstructions(Instruction instruction) {
     gameEtat = ETAT_GAME_INSTRUCTION_FINIE;//Pour passer à la suivante pour toutes les instructions sans MV ou autre
 
@@ -857,19 +858,7 @@ void procesInstructions(Instruction instruction) {
             case ACTION:
             {
                 actionPrecedente = ACTION;
-            if ((instruction.arg1 == 30))//Pose cerise
-            {
-                waitingAckID = IDCAN_POSE_CERISE;
-                waitingAckFrom = ACKNOWLEDGE_ACTIONNEURS;
-                herkulex.poseCerise();
-                printf("instruction.arg1 == 30 ; poseCerise\n");
-                flag.wait_all(AckFrom_FLAG, 1000);
-
-                waitingAckID_FIN = IDCAN_POSE_CERISE;
-                waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;
-                flag.wait_all(AckFrom_FIN_FLAG, 1000);
-            }
-            else if (instruction.arg1 == 10)//Pince arriere
+            if (instruction.arg1 == 10)//Pince arriere
             {
                 
                 uint8_t etat_pince = instruction.arg2;// 0 -> fermé, 1 -> position gateau, 2 -> ouvert
@@ -896,6 +885,21 @@ void procesInstructions(Instruction instruction) {
                 waitingAckID_FIN = IDCAN_ASPIRATEUR_DROIT;
                 waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;
                 flag.wait_all(AckFrom_FIN_FLAG, 5000);
+
+                int distance_tot = 0;
+                do{
+                    const int16_t distance = 30;
+
+                    waitingAckID_FIN = IDCAN_CAPTEURS_BALLE;
+                    waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;//Attente qu'une balle soit aspirer
+                    if (flag.wait_all(AckFrom_FIN_FLAG, 3000) == osFlagsErrorTimeout) {
+                        if(distance_tot <= 60){break;}//Si une des deux premieres balles n'est pas présente, alors la recharge de cerises a déja etait prise
+                    }
+                    instructionsLigneDroite(distance);
+                    distance_tot += distance;
+
+                }while(distance_tot<280);
+
             
             }else if(instruction.arg1 == 30){//Aspirateur gauche
                 bool activationAspirateur = (instruction.arg2 != 0) ? true : false;
@@ -932,6 +936,18 @@ void procesInstructions(Instruction instruction) {
 
                 //deplacement.vitesse(vitesse);
             
+            }
+            else if ((instruction.arg1 == 60))//Pose cerise
+            {
+                waitingAckID = IDCAN_POSE_CERISE;
+                waitingAckFrom = ACKNOWLEDGE_ACTIONNEURS;
+                herkulex.poseCerise();
+                printf("instruction.arg1 == 30 ; poseCerise\n");
+                flag.wait_all(AckFrom_FLAG, 1000);
+
+                waitingAckID_FIN = IDCAN_POSE_CERISE;
+                waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;
+                flag.wait_all(AckFrom_FIN_FLAG, 1000);
             }
             }
             break;
@@ -1347,6 +1363,21 @@ switch (etat_pos) {
             break;
     }
     */
+
+void instructionsLigneDroite(int16_t distance){//Sans Lidar
+    waitingAckID = ASSERVISSEMENT_RECALAGE;
+    waitingAckFrom = ACKNOWLEDGE_MOTEUR;
+
+    deplacement.toutDroit(distance);
+
+    flag.wait_all(AckFrom_FLAG, 20000);
+
+    waitingAckID_FIN = ASSERVISSEMENT_RECALAGE;
+    waitingAckFrom_FIN = INSTRUCTION_END_MOTEUR;
+    flag.wait_all(AckFrom_FIN_FLAG, 20000);
+}
+
+
 
 //ACKNOWLEDGE_MOTEUR ACKNOWLEDGE_ACTIONNEURS INSTRUCTION_END_PINCE
 string AckToString(int id){

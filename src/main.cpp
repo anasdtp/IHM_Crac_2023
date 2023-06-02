@@ -56,7 +56,7 @@ bool listeFichiersMp3();
 Assiette assiette_choisie = NO_ASSIETTE;
 couleurDepart color = BLEU;//De base les strat doivent etre faitent en etant en bleu
 
-int actionneurPinceArriere[2]={2,1}, actionneurPinceArriereTab = 0, actionneurPinceAavant = 0, actionneurStepMotor = 0;
+int actionneurPinceArriere[2]={2,1}, actionneurPinceArriereTab = 0, actionneurPinceAavant = 0, actionneurStepMotor = 0, actionneurAsservissment = 1, actionneurAspirateur = 0;
 
 int main() {
     char buf[100];
@@ -224,10 +224,14 @@ int main() {
                     actionneurStepMotor = !actionneurStepMotor;
                     actionneurStepMotor = (actionneurStepMotor != 0) ? 4 : 0;
                     herkulex.controlePince(actionneurStepMotor, 0,0);
-                }else if(ihm.asservOnClicked()){
-                    deplacement.asservOn(true);
-                }else if(ihm.asservOffClicked()){
-                    deplacement.asservOff(true);
+                }else if(ihm.asservActivClicked()){
+                    actionneurAsservissment = !actionneurAsservissment;
+                    deplacement.asservOn(actionneurAsservissment);
+                }else if(ihm.AspirateurClicked()){
+                    actionneurAspirateur = !actionneurAspirateur;
+                    herkulex.controleAspirateur(actionneurAspirateur);
+                    wait_us(5 * 1000);
+                    herkulex.controleAspirateurGauche(actionneurAspirateur);
                 }
                 //------------------------------------------------------------------------
                 //------------------------------------------------------------------------
