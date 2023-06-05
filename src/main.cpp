@@ -54,7 +54,7 @@ vector<string> fichiersMp3;
 bool listeFichiersMp3();
 
 Assiette assiette_choisie = NO_ASSIETTE;
-couleurDepart color = BLEU;//De base les strat doivent etre faitent en etant en bleu
+couleurDepart color = BLEU;//De base les strat doivent etre faite en etant en bleu
 
 int actionneurPinceArriere[2]={2,1}, actionneurPinceArriereTab = 0, actionneurPinceAavant = 0, actionneurStepMotor = 0, actionneurAsservissment = 1, actionneurAspirateur = 0;
 

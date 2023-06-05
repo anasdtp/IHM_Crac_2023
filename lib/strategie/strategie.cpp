@@ -1055,7 +1055,7 @@ bool machineRecalage() {
             deplacement.setOdoPetit(depart_x, depart_y, depart_theta_robot); ThisThread::sleep_for(50ms);
             printf("deplacement.setOdoPetit(depart_x, depart_y, depart_theta_robot);\n");
             
-            deplacement.setOdoGrand(depart_x, depart_y, depart_theta_robot); ThisThread::sleep_for(50ms);
+            // deplacement.setOdoGrand(depart_x, depart_y, depart_theta_robot); ThisThread::sleep_for(50ms);
             
             waitingAckID = ASSERVISSEMENT_RECALAGE;
             waitingAckFrom = ACKNOWLEDGE_MOTEUR;
