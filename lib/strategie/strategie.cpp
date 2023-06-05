@@ -882,9 +882,17 @@ void procesInstructions(Instruction instruction) {
 
                 flag.wait_all(AckFrom_FLAG, 2500);
 
-                waitingAckID_FIN = IDCAN_ASPIRATEUR_DROIT;
-                waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;
-                flag.wait_all(AckFrom_FIN_FLAG, 5000);
+                
+                
+                if(!activationAspirateur){
+                    waitingAckID_FIN = IDCAN_ASPIRATEUR_DROIT;
+                    waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;
+                    flag.wait_all(AckFrom_FIN_FLAG, 5000);
+                    break;
+                }
+                
+                waitingAckID_FIN = IDCAN_CAPTEURS_BALLE;
+                waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;//Attente qu'une balle soit aspirer
 
                 int distance_tot = 0;
                 do{
@@ -893,14 +901,14 @@ void procesInstructions(Instruction instruction) {
                     waitingAckID_FIN = IDCAN_CAPTEURS_BALLE;
                     waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;//Attente qu'une balle soit aspirer
                     if (flag.wait_all(AckFrom_FIN_FLAG, 3000) == osFlagsErrorTimeout) {
-                        if(distance_tot <= 60){break;}//Si une des deux premieres balles n'est pas présente, alors la recharge de cerises a déja etait prise
+                        if(distance_tot && distance_tot <= 60){break;}//Si une des deux premieres balles aprés la 1ere balle n'est pas présente, alors la recharge de cerises a déja etait prise
                     }
                     instructionsLigneDroite(distance);
                     distance_tot += distance;
 
                 }while(distance_tot<280);
 
-            
+
             }else if(instruction.arg1 == 30){//Aspirateur gauche
                 bool activationAspirateur = (instruction.arg2 != 0) ? true : false;
 
