@@ -3,18 +3,26 @@
 
 #include "threadCAN.h"
 
+typedef enum{
+    NO_COLOR,
+    GREEN,
+    RED,
+    BLUE
+} CouleurHerkulex;
+
+typedef enum{
+    NONE,
+    DROIT,
+    GAUCHE
+}ASPIRATEUR;
+
+
 class Herkulex {//Cela devrait plus se nommer Actionneurs, mais flemme de changer mtn
 protected:
     ThreadCAN *m_can;
 
 public:
-    typedef enum
-    {
-        VERT,
-        ROUGE,
-        BLEU
-    } CouleurHerkulex;
-
+ 
     Herkulex(ThreadCAN &threadCAN);
     void controlePince(uint8_t Etage, uint8_t etatHerkulex, uint8_t sens);
     void changerIdHerkulexPince(uint8_t id);
@@ -29,11 +37,11 @@ public:
     void clearHerkulex(uint8_t IDHerkulex);
     void poseCerise(bool presenceGatoInAccount = true);
     void controlePinceArriere(uint8_t etatPince, bool poseCerise);
-    void controleAspirateur(bool activation);
-    void controleAspirateurGauche(bool activation);
+    void controleAspirateur(ASPIRATEUR choix, bool activation);
     void controleLanceur(bool activation);
     
 
 };
+
 
 #endif

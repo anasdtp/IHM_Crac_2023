@@ -876,10 +876,16 @@ void procesInstructions(Instruction instruction) {
                 flag.wait_all(AckFrom_FIN_FLAG, 2500);
             }else if(instruction.arg1 == 20){//Aspirateur droit
                 bool activationAspirateur = (instruction.arg2 != 0) ? true : false;
+                ASPIRATEUR choix = DROIT;
+
+                if(color == VERT){//code inversion
+                    choix = GAUCHE;
+                }
+
 
                 waitingAckID = IDCAN_ASPIRATEUR_DROIT;
                 waitingAckFrom = ACKNOWLEDGE_ACTIONNEURS;
-                herkulex.controleAspirateur(activationAspirateur);
+                herkulex.controleAspirateur(choix, activationAspirateur);
 
                 flag.wait_all(AckFrom_FLAG, 2500);
 
@@ -906,10 +912,15 @@ void procesInstructions(Instruction instruction) {
 
             }else if(instruction.arg1 == 30){//Aspirateur gauche
                 bool activationAspirateur = (instruction.arg2 != 0) ? true : false;
+                ASPIRATEUR choix = GAUCHE;
 
-                waitingAckID = IDCAN_ASPIRATEUR_GAUCHE;
+                if(color == VERT){//code inversion
+                    choix = DROIT;
+                }
+
+                waitingAckID = IDCAN_ASPIRATEUR_DROIT;
                 waitingAckFrom = ACKNOWLEDGE_ACTIONNEURS;
-                herkulex.controleAspirateurGauche(activationAspirateur);
+                herkulex.controleAspirateur(choix, activationAspirateur);
 
                 flag.wait_all(AckFrom_FLAG, 2500);
 

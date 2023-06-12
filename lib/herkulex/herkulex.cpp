@@ -12,11 +12,11 @@ void Herkulex::changerIdHerkulexPince(uint8_t id) {
 
 void Herkulex::controleHerkulexPosition(uint8_t IDHerkulex, short position, CouleurHerkulex setLed) {
     uint8_t commande = 0, playtime = 0x3C, couleur = 0;
-    if (setLed == VERT) {
+    if (setLed == GREEN) {
         couleur = 0x04;
-    } else if (setLed == ROUGE) {
+    } else if (setLed == RED) {
         couleur = 0x10;
-    } else if (setLed == BLEU) {
+    } else if (setLed == BLUE) {
         couleur = 0x08;
     }
     m_can->send(IDCAN_HERKULEX, IDHerkulex, commande, (uint16_t)position, playtime, couleur);
@@ -72,12 +72,10 @@ void Herkulex::stepMotorMode(uint8_t mode) {
 
 
 
-void Herkulex::controleAspirateur(bool activation){
-    m_can->send(IDCAN_ASPIRATEUR_DROIT, (uint8_t)activation);
-}
-
-void Herkulex::controleAspirateurGauche(bool activation){
-    m_can->send(IDCAN_ASPIRATEUR_GAUCHE, (uint8_t)activation);
+void Herkulex::controleAspirateur(ASPIRATEUR choix, bool activation){
+    uint32_t id = IDCAN_ASPIRATEUR_DROIT;
+    if(choix == NONE){return;}else if(choix == GAUCHE){id = IDCAN_ASPIRATEUR_GAUCHE;}
+    m_can->send(id, (uint8_t)activation);
 }
 
 void Herkulex::controleLanceur(bool activation){

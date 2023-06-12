@@ -229,9 +229,9 @@ int main() {
                     deplacement.asservOn(actionneurAsservissment);
                 }else if(ihm.AspirateurClicked()){
                     actionneurAspirateur = !actionneurAspirateur;
-                    herkulex.controleAspirateur(actionneurAspirateur);
+                    herkulex.controleAspirateur(DROIT, actionneurAspirateur);
                     wait_us(5 * 1000);
-                    herkulex.controleAspirateurGauche(actionneurAspirateur);
+                    herkulex.controleAspirateur(GAUCHE, actionneurAspirateur);
                 }
                 //------------------------------------------------------------------------
                 //------------------------------------------------------------------------
