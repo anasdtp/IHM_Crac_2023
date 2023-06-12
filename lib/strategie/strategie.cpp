@@ -505,6 +505,7 @@ bool machineStrategie() {
             // if (actual_instruction >= nb_instructions || actual_instruction == 255) {
             if (listeInstructions.fin()) {
                 gameEtat = ETAT_END;
+                deplacement.asservOff();
                 // Il n'y a plus d'instruction, fin du jeu
             } else {
                 // instruction = strat_instructions[actual_instruction];
@@ -701,7 +702,7 @@ void procesInstructions(Instruction instruction) {
 
             if(color == VERT){//code inversion sur X Fait
                 x = 2000 - instruction.arg1;// Inversion du X
-                theta = 1800 + instruction.arg3; if(theta > 1800){theta -= 3600;} else if(theta < -1800){theta += 3600;}
+                theta = 1800 - instruction.arg3; if(theta > 1800){theta -= 3600;} else if(theta < -1800){theta += 3600;}
             }else{
                 x = instruction.arg1;
                 theta = instruction.arg3;
@@ -882,31 +883,25 @@ void procesInstructions(Instruction instruction) {
 
                 flag.wait_all(AckFrom_FLAG, 2500);
 
+                waitingAckID_FIN = IDCAN_ASPIRATEUR_GAUCHE;
+                waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;
+                flag.wait_all(AckFrom_FIN_FLAG, 5000);
                 
-                
-                if(!activationAspirateur){
-                    waitingAckID_FIN = IDCAN_ASPIRATEUR_DROIT;
-                    waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;
-                    flag.wait_all(AckFrom_FIN_FLAG, 5000);
-                    break;
-                }
-                
-                waitingAckID_FIN = IDCAN_CAPTEURS_BALLE;
-                waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;//Attente qu'une balle soit aspirer
 
                 int distance_tot = 0;
-                do{
-                    const int16_t distance = 30;
+                while(distance_tot<280 && activationAspirateur){
+                    const int16_t distance = 60;
 
                     waitingAckID_FIN = IDCAN_CAPTEURS_BALLE;
                     waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;//Attente qu'une balle soit aspirer
-                    if (flag.wait_all(AckFrom_FIN_FLAG, 3000) == osFlagsErrorTimeout) {
-                        if(distance_tot && distance_tot <= 60){break;}//Si une des deux premieres balles aprés la 1ere balle n'est pas présente, alors la recharge de cerises a déja etait prise
-                    }
+
                     instructionsLigneDroite(distance);
                     distance_tot += distance;
 
-                }while(distance_tot<280);
+                    if (flag.wait_all(AckFrom_FIN_FLAG, 5000) == osFlagsErrorTimeout) {
+                        //if(distance_tot && distance_tot <= 60){break;}//Si une des deux premieres balles aprés la 1ere balle n'est pas présente, alors la recharge de cerises a déja etait prise
+                    }
+                }
 
 
             }else if(instruction.arg1 == 30){//Aspirateur gauche
@@ -921,6 +916,21 @@ void procesInstructions(Instruction instruction) {
                 waitingAckID_FIN = IDCAN_ASPIRATEUR_GAUCHE;
                 waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;
                 flag.wait_all(AckFrom_FIN_FLAG, 5000);
+
+                int distance_tot = 0;
+                while(distance_tot<280 && activationAspirateur){
+                    const int16_t distance = 60;
+
+                    waitingAckID_FIN = IDCAN_CAPTEURS_BALLE;
+                    waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;//Attente qu'une balle soit aspirer
+
+                    instructionsLigneDroite(distance);
+                    distance_tot += distance;
+
+                    if (flag.wait_all(AckFrom_FIN_FLAG, 5000) == osFlagsErrorTimeout) {
+                        //if(distance_tot && distance_tot <= 60){break;}//Si une des deux premieres balles aprés la 1ere balle n'est pas présente, alors la recharge de cerises a déja etait prise
+                    }
+                }
             
             }
             else if(instruction.arg1 == 40){//Lanceur
@@ -1128,7 +1138,7 @@ bool machineRecalage() {
 
             if(color == VERT){//code inversion sur X Fait
                 x = 2000 - instruction.arg1;// Inversion du X
-                theta = 1800 + instruction.arg3; if(theta > 1800){theta -= 3600;} else if(theta < -1800){theta += 3600;}
+                theta = 1800 - instruction.arg3; if(theta > 1800){theta -= 3600;} else if(theta < -1800){theta += 3600;}
             }else{
                 x = instruction.arg1;
                 theta = instruction.arg3;

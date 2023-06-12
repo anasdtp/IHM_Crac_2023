@@ -304,12 +304,12 @@ int main() {
             case 3:
                 // Le match a démarré
                 if (ihm.msgBoxCancelClicked()) {
-                    listeInstructions.clear();
                     // Annuler le match en cours
                     match->terminate();
                     delete match;
                     match = nullptr;
                     etat = 0;
+                    listeInstructions.clear();
                 } else {
                     // Si fin du match
                     if (flagForceFinMatch) {
@@ -344,7 +344,8 @@ int main() {
                 // Affichage du score
                 sprintf(buf, "Terminé\n\nScore = %d", SCORE_GLOBAL);
                 ihm.msgBoxMessage(buf);
-                listeInstructions.clear();
+                listeInstructions.clear();//Si on en fait pas ça et qu'on lance une autre stratégie aprés, la taille de la liste d'instructions sera egale à la taille des deux stratégie additionner. Ce qui entraine que lorsqu'on arrive en fin de match, le robot recommencera du début la strat sans s'arreter
+                deplacement.asservOff();
                 etat = 5;
                 break;
 
@@ -411,6 +412,7 @@ bool lectureFichier(int choix) {
         return false;
     }
     ficStrat = "/sd" + config["Dossiers"]["strategie"] + "/" + fichiers[choix];
+
     ifstream monFlux(ficStrat);  // Ouverture d'un fichier en lecture
     if (monFlux) {
         // Tout est prêt pour la lecture.
