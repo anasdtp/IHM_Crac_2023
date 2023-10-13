@@ -327,9 +327,11 @@ int main() {
                         if (tempsAffiche != t) {
                             tempsAffiche = t;
                             if (tempsAffiche > 0) {
+
                                 sprintf(buf, "Reste %d s \n\n Instruction numéro %d \n\n %s \n\n Nombre d'instructions en tout : %d", 
                                                                                 tempsAffiche, listeInstructions.enCours().lineNumber, 
                                                                                 AckToString(waitingAckID).c_str(), listeInstructions.size());
+
 
                                 ihm.msgBoxMessage(buf);
                             } else {
