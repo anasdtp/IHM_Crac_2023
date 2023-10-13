@@ -47,7 +47,7 @@ signed char asser_stop_direction=0;
 // char counter = 0;
 // char check;
 // char Jack = 1;
-short SCORE_GLOBAL=0;
+short SCORE_GLOBAL=18;
 // short SCORE_GR=0;
 // short SCORE_PR=0;
 // unsigned short distance_recalage;
@@ -65,6 +65,7 @@ unsigned short flag_check_carte = 0; //, flag_strat = 0, flag_timer;
 
 signed short x_robot,y_robot,theta_robot;//La position du robot, theta en dizieme de degree
 signed short target_x_robot, target_y_robot, target_theta_robot, target_sens;
+signed short depart_x, depart_y, depart_theta_robot;
 // signed short avant_gauche, avant_droit;
 EnumInstructionType actionPrecedente;
 // //unsigned char FIFO_ecriture=0; //Position du fifo pour la reception CAN
@@ -149,6 +150,10 @@ void canProcessRx(CANMessage *rxMsg)
         if (waitingId == identifiant) {waitingId = 0;}
         switch(identifiant) {
             case ALIVE_MOTEUR:{
+                if(gameEtat != ETAT_GAME_INIT){
+                    deplacement.setOdoPetit(x_robot, y_robot, theta_robot); //Pose probléme au debut lors du recalage du debut
+                }
+                printf("Base roulante a reset !! \n");
 
             }
                 
@@ -166,10 +171,11 @@ void canProcessRx(CANMessage *rxMsg)
 
             case DEBUG_FAKE_JAKE://Permet de lancer le match à distance
             case GLOBAL_JACK:{
-                if(gameEtat == ETAT_GAME_WAIT_FOR_JACK) {
-                    gameEtat = ETAT_GAME_START;
-                    //SendRawId(ACKNOWLEDGE_JACK);
-                }
+                // if(gameEtat == ETAT_GAME_WAIT_FOR_JACK) {
+                //     gameEtat = ETAT_GAME_START;
+                //     //SendRawId(ACKNOWLEDGE_JACK);
+                // }
+                flag.set(JACK);
             }
                 break;
 
@@ -454,6 +460,11 @@ void canProcessRx(CANMessage *rxMsg)
             }
             break;
 
+            case IDCAN_SET_SCORE:{
+                unsigned short score = rxMsg->data[0]|((unsigned short)(rxMsg->data[1])<<8);
+                SCORE_GLOBAL = score;
+            }break;
+
             default:
                 break;
         }
@@ -494,6 +505,7 @@ bool machineStrategie() {
             // if (actual_instruction >= nb_instructions || actual_instruction == 255) {
             if (listeInstructions.fin()) {
                 gameEtat = ETAT_END;
+                deplacement.asservOff();
                 // Il n'y a plus d'instruction, fin du jeu
             } else {
                 // instruction = strat_instructions[actual_instruction];
@@ -510,8 +522,8 @@ bool machineStrategie() {
         } break;
 
         case ETAT_GAME_MVT_DANGER: {
-            if (flag.wait_all(AckFrom_FIN_FLAG, 50) != osFlagsErrorTimeout) {
-                if (gameEtat != ETAT_GAME_OBSTACLE) gameEtat = ETAT_GAME_INSTRUCTION_FINIE;
+            if (flag.wait_all(AckFrom_FIN_FLAG, 50) != osFlagsErrorTimeout) {//Si c'est égale à osFlagsErrorTimeout, alors il a timeout, sinon on a bien reçu le ack et on peut passer à la suite
+                if (gameEtat != ETAT_GAME_OBSTACLE) {gameEtat = ETAT_GAME_INSTRUCTION_FINIE;}
             }
         } break;
 
@@ -542,10 +554,12 @@ bool machineStrategie() {
     return true;
 }
 
+
 void procesInstructions(Instruction instruction) {
-    gameEtat = ETAT_GAME_INSTRUCTION_FINIE;
+    gameEtat = ETAT_GAME_INSTRUCTION_FINIE;//Pour passer à la suivante pour toutes les instructions sans MV ou autre
+
     switch (instruction.order) {
-        case MV_RECALAGE: {
+        case MV_RECALAGE: {//code inversion sur X Fait
            //if (instruction.nextActionType == MECANIQUE) {
                 instruction.nextActionType = WAIT;
                 int16_t distance = (((instruction.direction == FORWARD) ? 1 : -1) * 1000);  // On indique une distance de 3000 pour etre sur que le robot va ce recaler
@@ -564,7 +578,12 @@ void procesInstructions(Instruction instruction) {
                     // }
                 } else {
                     coordonnee = 1;
-                    val_recalage = instruction.arg1;
+                    if(color == VERT){
+                        val_recalage = 2000 - instruction.arg1;// Inversion du X
+                    }else{
+                        val_recalage = instruction.arg1;
+                    }
+                    
                 }
                 deplacement.recalage(distance, coordonnee, val_recalage);
                 waitingAckID = ASSERVISSEMENT_RECALAGE;
@@ -578,7 +597,7 @@ void procesInstructions(Instruction instruction) {
             // } else {
             // }
         } break;
-        case MV_TURN: {
+        case MV_TURN: {//code inversion sur X Fait
             int16_t angle = instruction.arg3;
             target_x_robot = x_robot;
             target_y_robot = y_robot;
@@ -588,27 +607,30 @@ void procesInstructions(Instruction instruction) {
             // {
             //   angle = -angle;
             // }
-
-            if (instruction.direction == ABSOLUTE) {
-                // C'est un rotation absolu, il faut la convertir en relative
-
-                angle = (angle - theta_robot) % 3600;
-                if (angle > 1800)
-                    angle = angle - 3600;
-
-                else if (angle < -1800)
-                    angle = angle + 3600;
+            if(color == VERT){
+                angle = -angle;
             }
 
-            waitingAckID = ASSERVISSEMENT_ROTATION;
-            waitingAckFrom = ACKNOWLEDGE_MOTEUR;
-            deplacement.rotation(angle);
-            // printf("deplacement.rotation(angle : %d);\n", angle);
-            flag.wait_all(AckFrom_FLAG, 20000);
+            if (instruction.direction == ABSOLUTE && (int16_t)theta_robot) {
+                // C'est une rotation absolu, il faut la convertir en relative
 
-            waitingAckID_FIN = ASSERVISSEMENT_ROTATION;
-            waitingAckFrom_FIN = INSTRUCTION_END_MOTEUR;
-            flag.wait_all(AckFrom_FIN_FLAG, 20000);
+                angle = (int16_t)(angle - (int16_t)theta_robot);// % 3600;
+                if (angle > 1800){angle -= 3600;}
+                else if (angle <= -1800){angle += 3600;}//Calcule le chemin le plus court
+            }
+            
+            if(angle){
+                waitingAckID = ASSERVISSEMENT_ROTATION;
+                waitingAckFrom = ACKNOWLEDGE_MOTEUR;
+                deplacement.rotation(angle);
+            // printf("deplacement.rotation(angle : %d);\n", angle);
+                flag.wait_all(AckFrom_FLAG, 20000);
+
+                waitingAckID_FIN = ASSERVISSEMENT_ROTATION;
+                waitingAckFrom_FIN = INSTRUCTION_END_MOTEUR;
+                flag.wait_all(AckFrom_FIN_FLAG, 20000);
+            }
+            
         } break;
         case MV_LINE: {
             waitingAckID = ASSERVISSEMENT_RECALAGE;
@@ -652,10 +674,10 @@ void procesInstructions(Instruction instruction) {
             gameEtat = ETAT_GAME_MVT_DANGER;
 //            flag.wait_all(AckFrom_FIN_FLAG, 20000);
         } break;
-        case MV_XYT: {
+        case MV_XYT: {//code inversion sur X Fait
             // on effectue XYT normalement selon les instructions
-            //    uint16_t x;
-            uint16_t y;
+            uint16_t x;
+            uint16_t y = instruction.arg2;
             int16_t theta;
             uint8_t sens;
             actionPrecedente = MV_XYT;
@@ -674,30 +696,41 @@ void procesInstructions(Instruction instruction) {
             // }
             // else
             // {
-            y = instruction.arg2;
-            theta = instruction.arg3;
+            // y = instruction.arg2;
+            // theta = instruction.arg3;
             //}
-            waitingAckID = ASSERVISSEMENT_XYT;
-            waitingAckFrom = ACKNOWLEDGE_MOTEUR;
-            if ((instruction.arg1 <= 0) || (y <= 0)) {
-                deplacement.positionXYTheta(target_x_robot, target_y_robot, target_theta_robot, sens);
-            } else {
-                deplacement.positionXYTheta(instruction.arg1, y, theta, sens);
+
+            if(color == VERT){//code inversion sur X Fait
+                x = 2000 - instruction.arg1;// Inversion du X
+                theta = 1800 - instruction.arg3; if(theta > 1800){theta -= 3600;} else if(theta < -1800){theta += 3600;}
+            }else{
+                x = instruction.arg1;
+                theta = instruction.arg3;
             }
 
-            target_x_robot = instruction.arg1;
-            target_y_robot = y;
-            target_theta_robot = theta;
-            target_sens = sens;
+            waitingAckID = ASSERVISSEMENT_XYT;
+            waitingAckFrom = ACKNOWLEDGE_MOTEUR;
+            if ((x <= 0) || (y <= 0)) {
+                //deplacement.positionXYTheta(target_x_robot, target_y_robot, target_theta_robot, sens);
+               
+            } else {
+                deplacement.positionXYTheta(x, y, theta, sens);
+                target_x_robot = x;
+                target_y_robot = y;
+                target_theta_robot = theta;
+                target_sens = sens;
 
-            flag.wait_all(AckFrom_FLAG, 20000);
+                flag.wait_all(AckFrom_FLAG, 20000);
 
-            waitingAckID_FIN = ASSERVISSEMENT_XYT;
-            waitingAckFrom_FIN = INSTRUCTION_END_MOTEUR;
-            gameEtat = ETAT_GAME_MVT_DANGER;
-//            flag.wait_all(AckFrom_FIN_FLAG, 20000);
+                waitingAckID_FIN = ASSERVISSEMENT_XYT;
+                waitingAckFrom_FIN = INSTRUCTION_END_MOTEUR;
+                gameEtat = ETAT_GAME_MVT_DANGER;
+//              flag.wait_all(AckFrom_FIN_FLAG, 20000);//A ne pas mettre, geré dans ETAT_GAME_MVT_DANGER avec le le lidar
+            }
+
+            
         } break;
-        case MV_COURBURE: {
+        case MV_COURBURE: {//code inversion Fait mais a tester
             //    int16_t rayon;
             int16_t angle;
             int8_t sens;
@@ -737,9 +770,14 @@ void procesInstructions(Instruction instruction) {
             /*if(InversStrat == 1 && ingnorInversionOnce == 0) {
                 localData1 = -localData1;//Inversion de la direction
             }*/
+            if(color == VERT){//A tester, je ne suis pas sûre
+                sens = -sens;
+                angle = -angle;//Inversion de la direction
+            }
             enum EnumInstructionDirection directionxyt;
             waitingAckID = ASSERVISSEMENT_COURBURE;
             waitingAckFrom = ACKNOWLEDGE_MOTEUR;
+            
             deplacement.courbure(instruction.arg1, angle, sens);
 
             alph = angle;
@@ -798,42 +836,30 @@ void procesInstructions(Instruction instruction) {
             uint8_t etatHerkulex = ((instruction.arg2 == 1) ? 1 : 0);
             uint8_t sens = (instruction.arg3 & 0xFF);
             actionPrecedente = PINCE;
-            if (instruction.nextActionType != ENCHAINEMENT){
+            // if (instruction.nextActionType != ENCHAINEMENT){
                 waitingAckID = IDCAN_PINCE;
                 waitingAckFrom = ACKNOWLEDGE_ACTIONNEURS;
-            }
+            // }
             
             // printf("Herkulex.controlePince(Etage : %d, etatHerkulex : %d, sens : %d);\n",Etage,etatHerkulex, sens);
             
             herkulex.controlePince(Etage, etatHerkulex, sens);
             printf("Herkulex.controlePince(Etage : %d, etatHerkulex : %d, sens : %d);\n", Etage, etatHerkulex, sens);
 
-            if (instruction.nextActionType != ENCHAINEMENT){
+            // if (instruction.nextActionType != ENCHAINEMENT){
                 flag.wait_all(AckFrom_FLAG, 20000);
 
                 waitingAckID_FIN = IDCAN_PINCE;
                 waitingAckFrom_FIN = INSTRUCTION_END_PINCE;
-                flag.wait_all(AckFrom_FIN_FLAG, 20000);
-            }
+                flag.wait_all(AckFrom_FIN_FLAG, 10000);
+            // }
 
             
         } break;
             case ACTION:
             {
-                
-            if ((instruction.arg1 == 30))//Pose cerise
-            {
-                waitingAckID = IDCAN_POSE_CERISE;
-                waitingAckFrom = ACKNOWLEDGE_ACTIONNEURS;
-                herkulex.poseCerise();
-                printf("instruction.arg1 == 30 ; poseCerise\n");
-                flag.wait_all(AckFrom_FLAG, 20000);
-
-                waitingAckID_FIN = IDCAN_POSE_CERISE;
-                waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;
-                flag.wait_all(AckFrom_FIN_FLAG, 20000);
-            }
-            else if (instruction.arg1 == 10)//Pince arriere
+                actionPrecedente = ACTION;
+            if (instruction.arg1 == 10)//Pince arriere
             {
                 
                 uint8_t etat_pince = instruction.arg2;// 0 -> fermé, 1 -> position gateau, 2 -> ouvert
@@ -843,30 +869,114 @@ void procesInstructions(Instruction instruction) {
                 herkulex.controlePinceArriere(etat_pince, poseCerise);
                 printf("instruction.arg1 == 10 ; Pince arriere ; ");
                 printf("etat_pince : %d ; poseCerise : %d\n", etat_pince, poseCerise);
-                flag.wait_all(AckFrom_FLAG, 20000);
+                flag.wait_all(AckFrom_FLAG, 2500);
 
                 waitingAckID_FIN = IDCAN_PINCE_ARRIERE;
                 waitingAckFrom_FIN = INSTRUCTION_END_PINCE;
-                flag.wait_all(AckFrom_FIN_FLAG, 20000);
-            }else if(instruction.arg1 == 20){//Aspirateur
+                flag.wait_all(AckFrom_FIN_FLAG, 2500);
+            }else if(instruction.arg1 == 20){//Aspirateur droit
                 bool activationAspirateur = (instruction.arg2 != 0) ? true : false;
+                ASPIRATEUR choix = DROIT;
 
-                waitingAckID = IDCAN_ASPIRATEUR;
+                if(color == VERT){//code inversion
+                    choix = GAUCHE;
+                }
+
+
+                waitingAckID = IDCAN_ASPIRATEUR_DROIT;
                 waitingAckFrom = ACKNOWLEDGE_ACTIONNEURS;
-                herkulex.controleAspirateur(activationAspirateur);
+                herkulex.controleAspirateur(choix, activationAspirateur);
 
-                flag.wait_all(AckFrom_FLAG, 20000);
+                flag.wait_all(AckFrom_FLAG, 2500);
 
-                waitingAckID_FIN = IDCAN_ASPIRATEUR;
+                waitingAckID_FIN = IDCAN_ASPIRATEUR_GAUCHE;
                 waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;
-                flag.wait_all(AckFrom_FIN_FLAG, 20000);
-            }else if(instruction.arg1 == 40){//Reglage vitesse et acceleration
+                flag.wait_all(AckFrom_FIN_FLAG, 5000);
+                
+
+                int distance_tot = 0;
+                while(distance_tot<280 && activationAspirateur){
+                    const int16_t distance = 60;
+
+                    waitingAckID_FIN = IDCAN_CAPTEURS_BALLE;
+                    waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;//Attente qu'une balle soit aspirer
+
+                    instructionsLigneDroite(distance);
+                    distance_tot += distance;
+
+                    if (flag.wait_all(AckFrom_FIN_FLAG, 5000) == osFlagsErrorTimeout) {
+                        //if(distance_tot && distance_tot <= 60){break;}//Si une des deux premieres balles aprés la 1ere balle n'est pas présente, alors la recharge de cerises a déja etait prise
+                    }
+                }
+
+
+            }else if(instruction.arg1 == 30){//Aspirateur gauche
+                bool activationAspirateur = (instruction.arg2 != 0) ? true : false;
+                ASPIRATEUR choix = GAUCHE;
+
+                if(color == VERT){//code inversion
+                    choix = DROIT;
+                }
+
+                waitingAckID = IDCAN_ASPIRATEUR_DROIT;
+                waitingAckFrom = ACKNOWLEDGE_ACTIONNEURS;
+                herkulex.controleAspirateur(choix, activationAspirateur);
+
+                flag.wait_all(AckFrom_FLAG, 2500);
+
+                waitingAckID_FIN = IDCAN_ASPIRATEUR_GAUCHE;
+                waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;
+                flag.wait_all(AckFrom_FIN_FLAG, 5000);
+
+                int distance_tot = 0;
+                while(distance_tot<280 && activationAspirateur){
+                    const int16_t distance = 60;
+
+                    waitingAckID_FIN = IDCAN_CAPTEURS_BALLE;
+                    waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;//Attente qu'une balle soit aspirer
+
+                    instructionsLigneDroite(distance);
+                    distance_tot += distance;
+
+                    if (flag.wait_all(AckFrom_FIN_FLAG, 5000) == osFlagsErrorTimeout) {
+                        //if(distance_tot && distance_tot <= 60){break;}//Si une des deux premieres balles aprés la 1ere balle n'est pas présente, alors la recharge de cerises a déja etait prise
+                    }
+                }
+            
+            }
+            else if(instruction.arg1 == 40){//Lanceur
+                uint8_t activation = instruction.arg2;
+                if(activation){
+                    waitingAckID = IDCAN_LANCEUR;
+                    waitingAckFrom = ACKNOWLEDGE_ACTIONNEURS;
+                    herkulex.controleLanceur(activation);
+
+                    flag.wait_all(AckFrom_FLAG, 2500);
+
+                    waitingAckID_FIN = IDCAN_LANCEUR;
+                    waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;
+                    flag.wait_all(AckFrom_FIN_FLAG, 2500);
+                }
+            
+            }else if(instruction.arg1 == 50){//Reglage vitesse et acceleration
                 uint16_t vitesse = 600 - instruction.arg2 * 300;//3 niveau de vitesse
                 if(vitesse<=150){vitesse = 150;}
 
 
-                deplacement.vitesse(vitesse);
+                //deplacement.vitesse(vitesse);
             
+            }
+            else if ((instruction.arg1 == 60))//Pose cerise
+            {
+                waitingAckID = IDCAN_POSE_CERISE;
+                waitingAckFrom = ACKNOWLEDGE_ACTIONNEURS;
+                herkulex.poseCerise();
+                printf("instruction.arg1 == 30 ; poseCerise\n");
+                flag.wait_all(AckFrom_FLAG, 1000);
+
+                waitingAckID_FIN = IDCAN_POSE_CERISE;
+                waitingAckFrom_FIN = INSTRUCTION_END_ACTIONNEURS;
+                flag.wait_all(AckFrom_FIN_FLAG, 1000);
             }
             }
             break;
@@ -898,30 +1008,92 @@ bool machineRecalage() {
             
             waitingAckID = ACKNOWLEDGE_ACTIONNEURS;
             waitingAckFrom = IDCAN_PINCE_ARRIERE;
-            herkulex.controlePinceArriere(0,0);//position fermer pour ne pas gener recalage arriere
-            printf("herkulex.controlePinceArriere(0,0);\n");
-            herkulex.changerIdHerkulexPince(8);
-            printf("herkulex.changerIdHerkulexPince(8);\n");
 
-            herkulex.controlePince(4,0,0);//position à 80 mm de haut pour ne pas gener recalage avant
-            printf("herkulex.controlePince(4,0,0);\n");
-            deplacement.asservOn();
+            deplacement.asservOn(); ThisThread::sleep_for(50ms);
             printf("deplacement.asservOn();\n");
-            herkulex.stepMotorMode(0);
+
+            herkulex.changerIdHerkulexPince(8); ThisThread::sleep_for(50ms);
+            printf("herkulex.changerIdHerkulexPince(8);\n");
+            
+            herkulex.stepMotorMode(0);  ThisThread::sleep_for(50ms);
             printf("herkulex.stepMotorMode(0);\n");
+            
+            //position fermer pour ne pas gener recalage arriere
+            herkulex.controlePinceArriere(0,0); ThisThread::sleep_for(50ms);
+            printf("herkulex.controlePinceArriere(0,0);\n");
+            
+            herkulex.controlePince(0,0,0);  ThisThread::sleep_for(50ms);
+            printf("herkulex.controlePince(0,0,0);\n");
+            
+
+            
+            
 
             int16_t distance = -1000;
-            uint16_t val_recalage;
+            uint16_t val_recalage = MOITIEE_ROBOT;
 
-            if (Hauteur == ROBOT_EN_BAS) {
+            // if (Hauteur == ROBOT_EN_BAS) {
+            //     val_recalage = 2000 - (MOITIEE_ROBOT);
+            // } else {
+            //     val_recalage = MOITIEE_ROBOT;
+            // }
+            
+            // if(assiette_choisie == HG_ASS_VERTE_CARRE){
+
+            // }else 
+            if(assiette_choisie == HG_ASS_VERTE_CARRE){
+                depart_x = 225; depart_y = 450 - MOITIEE_ROBOT;         depart_theta_robot = 0;
+
+            }else if(assiette_choisie == BG_ASS_BLEU_CARRE){
+                depart_x = 2000 - 225; depart_y = 450 - MOITIEE_ROBOT;         depart_theta_robot = 1800;
                 val_recalage = 2000 - (MOITIEE_ROBOT);
-            } else {
-                val_recalage = MOITIEE_ROBOT;
+
+            }else if(assiette_choisie == HC_ASS_BLEU){//Base
+                depart_x = 225; depart_y = (900 + 450) - MOITIEE_ROBOT;   depart_theta_robot = 0;
+
+            }else if(assiette_choisie == HC_ASS_VERT){//Base
+                depart_x = 225; depart_y = (3000 - 900 - 450) + MOITIEE_ROBOT;         depart_theta_robot = 0;
+
+            }else if(assiette_choisie == BC_ASS_BLEU){//Base
+                depart_x = 2000-225; depart_y = (3000 - 900 - 450) + MOITIEE_ROBOT;         depart_theta_robot = 1800;
+                val_recalage = 2000 - (MOITIEE_ROBOT);
+
+            }else if(assiette_choisie == BC_ASS_VERT){//Base
+                depart_x = 2000-225; depart_y = (900 + 450) - MOITIEE_ROBOT;         depart_theta_robot = 1800;
+                val_recalage = 2000 - (MOITIEE_ROBOT);
+
+            }else if(assiette_choisie == HD_ASS_BLEU){
+                depart_x = 225; depart_y = 450 - MOITIEE_ROBOT;         depart_theta_robot = 0;
+
+            }else if(assiette_choisie == HD_ASS_VERT){//Recalage sur y
+                depart_x = 225; depart_y = 450 - MOITIEE_ROBOT;         depart_theta_robot = -900;
+
+            }else if(assiette_choisie == BD_ASS_BLEU){//Recalage sur y
+                depart_x = 225; depart_y = 450 - MOITIEE_ROBOT;         depart_theta_robot = -900;
+                val_recalage = 2000 - (MOITIEE_ROBOT);
+
+            }else if(assiette_choisie == BD_ASS_VERT){
+                depart_x = 2000 - 225; depart_y = 450 - MOITIEE_ROBOT;         depart_theta_robot = 0;
+                val_recalage = 2000 - (MOITIEE_ROBOT);
+
+            }else{//HG_ASS_VERTE_CARRE
+                depart_x = 225; depart_y = 450 - MOITIEE_ROBOT;         depart_theta_robot = 0;
+
             }
 
+            deplacement.setOdoPetit(depart_x, depart_y, depart_theta_robot); ThisThread::sleep_for(50ms);
+            printf("deplacement.setOdoPetit(depart_x, depart_y, depart_theta_robot);\n");
+            
+            // deplacement.setOdoGrand(depart_x, depart_y, depart_theta_robot); ThisThread::sleep_for(50ms);
+            
             waitingAckID = ASSERVISSEMENT_RECALAGE;
             waitingAckFrom = ACKNOWLEDGE_MOTEUR;
-            deplacement.recalage(distance, 1, val_recalage);
+            if(assiette_choisie == HD_ASS_VERT || assiette_choisie == BD_ASS_BLEU){
+                deplacement.recalage(distance, 2, val_recalage);
+            }else{
+                deplacement.recalage(distance, 1, val_recalage);
+            }
+            
             // printf("deplacement.recalage(distance : %d, 1, val_recalage : %d);\n", distance, val_recalage);
             if (flag.wait_all(AckFrom_FLAG, 20000) == osFlagsErrorTimeout) {
                 // printf("osErrorTimeout, recalage fail, RECALAGE_1, waitingAckID\n");
@@ -971,12 +1143,24 @@ bool machineRecalage() {
         case GOTOPOS: {
             waitingAckID = ASSERVISSEMENT_XYT;
             waitingAckFrom = ACKNOWLEDGE_MOTEUR;
-            deplacement.positionXYTheta(instruction.arg1, instruction.arg2, instruction.arg3, 0);
+            uint16_t x;
+            uint16_t y = instruction.arg2;
+            int16_t theta = instruction.arg3;;
+
+            if(color == VERT){//code inversion sur X Fait
+                x = 2000 - instruction.arg1;// Inversion du X
+                theta = 1800 - instruction.arg3; if(theta > 1800){theta -= 3600;} else if(theta < -1800){theta += 3600;}
+            }else{
+                x = instruction.arg1;
+                theta = instruction.arg3;
+            }
+
+            deplacement.positionXYTheta(x, y, theta, 0);
             // printf("deplacement.positionXYTheta(instruction.arg1 : %d, instruction.arg2 : %d, instruction.arg3 : %d, 0);\n", instruction.arg1, instruction.arg2, instruction.arg3);
             if (flag.wait_all(AckFrom_FLAG, 20000) == osFlagsErrorTimeout) {
                 // printf("osErrorTimeout, recalage, GOTOPOS, waitingAckID\n");
                 gameEtat = ETAT_GAME_INIT;
-                recalageErreur = -11;
+                recalageErreur = -5;
                 return false;
             }
 
@@ -985,21 +1169,20 @@ bool machineRecalage() {
             if (flag.wait_all(AckFrom_FIN_FLAG, 20000) == osFlagsErrorTimeout) {
                 // printf("osErrorTimeout, recalage, GOTOPOS, waitingAckID_FIN\n");
                 gameEtat = ETAT_GAME_INIT;
-                recalageErreur = -12;
+                recalageErreur = -6;
                 return false;
             }
             etat_pos = FIN_POS;
         } break;
         case FIN_POS: {
             // actual_instruction = instruction.nextLineOK;
-            listeInstructions.vaLigne(instruction.nextLineOK);
+            int ligne = ((instruction.nextLineOK != instruction.lineNumber) ? instruction.nextLineOK : (instruction.lineNumber+1));
+            listeInstructions.vaLigne(ligne);
             target_x_robot = x_robot;
             target_y_robot = y_robot;
             target_theta_robot = theta_robot;
 
-            herkulex.controlePince(0,0,0);
-
-            gameEtat = ETAT_GAME_WAIT_FOR_JACK;
+            herkulex.controlePinceArriere(2,0); ::ThisThread::sleep_for(50ms);
             return false;
         } break;
     
@@ -1209,3 +1392,106 @@ switch (etat_pos) {
             break;
     }
     */
+
+void instructionsLigneDroite(int16_t distance){//Sans Lidar
+    waitingAckID = ASSERVISSEMENT_RECALAGE;
+    waitingAckFrom = ACKNOWLEDGE_MOTEUR;
+
+    deplacement.toutDroit(distance);
+
+    flag.wait_all(AckFrom_FLAG, 20000);
+
+    waitingAckID_FIN = ASSERVISSEMENT_RECALAGE;
+    waitingAckFrom_FIN = INSTRUCTION_END_MOTEUR;
+    flag.wait_all(AckFrom_FIN_FLAG, 20000);
+}
+
+
+
+//ACKNOWLEDGE_MOTEUR ACKNOWLEDGE_ACTIONNEURS INSTRUCTION_END_PINCE
+string AckToString(int id){
+    switch (id)
+    {
+        //Partie waitingAckFrom
+    case ACKNOWLEDGE_MOTEUR:
+        {
+             return "MOTEUR";
+        }
+        break;
+    case ACKNOWLEDGE_ACTIONNEURS:
+        {
+             return "ACTIONNEURS";
+        }
+        break;
+    case INSTRUCTION_END_PINCE:
+        {
+             return "PINCE AVANT";
+        }
+        break;
+    //Partie waitingAckID
+    case ASSERVISSEMENT_RECALAGE:
+        {
+             return "Recalage ou line";
+        }
+        break;
+    case ASSERVISSEMENT_ROTATION:
+        {
+             return "ROTATION";
+        }
+        break;
+    case ASSERVISSEMENT_XYT:
+        {
+             return "XYT";
+        }
+        break;
+    case ASSERVISSEMENT_COURBURE:
+        {
+             return "COURBURE";
+        }
+        break;
+    case IDCAN_PINCE:
+        {
+             return "PINCE AVANT";
+        }
+        break;
+    case IDCAN_POSE_CERISE:
+        {
+             return "POSE CERISE";
+        }
+        break;
+    case IDCAN_PINCE_ARRIERE:
+        {
+             return "PINCE ARRIERE";
+        }
+        break;
+    case IDCAN_ASPIRATEUR_DROIT:
+        {
+             return "ASPIRATEUR DROIT";
+        }
+        break;
+    case IDCAN_ASPIRATEUR_GAUCHE:
+        {
+             return "ASPIRATEUR GAUCHE";
+        }
+        break;
+    case IDCAN_LANCEUR:
+        {
+             return "LANCEUR";
+        }
+        break;
+
+    default:
+        break;
+    }
+
+    return "0";
+}
+
+bool getFlag(ACKFlags f, bool clearIfSet) {
+    if (flag.get() & f) {
+        if (clearIfSet)
+            flag.clear(f);
+        return true;
+    }
+    return false;
+}

@@ -151,59 +151,62 @@ void Ihm::recalagePositionInit() {
     lv_obj_set_grid_cell(titreRecalage, LV_GRID_ALIGN_STRETCH, 0, 1,
                          LV_GRID_ALIGN_STRETCH, 0, 1);
 
-    hautGauche = lv_btn_create(container);
-    lv_obj_t *label = lv_label_create(hautGauche);
-    lv_label_set_text(label, "En Haut à gauche");
-    lv_obj_set_style_bg_color(hautGauche, lv_palette_main(LV_PALETTE_LIGHT_BLUE), LV_STATE_DEFAULT);
-    lv_obj_center(label);
-    lv_obj_set_grid_cell(hautGauche, LV_GRID_ALIGN_STRETCH, 0, 1,
-                         LV_GRID_ALIGN_STRETCH, 1, 1);
-    lv_obj_add_event_cb(hautGauche, Ihm::eventHandler, LV_EVENT_CLICKED, this);
-
-    basGauche = lv_btn_create(container);
-    label = lv_label_create(basGauche);
-    lv_label_set_text(label, "En Bas à gauche");
-    lv_obj_set_style_bg_color(basGauche, lv_palette_main(LV_PALETTE_LIGHT_BLUE), LV_STATE_DEFAULT);
-    lv_obj_center(label);
-    lv_obj_set_grid_cell(basGauche, LV_GRID_ALIGN_STRETCH, 0, 1,
-                         LV_GRID_ALIGN_STRETCH, 2, 1);
-    lv_obj_add_event_cb(basGauche, Ihm::eventHandler, LV_EVENT_CLICKED, this);
-
-    hautMilieu = lv_btn_create(container);
-    label = lv_label_create(hautMilieu);
-    lv_label_set_text(label, "En Haut au milieu");
-    lv_obj_set_style_bg_color(hautMilieu, lv_palette_main(LV_PALETTE_LIGHT_BLUE), LV_STATE_DEFAULT);
-    lv_obj_center(label);
-    lv_obj_set_grid_cell(hautMilieu, LV_GRID_ALIGN_STRETCH, 1, 1,
-                         LV_GRID_ALIGN_STRETCH, 1, 1);
-    lv_obj_add_event_cb(hautMilieu, Ihm::eventHandler, LV_EVENT_CLICKED, this);
-
-    basMilieu = lv_btn_create(container);
-    label = lv_label_create(basMilieu);
-    lv_label_set_text(label, "En Bas au milieu");
-    lv_obj_set_style_bg_color(basMilieu, lv_palette_main(LV_PALETTE_LIGHT_BLUE), LV_STATE_DEFAULT);
-    lv_obj_center(label);
-    lv_obj_set_grid_cell(basMilieu, LV_GRID_ALIGN_STRETCH, 1, 1,
-                         LV_GRID_ALIGN_STRETCH, 2, 1);
-    lv_obj_add_event_cb(basMilieu, Ihm::eventHandler, LV_EVENT_CLICKED, this);
 
     hautDroit = lv_btn_create(container);
-    label = lv_label_create(hautDroit);
-    lv_label_set_text(label, "En Haut à droite");
-    lv_obj_set_style_bg_color(hautDroit, lv_palette_main(LV_PALETTE_LIGHT_BLUE), LV_STATE_DEFAULT);
+    lv_obj_t *label = lv_label_create(hautDroit);
+    lv_label_set_text(label, "Assiette verte Carree");
+    lv_obj_set_style_bg_color(hautDroit, lv_palette_main(LV_PALETTE_LIGHT_GREEN), LV_STATE_DEFAULT);
     lv_obj_center(label);
-    lv_obj_set_grid_cell(hautDroit, LV_GRID_ALIGN_STRETCH, 2, 1,
+    lv_obj_set_grid_cell(hautDroit, LV_GRID_ALIGN_STRETCH, 0, 1,
                          LV_GRID_ALIGN_STRETCH, 1, 1);
     lv_obj_add_event_cb(hautDroit, Ihm::eventHandler, LV_EVENT_CLICKED, this);
 
     basDroit = lv_btn_create(container);
     label = lv_label_create(basDroit);
-    lv_label_set_text(label, "En Bas à droite");
+    lv_label_set_text(label, "Assiette bleu Carree");
     lv_obj_set_style_bg_color(basDroit, lv_palette_main(LV_PALETTE_LIGHT_BLUE), LV_STATE_DEFAULT);
     lv_obj_center(label);
-    lv_obj_set_grid_cell(basDroit, LV_GRID_ALIGN_STRETCH, 2, 1,
+    lv_obj_set_grid_cell(basDroit, LV_GRID_ALIGN_STRETCH, 0, 1,
                          LV_GRID_ALIGN_STRETCH, 2, 1);
     lv_obj_add_event_cb(basDroit, Ihm::eventHandler, LV_EVENT_CLICKED, this);
+
+    hautGauche = lv_btn_create(container);
+    label = lv_label_create(hautGauche);
+    lv_label_set_text(label, "Assiette bleu HC");
+    lv_obj_set_style_bg_color(hautGauche, lv_palette_main(LV_PALETTE_LIGHT_BLUE), LV_STATE_DEFAULT);
+    lv_obj_center(label);
+    lv_obj_set_grid_cell(hautGauche, LV_GRID_ALIGN_STRETCH, 1, 1,
+                         LV_GRID_ALIGN_STRETCH, 1, 1);
+    lv_obj_add_event_cb(hautGauche, Ihm::eventHandler, LV_EVENT_CLICKED, this);
+
+    basGauche = lv_btn_create(container);
+    label = lv_label_create(basGauche);
+    lv_label_set_text(label, "Assiette verte BC");
+    lv_obj_set_style_bg_color(basGauche, lv_palette_main(LV_PALETTE_LIGHT_GREEN), LV_STATE_DEFAULT);
+    lv_obj_center(label);
+    lv_obj_set_grid_cell(basGauche, LV_GRID_ALIGN_STRETCH, 1, 1,
+                         LV_GRID_ALIGN_STRETCH, 2, 1);
+    lv_obj_add_event_cb(basGauche, Ihm::eventHandler, LV_EVENT_CLICKED, this);
+
+    hautMilieu = lv_btn_create(container);
+    label = lv_label_create(hautMilieu);
+    lv_label_set_text(label, "Assiette verte HC");
+    lv_obj_set_style_bg_color(hautMilieu, lv_palette_main(LV_PALETTE_LIGHT_GREEN), LV_STATE_DEFAULT);
+    lv_obj_center(label);
+    lv_obj_set_grid_cell(hautMilieu, LV_GRID_ALIGN_STRETCH, 2, 1,
+                         LV_GRID_ALIGN_STRETCH, 1, 1);
+    lv_obj_add_event_cb(hautMilieu, Ihm::eventHandler, LV_EVENT_CLICKED, this);
+
+    basMilieu = lv_btn_create(container);
+    label = lv_label_create(basMilieu);
+    lv_label_set_text(label, "Assiette bleu BC");
+    lv_obj_set_style_bg_color(basMilieu, lv_palette_main(LV_PALETTE_LIGHT_BLUE), LV_STATE_DEFAULT);
+    lv_obj_center(label);
+    lv_obj_set_grid_cell(basMilieu, LV_GRID_ALIGN_STRETCH, 2, 1,
+                         LV_GRID_ALIGN_STRETCH, 2, 1);
+    lv_obj_add_event_cb(basMilieu, Ihm::eventHandler, LV_EVENT_CLICKED, this);
+
+
 
     etatRecalage = lv_btn_create(container);
     label = lv_label_create(etatRecalage);
@@ -293,14 +296,15 @@ void Ihm::configInit(const vector<string> fichiers, int v) {
 void Ihm::ActionneurInit() {
     m_threadLvgl->lock();
 
-    /*Column 1: 1 unit from the remaining free space
+   /*Column 1: 1 unit from the remaining free space
      *Column 2: 1 unit from the remaining free space*/
-    static lv_coord_t col[] = {LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
+    static lv_coord_t col[] = {LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
 
     /*Row 1: 30 pixels
-     *Row 2: 2 unit from the remaining free space
-     *Row 3: 2 unit from the remaining free space*/
-    static lv_coord_t row[] = {30, LV_GRID_FR(2), LV_GRID_FR(2), LV_GRID_TEMPLATE_LAST};
+     *Row 2: 1 unit from the remaining free space
+     *Row 3: 1 unit from the remaining free space*/
+    static lv_coord_t row[] = {30, LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
+
 
     tabActionneur = lv_tabview_add_tab(tabView, "Test Actionneur");
     /*Create a container with grid*/
@@ -357,6 +361,28 @@ void Ihm::ActionneurInit() {
     lv_obj_set_grid_cell(stepMotor, LV_GRID_ALIGN_STRETCH, 1, 1,
                          LV_GRID_ALIGN_STRETCH, 2, 1);
     lv_obj_add_event_cb(stepMotor, Ihm::eventHandler, LV_EVENT_CLICKED, this);
+
+
+    AsservActiv = lv_btn_create(container);
+    label = lv_label_create(AsservActiv);
+    lv_label_set_text(label, "Activation Asserv");
+    lv_obj_add_flag(AsservActiv, LV_OBJ_FLAG_CHECKABLE);
+    lv_obj_set_style_bg_color(AsservActiv, lv_palette_main(LV_PALETTE_GREEN), LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(AsservActiv, lv_palette_main(LV_PALETTE_RED), LV_STATE_CHECKED);
+    lv_obj_center(label);
+    lv_obj_set_grid_cell(AsservActiv, LV_GRID_ALIGN_STRETCH, 2, 1,
+                         LV_GRID_ALIGN_STRETCH, 1, 1);
+    lv_obj_add_event_cb(AsservActiv, Ihm::eventHandler, LV_EVENT_CLICKED, this);
+
+
+    Aspirateur = lv_btn_create(container);
+    label = lv_label_create(Aspirateur);
+    lv_label_set_text(label, " Aspirateur ");
+    lv_obj_set_style_bg_color(Aspirateur, lv_palette_main(LV_PALETTE_LIGHT_GREEN), LV_STATE_DEFAULT);
+    lv_obj_center(label);
+    lv_obj_set_grid_cell(Aspirateur, LV_GRID_ALIGN_STRETCH, 2, 1,
+                         LV_GRID_ALIGN_STRETCH, 2, 1);
+    lv_obj_add_event_cb(Aspirateur, Ihm::eventHandler, LV_EVENT_CLICKED, this);
 
     m_threadLvgl->unlock();
 }
@@ -446,6 +472,12 @@ void Ihm::eventHandler(lv_event_t *e) {
         ihm->flags.set(IHM_FLAG_ACTIONNEUR_PINCE_AVANT);
     }else if(emetteur == ihm->stepMotor){
         ihm->flags.set(IHM_FLAG_ACTIONNEUR_STEP_MOTOR);
+    }   
+    else if(emetteur == ihm->AsservActiv){
+        ihm->flags.set(IHM_FLAG_ACTIONNEUR_ASSERV_ACTIV);
+    }   
+    else if(emetteur == ihm->Aspirateur){
+        ihm->flags.set(IHM_FLAG_ACTIONNEUR_ASPIRATEUR);
     }   
 }
 

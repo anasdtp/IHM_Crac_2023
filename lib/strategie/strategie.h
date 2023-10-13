@@ -5,11 +5,12 @@
 #include "threadSD.h"
 #include <instruction.h>
 
-enum
+typedef enum
 {
     AckFrom_FLAG     =   (1UL << 0),
     AckFrom_FIN_FLAG =   (1UL << 1),
-};
+    JACK             =   (1UL << 2),
+}ACKFlags;
 
 typedef enum
 {
@@ -83,6 +84,8 @@ extern T_etat strat_etat_s;
 #define ROBOT_EN_HAUT 0
 #define ROBOT_EN_BAS 1
 
+
+
 void canProcessRx(CANMessage *rxMsg);
 void Strategie(void);
 
@@ -95,8 +98,10 @@ void printCANMsg(CANMessage& msg);
 void remplirStruct(CANMessage &theDATA, int idf, char lenf, char dt0f, char dt1f, char dt2f, char dt3f, char dt4f, char dt5f, char dt6f, char dt7f);
 
 bool machineStrategie();
+void procesInstructions(Instruction instruction);
 bool machineRecalageInit();
 bool machineRecalage();
-void procesInstructions(Instruction instruction);
-
+void instructionsLigneDroite(int16_t distance);
+string AckToString(int id);
+bool getFlag(ACKFlags f, bool clearIfSet);
 #endif

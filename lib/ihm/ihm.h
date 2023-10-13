@@ -37,6 +37,8 @@ protected:
         IHM_FLAG_ACTIONNEUR_STEP_MOTOR =    (1UL << 19),
         IHM_FLAG_RECALAGE_BASMILIEU =       (1UL << 20),
         IHM_FLAG_RECALAGE_HAUTMILIEU =      (1UL << 21),
+        IHM_FLAG_ACTIONNEUR_ASPIRATEUR =     (1UL << 22),
+        IHM_FLAG_ACTIONNEUR_ASSERV_ACTIV =    (1UL << 23),
          
     } IhmFlag;
     EventFlags flags;
@@ -78,6 +80,8 @@ protected:
     lv_obj_t *PinceArriere;
     lv_obj_t *PinceAvant;
     lv_obj_t *stepMotor;
+    lv_obj_t *Aspirateur;
+    lv_obj_t *AsservActiv;
     
     int volume;
     int mp3;
@@ -94,11 +98,7 @@ protected:
     bool getFlag(IhmFlag f, bool clearIfSet = true);
 
 public:
-    enum
-    {
-        VERT = 0,
-        BLEU = 1
-    };
+    
     Ihm(ThreadLvgl *t);
     void sdMsg(const char *msg1, const char *msg2 = "");
     void matchInit(const vector<string> fichiers);
@@ -114,6 +114,8 @@ public:
     bool recalageBasGaucheClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_RECALAGE_BASGAUCHE, clearIfSet); }
     bool recalageHautDroitClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_RECALAGE_HAUTDROIT, clearIfSet); }
     bool recalageBasDroitClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_RECALAGE_BASDROIT, clearIfSet); }
+    bool recalageMilieuHautClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_RECALAGE_HAUTMILIEU, clearIfSet);}
+    bool recalageMilieuBasClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_RECALAGE_BASMILIEU, clearIfSet);}
     bool activationRecalageClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_RECALAGE_ETAT, clearIfSet); }
     bool playClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_PLAY, clearIfSet); }
     bool stopClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_STOP, clearIfSet); }
@@ -124,6 +126,8 @@ public:
     bool actionneurPinceArriereClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_ACTIONNEUR_PINCE_ARRIERE, clearIfSet); }
     bool actionneurPinceAvantClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_ACTIONNEUR_PINCE_AVANT, clearIfSet); }
     bool actionneurStepMotorClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_ACTIONNEUR_STEP_MOTOR, clearIfSet); }
+    bool AspirateurClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_ACTIONNEUR_ASPIRATEUR, clearIfSet); }
+    bool asservActivClicked(bool clearIfSet = true) { return getFlag(IHM_FLAG_ACTIONNEUR_ASSERV_ACTIV, clearIfSet); }
     int choixStrategie() { return departStrategie; }
     int choixCouleur() { return departCouleur; }
     int choixVolume() { return volume; }

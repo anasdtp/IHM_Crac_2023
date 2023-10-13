@@ -3,6 +3,29 @@
 
 #include <vector>
 
+
+typedef enum
+{
+    NO_ASSIETTE,
+    HG_ASS_VERTE_CARRE,
+    BG_ASS_BLEU_CARRE,
+    HC_ASS_BLEU,
+    HC_ASS_VERT,
+    BC_ASS_BLEU,
+    BC_ASS_VERT,
+    HD_ASS_BLEU,
+    HD_ASS_VERT,
+    BD_ASS_BLEU,
+    BD_ASS_VERT,
+}Assiette;
+
+typedef enum
+    {
+        VERT = 0,
+        BLEU = 1
+    }couleurDepart;
+
+
 enum EnumInstructionType {
     MV_BEZIER,      // B
     MV_COURBURE,  // C -> Courbure
@@ -83,6 +106,7 @@ EnumInstructionPrecisionOuRecalage decodeInstructionPrecisionOuRecalage(char typ
 EnumInstructionNextActionType decodeInstructionNextActionType(char type);
 EnumInstructionNextActionJumpType decodeInstructionNextActionJumpType(char type);
 
+
 class ListeInstructions {
    private:
     std::vector<Instruction> liste;
@@ -110,6 +134,8 @@ class ListeInstructions {
     void debut() { actuelle = 0; }
     void suivante();
     bool fin();
+    int size(){return liste.size();}
+    void clear(){liste.clear(); actuelle = 0;}
 };
 
 extern ListeInstructions listeInstructions;
