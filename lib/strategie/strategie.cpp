@@ -1182,7 +1182,7 @@ bool machineRecalage() {
             target_y_robot = y_robot;
             target_theta_robot = theta_robot;
 
-            herkulex.controlePince(0,0,0);
+            herkulex.controlePinceArriere(2,0); ::ThisThread::sleep_for(50ms);
             return false;
         } break;
     
